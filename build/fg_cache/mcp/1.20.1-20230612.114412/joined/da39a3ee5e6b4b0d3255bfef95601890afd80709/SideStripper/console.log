@@ -1,0 +1,9 @@
+JVM:         E:\Java\jdk-17.0.12\bin\java.exe
+JVM Args:    
+Run Args:    "--strip", "--input", "E:\ForgeMDK\forge-1.20.1-47.3.0-mdk\build\fg_cache\mcp\1.20.1-20230612.114412\joined\da39a3ee5e6b4b0d3255bfef95601890afd80709\AccessTransformer\output.jar", "--output", "E:\ForgeMDK\forge-1.20.1-47.3.0-mdk\build\fg_cache\mcp\1.20.1-20230612.114412\joined\da39a3ee5e6b4b0d3255bfef95601890afd80709\SideStripper\output.jar", "--data", "E:\ForgeMDK\forge-1.20.1-47.3.0-mdk\build\fg_cache\mcp\1.20.1-20230612.114412\joined\da39a3ee5e6b4b0d3255bfef95601890afd80709\SideStripper\string_data.sas"
+Classpath:   E:\ForgeMDK\forge-1.20.1-47.3.0-mdk\.gradle\caches\forge_gradle\maven_downloader\net\minecraftforge\mergetool\1.1.7\mergetool-1.1.7-fatjar.jar
+Working Dir: E:\ForgeMDK\forge-1.20.1-47.3.0-mdk\build\fg_cache\mcp\1.20.1-20230612.114412\joined\da39a3ee5e6b4b0d3255bfef95601890afd80709\SideStripper
+Main Class:  net.minecraftforge.mergetool.ConsoleMerger
+Input:  E:\ForgeMDK\forge-1.20.1-47.3.0-mdk\build\fg_cache\mcp\1.20.1-20230612.114412\joined\da39a3ee5e6b4b0d3255bfef95601890afd80709\AccessTransformer\output.jar
+Output: E:\ForgeMDK\forge-1.20.1-47.3.0-mdk\build\fg_cache\mcp\1.20.1-20230612.114412\joined\da39a3ee5e6b4b0d3255bfef95601890afd80709\SideStripper\output.jar
+Data:   E:\ForgeMDK\forge-1.20.1-47.3.0-mdk\build\fg_cache\mcp\1.20.1-20230612.114412\joined\da39a3ee5e6b4b0d3255bfef95601890afd80709\SideStripper\string_data.sas

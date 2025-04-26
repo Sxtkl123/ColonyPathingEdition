@@ -1,0 +1,15 @@
+Java Launcher: E:\Java\jdk-17.0.12\bin\java.exe
+Arguments: '--task, SRG_TO_MCP, --input, E:\ForgeMDK\forge-1.20.1-47.3.0-mdk\.gradle\caches\modules-2\files-2.1\com.ldtteam\multipiston\1.20-1.2.43-RELEASE\1fc108ebf5f9fe34cf0366c7b71adf230400a74c\multipiston-1.20-1.2.43-RELEASE.jar, --output, E:\ForgeMDK\forge-1.20.1-47.3.0-mdk\.gradle\caches\forge_gradle\deobf_dependencies\com\ldtteam\multipiston\1.20-1.2.43-RELEASE_mapped_official_1.20.1\multipiston-1.20-1.2.43-RELEASE_mapped_official_1.20.1.jar, --mcp, E:\ForgeMDK\forge-1.20.1-47.3.0-mdk\.gradle\caches\forge_gradle\mcp_repo\net\minecraft\mapping\1.20.1\mapping-1.20.1-mapping.zip, --strip-signatures'
+Classpath:
+ - E:\ForgeMDK\forge-1.20.1-47.3.0-mdk\.gradle\caches\forge_gradle\maven_downloader\net\minecraftforge\installertools\1.4.4\installertools-1.4.4-fatjar.jar
+Working directory: E:\ForgeMDK\forge-1.20.1-47.3.0-mdk\build\_RenameSrg2Mcp_1825649352
+Main class: net.minecraftforge.installertools.ConsoleTool
+====================================
+Task: SRG_TO_MCP
+Input:  E:\ForgeMDK\forge-1.20.1-47.3.0-mdk\.gradle\caches\modules-2\files-2.1\com.ldtteam\multipiston\1.20-1.2.43-RELEASE\1fc108ebf5f9fe34cf0366c7b71adf230400a74c\multipiston-1.20-1.2.43-RELEASE.jar
+Output: E:\ForgeMDK\forge-1.20.1-47.3.0-mdk\.gradle\caches\forge_gradle\deobf_dependencies\com\ldtteam\multipiston\1.20-1.2.43-RELEASE_mapped_official_1.20.1\multipiston-1.20-1.2.43-RELEASE_mapped_official_1.20.1.jar
+MCP:    E:\ForgeMDK\forge-1.20.1-47.3.0-mdk\.gradle\caches\forge_gradle\mcp_repo\net\minecraft\mapping\1.20.1\mapping-1.20.1-mapping.zip
+Loading MCP Data
+Processing ZIP file
+Stripped Manifest of sha digests
+Process complete

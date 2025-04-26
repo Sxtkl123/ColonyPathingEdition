@@ -1,0 +1,74 @@
+[244月2025 23:11:52.133] [main/INFO] [cpw.mods.modlauncher.Launcher/MODLAUNCHER]: ModLauncher running: args [--launchTarget, forgeclientuserdev, --version, MOD_DEV, --assetIndex, 5, --assetsDir, E:\ForgeMDK\forge-1.20.1-47.3.0-mdk\.gradle\caches\forge_gradle\assets, --gameDir, ., --fml.forgeVersion, 47.3.20, --fml.mcVersion, 1.20.1, --fml.forgeGroup, net.minecraftforge, --fml.mcpVersion, 20230612.114412, --noCoreSearch, --mixin.config, colonypathingedition.mixins.json]
+[244月2025 23:11:52.142] [main/INFO] [cpw.mods.modlauncher.Launcher/MODLAUNCHER]: ModLauncher 10.0.10+10.0.10+main.22f00f84 starting: java version 17.0.12 by Oracle Corporation; OS Windows 11 arch amd64 version 10.0
+[244月2025 23:11:52.306] [main/INFO] [net.minecraftforge.fml.loading.ImmediateWindowHandler/]: Loading ImmediateWindowProvider fmlearlywindow
+[244月2025 23:11:52.489] [main/INFO] [EARLYDISPLAY/]: Trying GL version 4.6
+[244月2025 23:11:53.051] [main/INFO] [EARLYDISPLAY/]: Requested GL version 4.6 got version 4.6
+[244月2025 23:11:53.189] [main/INFO] [mixin/]: SpongePowered MIXIN Subsystem Version=0.8.5 Source=union:/E:/ForgeMDK/forge-1.20.1-47.3.0-mdk/.gradle/caches/modules-2/files-2.1/org.spongepowered/mixin/0.8.5/9d1c0c3a304ae6697ecd477218fa61b850bf57fc/mixin-0.8.5.jar%23132!/ Service=ModLauncher Env=CLIENT
+[244月2025 23:11:53.234] [pool-2-thread-1/INFO] [EARLYDISPLAY/]: GL info: NVIDIA GeForce RTX 2070/PCIe/SSE2 GL version 4.6.0 NVIDIA 566.03, NVIDIA Corporation
+[244月2025 23:11:53.828] [main/WARN] [net.minecraftforge.fml.loading.moddiscovery.ModFileParser/LOADING]: Mod file E:\ForgeMDK\forge-1.20.1-47.3.0-mdk\.gradle\caches\modules-2\files-2.1\net.minecraftforge\javafmllanguage\1.20.1-47.3.20\699aa20eaac814c5a14b7ba5166d8d30e3957ec8\javafmllanguage-1.20.1-47.3.20.jar is missing mods.toml file
+[244月2025 23:11:53.834] [main/WARN] [net.minecraftforge.fml.loading.moddiscovery.ModFileParser/LOADING]: Mod file E:\ForgeMDK\forge-1.20.1-47.3.0-mdk\.gradle\caches\modules-2\files-2.1\net.minecraftforge\lowcodelanguage\1.20.1-47.3.20\a83e0425b51dc29a591c37b317d73482e5620cd5\lowcodelanguage-1.20.1-47.3.20.jar is missing mods.toml file
+[244月2025 23:11:53.842] [main/WARN] [net.minecraftforge.fml.loading.moddiscovery.ModFileParser/LOADING]: Mod file E:\ForgeMDK\forge-1.20.1-47.3.0-mdk\.gradle\caches\modules-2\files-2.1\net.minecraftforge\mclanguage\1.20.1-47.3.20\c1f7b3b6cbffb742dc273a6cf19b47e184f86b6\mclanguage-1.20.1-47.3.20.jar is missing mods.toml file
+[244月2025 23:11:53.849] [main/WARN] [net.minecraftforge.fml.loading.moddiscovery.ModFileParser/LOADING]: Mod file E:\ForgeMDK\forge-1.20.1-47.3.0-mdk\.gradle\caches\modules-2\files-2.1\net.minecraftforge\fmlcore\1.20.1-47.3.20\5f30692efa3201b8fd57d012e9423bd3b9f04fcc\fmlcore-1.20.1-47.3.20.jar is missing mods.toml file
+[244月2025 23:11:54.190] [main/INFO] [net.minecraftforge.fml.loading.moddiscovery.JarInJarDependencyLocator/]: No dependencies to load found. Skipping!
+[244月2025 23:11:56.933] [main/INFO] [mixin/]: Compatibility level set to JAVA_17
+[244月2025 23:11:56.951] [main/INFO] [cpw.mods.modlauncher.LaunchServiceHandler/MODLAUNCHER]: Launching target 'forgeclientuserdev' with arguments [--version, MOD_DEV, --gameDir, ., --assetsDir, E:\ForgeMDK\forge-1.20.1-47.3.0-mdk\.gradle\caches\forge_gradle\assets, --assetIndex, 5, --noCoreSearch]
+[244月2025 23:11:57.117] [main/WARN] [mixin/]: Reference map 'colonypathingedition.refmap.json' for colonypathingedition.mixins.json could not be read. If this is a development environment you can ignore this message
+[244月2025 23:12:04.525] [Datafixer Bootstrap/INFO] [com.mojang.datafixers.DataFixerBuilder/]: 188 Datafixer optimizations took 212 milliseconds
+[244月2025 23:12:07.089] [Render thread/WARN] [net.minecraft.server.packs.VanillaPackResourcesBuilder/]: Assets URL 'union:/E:/ForgeMDK/forge-1.20.1-47.3.0-mdk/build/fg_cache/net/minecraftforge/forge/1.20.1-47.3.20_mapped_parchment_2023.09.03-1.20.1/forge-1.20.1-47.3.20_mapped_parchment_2023.09.03-1.20.1-recomp.jar%23191!/assets/.mcassetsroot' uses unexpected schema
+[244月2025 23:12:07.090] [Render thread/WARN] [net.minecraft.server.packs.VanillaPackResourcesBuilder/]: Assets URL 'union:/E:/ForgeMDK/forge-1.20.1-47.3.0-mdk/build/fg_cache/net/minecraftforge/forge/1.20.1-47.3.20_mapped_parchment_2023.09.03-1.20.1/forge-1.20.1-47.3.20_mapped_parchment_2023.09.03-1.20.1-recomp.jar%23191!/data/.mcassetsroot' uses unexpected schema
+[244月2025 23:12:07.120] [Render thread/INFO] [com.mojang.authlib.yggdrasil.YggdrasilAuthenticationService/]: Environment: authHost='https://authserver.mojang.com', accountsHost='https://api.mojang.com', sessionHost='https://sessionserver.mojang.com', servicesHost='https://api.minecraftservices.com', name='PROD'
+[244月2025 23:12:07.129] [Render thread/INFO] [net.minecraft.client.Minecraft/]: Setting user: Dev
+[244月2025 23:12:07.348] [Render thread/INFO] [net.minecraft.client.Minecraft/]: Backend library: LWJGL version 3.3.1 build 7
+[244月2025 23:12:07.883] [modloading-worker-0/INFO] [net.minecraftforge.common.ForgeMod/FORGEMOD]: Forge mod loading, version 47.3.20, for MC 1.20.1 with MCP 20230612.114412
+[244月2025 23:12:07.883] [modloading-worker-0/INFO] [net.minecraftforge.common.MinecraftForge/FORGE]: MinecraftForge v47.3.20 Initialized
+[244月2025 23:12:08.077] [Structurize IO Worker #0/INFO] [structurize/]: Registered structure pack: Warped Netherlands
+[244月2025 23:12:08.077] [Structurize IO Worker #0/INFO] [structurize/]: Registered structure pack: Stalactite Caves
+[244月2025 23:12:08.078] [Structurize IO Worker #0/INFO] [structurize/]: Registered structure pack: Space Wars
+[244月2025 23:12:08.078] [Structurize IO Worker #0/INFO] [structurize/]: Registered structure pack: Shire
+[244月2025 23:12:08.079] [Structurize IO Worker #0/INFO] [structurize/]: Registered structure pack: Desert Oasis
+[244月2025 23:12:08.079] [Structurize IO Worker #0/INFO] [structurize/]: Registered structure pack: Pagoda
+[244月2025 23:12:08.081] [Structurize IO Worker #0/INFO] [structurize/]: Registered structure pack: Minecolonies Original
+[244月2025 23:12:08.081] [Structurize IO Worker #0/INFO] [structurize/]: Registered structure pack: Nordic Spruce
+[244月2025 23:12:08.081] [Structurize IO Worker #0/INFO] [structurize/]: Registered structure pack: Medieval Spruce
+[244月2025 23:12:08.082] [Structurize IO Worker #0/INFO] [structurize/]: Registered structure pack: Medieval Oak
+[244月2025 23:12:08.082] [Structurize IO Worker #0/INFO] [structurize/]: Registered structure pack: Medieval Dark Oak
+[244月2025 23:12:08.083] [Structurize IO Worker #0/INFO] [structurize/]: Registered structure pack: Medieval Birch
+[244月2025 23:12:08.083] [Structurize IO Worker #0/INFO] [structurize/]: Registered structure pack: Lost Mesa City
+[244月2025 23:12:08.084] [Structurize IO Worker #0/INFO] [structurize/]: Registered structure pack: Jungle Treehouse
+[244月2025 23:12:08.084] [Structurize IO Worker #0/INFO] [structurize/]: Registered structure pack: Incan
+[244月2025 23:12:08.084] [Structurize IO Worker #0/INFO] [structurize/]: Registered structure pack: Fortress
+[244月2025 23:12:08.085] [Structurize IO Worker #0/INFO] [structurize/]: Registered structure pack: Dark Oak Treehouse
+[244月2025 23:12:08.085] [Structurize IO Worker #0/INFO] [structurize/]: Registered structure pack: Colonial
+[244月2025 23:12:08.085] [Structurize IO Worker #0/INFO] [structurize/]: Registered structure pack: Cavern
+[244月2025 23:12:08.085] [Structurize IO Worker #0/INFO] [structurize/]: Registered structure pack: Caledonia
+[244月2025 23:12:08.086] [Structurize IO Worker #0/INFO] [structurize/]: Registered structure pack: Urban Birch
+[244月2025 23:12:08.087] [Structurize IO Worker #0/INFO] [structurize/]: Registered structure pack: Ancient Athens
+[244月2025 23:12:08.087] [Structurize IO Worker #0/INFO] [structurize/]: Registered structure pack: Urban Savanna
+[244月2025 23:12:08.088] [Structurize IO Worker #0/INFO] [structurize/]: Registered structure pack: Dev
+[244月2025 23:12:08.089] [Structurize IO Worker #0/WARN] [structurize/]: Finished discovering Client Structure packs
+[244月2025 23:12:11.528] [Render thread/INFO] [net.minecraftforge.gametest.ForgeGameTestHooks/]: Enabled Gametest Namespaces: [colonypathingedition]
+[244月2025 23:12:12.052] [Render thread/INFO] [net.minecraft.server.packs.resources.ReloadableResourceManager/]: Reloading ResourceManager: vanilla, mod_resources
+[244月2025 23:12:12.347] [Worker-Main-12/INFO] [net.minecraft.client.gui.font.providers.UnihexProvider/]: Found unifont_all_no_pua-15.0.06.hex, loading
+[244月2025 23:12:12.376] [Forge Version Check/INFO] [net.minecraftforge.fml.VersionChecker/]: [forge] Starting version check at https://files.minecraftforge.net/net/minecraftforge/forge/promotions_slim.json
+[244月2025 23:12:12.981] [Worker-Main-10/WARN] [net.minecraft.client.renderer.texture.SpriteLoader/]: Texture minecolonies:gui/builderhut/builder_paper with size 190x244 limits mip level from 4 to 1
+[244月2025 23:12:13.633] [Forge Version Check/INFO] [net.minecraftforge.fml.VersionChecker/]: [forge] Found status: OUTDATED Current: 47.3.20 Target: 47.4.0
+[244月2025 23:12:16.344] [Worker-Main-13/WARN] [minecolonies/]: Register mappings
+[244月2025 23:12:17.858] [Render thread/WARN] [net.minecraft.client.sounds.SoundEngine/]: Missing sound for event: minecraft:item.goat_horn.play
+[244月2025 23:12:17.859] [Render thread/WARN] [net.minecraft.client.sounds.SoundEngine/]: Missing sound for event: minecraft:entity.goat.screaming.horn_break
+[244月2025 23:12:18.230] [Render thread/INFO] [com.mojang.blaze3d.audio.Library/]: OpenAL initialized on device OpenAL Soft on 扬声器 (Realtek(R) Audio)
+[244月2025 23:12:18.231] [Render thread/INFO] [net.minecraft.client.sounds.SoundEngine/SOUNDS]: Sound engine started
+[244月2025 23:12:18.343] [Render thread/INFO] [net.minecraft.client.renderer.texture.TextureAtlas/]: Created: 2048x1024x4 minecraft:textures/atlas/blocks.png-atlas
+[244月2025 23:12:18.357] [Render thread/INFO] [net.minecraft.client.renderer.texture.TextureAtlas/]: Created: 256x256x4 minecraft:textures/atlas/signs.png-atlas
+[244月2025 23:12:18.358] [Render thread/INFO] [net.minecraft.client.renderer.texture.TextureAtlas/]: Created: 1024x512x4 minecraft:textures/atlas/banner_patterns.png-atlas
+[244月2025 23:12:18.358] [Render thread/INFO] [net.minecraft.client.renderer.texture.TextureAtlas/]: Created: 1024x1024x4 minecraft:textures/atlas/shield_patterns.png-atlas
+[244月2025 23:12:18.361] [Render thread/INFO] [net.minecraft.client.renderer.texture.TextureAtlas/]: Created: 1024x1024x4 minecraft:textures/atlas/armor_trims.png-atlas
+[244月2025 23:12:18.364] [Render thread/INFO] [net.minecraft.client.renderer.texture.TextureAtlas/]: Created: 256x256x4 minecraft:textures/atlas/chest.png-atlas
+[244月2025 23:12:18.366] [Render thread/INFO] [net.minecraft.client.renderer.texture.TextureAtlas/]: Created: 128x64x4 minecraft:textures/atlas/decorated_pot.png-atlas
+[244月2025 23:12:18.366] [Render thread/INFO] [net.minecraft.client.renderer.texture.TextureAtlas/]: Created: 512x256x4 minecraft:textures/atlas/shulker_boxes.png-atlas
+[244月2025 23:12:18.366] [Render thread/INFO] [net.minecraft.client.renderer.texture.TextureAtlas/]: Created: 512x256x4 minecraft:textures/atlas/beds.png-atlas
+[244月2025 23:12:18.532] [Render thread/WARN] [net.minecraft.client.renderer.ShaderInstance/]: Shader rendertype_entity_translucent_emissive could not find sampler named Sampler2 in the specified shader program.
+[244月2025 23:12:18.590] [Render thread/INFO] [net.minecraft.client.renderer.texture.TextureAtlas/]: Created: 256x256x0 minecraft:textures/atlas/particles.png-atlas
+[244月2025 23:12:18.592] [Render thread/INFO] [net.minecraft.client.renderer.texture.TextureAtlas/]: Created: 256x256x0 minecraft:textures/atlas/paintings.png-atlas
+[244月2025 23:12:18.592] [Render thread/INFO] [net.minecraft.client.renderer.texture.TextureAtlas/]: Created: 128x128x0 minecraft:textures/atlas/mob_effects.png-atlas
+[244月2025 23:12:19.773] [Realms Notification Availability checker #1/INFO] [com.mojang.realmsclient.client.RealmsClient/]: Could not authorize you against Realms server: Invalid session id
+[244月2025 23:12:32.931] [Render thread/INFO] [net.minecraft.client.Minecraft/]: Stopping!

@@ -1,0 +1,10 @@
+Manifest-Version: 1.0
+Specification-Title: colonypathingedition
+Specification-Vendor: arxyt
+Specification-Version: 1
+Implementation-Title: ColonyPathingEdition
+Implementation-Version: 1.0.1
+Implementation-Vendor: arxyt
+Implementation-Timestamp: 2025-04-25T01:08:28+0800
+MixinConfigs: colonypathingedition.mixins.json
+
