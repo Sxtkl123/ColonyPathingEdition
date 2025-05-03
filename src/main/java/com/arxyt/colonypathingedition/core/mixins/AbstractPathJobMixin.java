@@ -11,31 +11,23 @@ import com.minecolonies.api.util.ShapeUtil;
 import com.minecolonies.core.entity.pathfinding.PathfindingUtils;
 import com.minecolonies.core.entity.pathfinding.PathingOptions;
 import com.minecolonies.core.entity.pathfinding.pathjobs.AbstractPathJob;
-import com.minecolonies.core.entity.pathfinding.pathresults.PathResult;
 import com.minecolonies.core.entity.pathfinding.world.CachingBlockLookup;
 import com.minecolonies.core.entity.pathfinding.MNode;
 import com.minecolonies.api.util.constant.ColonyConstants;
 import com.minecolonies.core.util.WorkerUtil;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
-import net.minecraft.world.entity.Mob;
-import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelReader;
 import net.minecraft.world.level.block.*;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.core.BlockPos;
-import net.minecraft.world.level.block.state.properties.BlockStateProperties;
-import net.minecraft.world.level.block.state.properties.Half;
-import net.minecraft.world.level.block.state.properties.SlabType;
+import net.minecraft.world.level.block.state.properties.*;
 import net.minecraft.world.level.pathfinder.Path;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.objectweb.asm.Opcodes;
 import org.spongepowered.asm.mixin.*;
 import org.spongepowered.asm.mixin.gen.Invoker;
 import org.spongepowered.asm.mixin.injection.*;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
-
 import java.util.Queue;
 
 import static com.minecolonies.api.util.BlockPosUtil.directionFromDelta;
@@ -299,9 +291,35 @@ public abstract class AbstractPathJobMixin implements AbstractAISkeletonAccessor
         return !(ShapeUtil.getStartY(above.getCollisionShape(world, tempWorldPos.set(x, y + 1, z)), 1) < 0.875);
     }
 
+    private boolean checkConnection(MNode node, int dX, int dZ){
+        if (node.isOnRails()){
+            BlockState railState = cachedBlockLookup.getBlockState(node.x, node.y, node.z);
+            RailShape railShape;
+            if (railState.hasProperty(BlockStateProperties.RAIL_SHAPE))
+            {
+                railShape=railState.getValue(BlockStateProperties.RAIL_SHAPE);;
+            }
+            else if(railState.hasProperty(BlockStateProperties.RAIL_SHAPE_STRAIGHT))
+            {
+                railShape=railState.getValue(BlockStateProperties.RAIL_SHAPE_STRAIGHT);
+            }
+            else{
+                return true;
+            }
+            return switch (railShape) {
+                case NORTH_SOUTH, ASCENDING_SOUTH, ASCENDING_NORTH -> dZ != 0;
+                case EAST_WEST, ASCENDING_EAST, ASCENDING_WEST -> dX != 0;
+                case NORTH_EAST -> dX > 0 || dZ < 0;
+                case NORTH_WEST -> dX < 0 || dZ < 0;
+                case SOUTH_EAST -> dX > 0 || dZ > 0;
+                case SOUTH_WEST -> dX < 0 || dZ > 0;
+            };
+        }
+        return true;
+    }
     /**
      * @author ARxyt
-     * @reason 重构代码，取消coner链接，使用统一规则缩减代码量，同时de奇怪的bug
+     * @reason 重构代码，取消corner链接，使用统一规则缩减代码量，同时de奇怪的bug
      */
 
     @Overwrite( remap = false)
@@ -410,11 +428,12 @@ public abstract class AbstractPathJobMixin implements AbstractAISkeletonAccessor
 
         final boolean swimStart = isSwimming && !node.isSwimming();
         final boolean onRoad = WorkerUtil.isPathBlock(belowState.getBlock())||WorkerUtil.isPathBlock(state.getBlock());
-        final boolean onRails = pathingOptions.canUseRails() && state.getBlock() instanceof BaseRailBlock;
-        final boolean railsExit = !onRails && node.isOnRails();
+        final boolean onRails = pathingOptions.canUseRails() && state.getBlock() instanceof BaseRailBlock && checkConnection(node,dX,dZ);
         final boolean ladder = PathfindingUtils.isLadder(state, pathingOptions);
         final boolean isDiving = isSwimming && PathfindingUtils.isWater(world, null, aboveState, null);
 
+
+        final boolean railsExit = !onRails && node.isOnRails();
         double nextCost;
         nextCost = computeCost(node, dX, dY, dZ, isSwimming, onRoad, isDiving, onRails, railsExit, swimStart, ladder, state, belowState, nextX, nextY, nextZ);
         nextCost = invokeModifyCost(nextCost, node, swimStart, isSwimming, nextX, nextY, nextZ, state, belowState);
@@ -443,18 +462,17 @@ public abstract class AbstractPathJobMixin implements AbstractAISkeletonAccessor
             }
 
             MNode extraNextNode = extraNodeState(nextNode);
-            if (onRoad || onRails){
+            if ((onRoad || onRails) && Math.abs(dY) <= 1 ){
                 extraNextNode.setHeuristic(modifyHeuristic(node, extraNextNode, nextNode.getHeuristic(), onRoad, onRails));
             }
-
             nodesToVisit.offer(extraNextNode);
         }
         else
         {
-            if (onRoad || onRails){
+            if ((onRoad || onRails) && Math.abs(dY) <= 1){
                 nextNode.setHeuristic(modifyHeuristic(node, nextNode, nextNode.getHeuristic(), onRoad, onRails));
             }
-            updateNode(node, nextNode, heuristic, cost);
+            updateNode(node, nextNode, heuristic, cost, onRails);
         }
     }
 
@@ -583,12 +601,7 @@ public abstract class AbstractPathJobMixin implements AbstractAISkeletonAccessor
     @Shadow(remap = false) private int visitedLevel;
     @Shadow(remap = false) private Queue<MNode> nodesToVisit;
 
-    /**
-     * @author ARxyt
-     * @reason TO AVIOD MISSING SHORTER PATH
-     */
-    @Overwrite(remap = false)
-    private void updateNode(@NotNull final MNode node, @NotNull final MNode nextNode, final double heuristic, final double cost)
+    private void updateNode(@NotNull final MNode node, @NotNull final MNode nextNode, final double heuristic, final double cost, boolean onRails)
     {
         IMNodeExtras extras = (IMNodeExtras) node;
         //  This node already exists
@@ -601,6 +614,7 @@ public abstract class AbstractPathJobMixin implements AbstractAISkeletonAccessor
         if (cost < nextNode.getCost()) {
             nextNode.parent = node;
             nextNode.setCost(cost);
+            nextNode.setOnRails(onRails);
         }
         else if ( extras.isCallbackNode() && nextNode.isVisited() ){
             IMNodeExtras extrasNext = (IMNodeExtras) nextNode;
