@@ -990,5 +990,23 @@
     },
     "done": true
   },
+  "domum_ornamentum:recipes/decorations/white_floating_carpet": {
+    "criteria": {
+      "has_carpet": "2025-05-10 23:23:30 +0800"
+    },
+    "done": true
+  },
+  "minecolonies:production/build_warehouse": {
+    "criteria": {
+      "warehouse": "2025-05-22 21:44:52 +0800"
+    },
+    "done": true
+  },
+  "minecolonies:recipes/misc/blockhutcook": {
+    "criteria": {
+      "has_items": "2025-05-22 22:27:41 +0800"
+    },
+    "done": true
+  },
   "DataVersion": 3465
 }

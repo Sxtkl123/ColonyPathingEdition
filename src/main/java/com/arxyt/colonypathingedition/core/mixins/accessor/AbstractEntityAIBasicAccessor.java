@@ -2,7 +2,6 @@ package com.arxyt.colonypathingedition.core.mixins.accessor;
 
 import com.minecolonies.api.inventory.InventoryCitizen;
 import com.minecolonies.core.colony.buildings.AbstractBuilding;
-import com.minecolonies.core.colony.jobs.AbstractJob;
 import com.minecolonies.core.entity.ai.workers.AbstractEntityAIBasic;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.gen.Accessor;

@@ -20,6 +20,32 @@ public class DistanceUtils {
         return Math.sqrt(dx * dx + dy * dy + dz * dz);
     }
 
+    public static double dist2(BlockPos pos, BlockPos pos2) {
+        double dx = pos2.getX() - pos.getX();
+        double dy = (pos2.getY() - pos.getY())/5.0;
+        double dz = pos2.getZ() - pos.getZ();
+        return dx * dx + dy * dy + dz * dz;
+    }
+    /**
+     * 欧氏距离的平方 (L2)
+     */
+    public static double dist2(int x, int y, int z, BlockPos pos) {
+        double dx = x - pos.getX();
+        double dy = (y - pos.getY())/5.0;
+        double dz = z - pos.getZ();
+        return dx * dx + dy * dy + dz * dz;
+    }
+
+    /**
+     * 柱形 (L2)
+     */
+    public static double cylinderDistance(int x, int y, int z, BlockPos pos) {
+        double dx = x - pos.getX();
+        double dy = (y - pos.getY())/5.0;
+        double dz = z - pos.getZ();
+        return Math.max(Math.sqrt(dx * dx + dz * dz) , dy);
+    }
+
     /**
      * 切比雪夫距离 (L∞)
      */
