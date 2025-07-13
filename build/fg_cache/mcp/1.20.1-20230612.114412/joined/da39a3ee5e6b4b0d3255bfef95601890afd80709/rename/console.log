@@ -110,8 +110,8 @@ Adding input to inheritance map
 Processing entries
 Can't Find Class: net/minecraftforge/api/distmarker/OnlyIn
 Can't Find Class: net/minecraftforge/api/distmarker/Dist
-Can't Find Class: javax/annotation/ParametersAreNonnullByDefault
 Can't Find Class: javax/annotation/Nullable
+Can't Find Class: javax/annotation/ParametersAreNonnullByDefault
 Can't Find Class: org/jetbrains/annotations/Contract
 Can't Find Class: org/jetbrains/annotations/Nullable
 Can't Find Class: javax/annotation/concurrent/Immutable

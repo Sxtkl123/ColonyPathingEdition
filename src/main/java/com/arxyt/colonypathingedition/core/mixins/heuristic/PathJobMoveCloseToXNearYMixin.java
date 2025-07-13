@@ -13,13 +13,8 @@ import com.minecolonies.core.entity.pathfinding.pathjobs.PathJobMoveCloseToXNear
 // Mixin for PathJobMoveAwayFromLocation
 @Mixin(PathJobMoveCloseToXNearY.class)
 public abstract class PathJobMoveCloseToXNearYMixin {
-    @Final
-    @Shadow(remap = false)
-    public BlockPos desiredPosition;
-
-    @Final
-    @Shadow(remap = false)
-    public BlockPos nearbyPosition;
+    @Final @Shadow(remap = false) public BlockPos desiredPosition;
+    @Final @Shadow(remap = false) public BlockPos nearbyPosition;
 
     @Inject(method = "computeHeuristic(III)D", at = @At("HEAD"), cancellable = true,remap = false)
     protected void computeHeuristic(int x, int y, int z, CallbackInfoReturnable<Double> cir) {

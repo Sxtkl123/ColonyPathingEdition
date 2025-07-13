@@ -12,9 +12,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(PathJobMoveToLocation.class)
 public class PathJobMoveToLocationMixin {
-    @Final
-    @Shadow(remap = false)
-    protected BlockPos destination;
+    @Final @Shadow(remap = false) protected BlockPos destination;
 
     @Inject(method = "computeHeuristic(III)D", at = @At("HEAD"), cancellable = true,remap = false)
     protected void computeHeuristic(int x, int y, int z, CallbackInfoReturnable<Double> cir) {

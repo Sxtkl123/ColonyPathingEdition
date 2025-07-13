@@ -20,6 +20,7 @@ import net.minecraftforge.fml.loading.FMLEnvironment;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Overwrite;
 import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.Unique;
 
 import java.util.Objects;
 import java.util.Random;
@@ -36,8 +37,8 @@ public abstract class UnstuckMixin<NAV extends PathNavigation & IMinecoloniesNav
     @Shadow (remap = false) private boolean canPlaceLadders;
     @Shadow (remap = false) private boolean canBuildLeafBridges;
     @Shadow (remap = false) private int teleportRange;
-    @Shadow (remap = false) private double chanceToByPassMovingAway;
     @Shadow (remap = false) private Direction movingAwayDir;
+    @Shadow (remap = false) private BlockPos prevDestination;
 
     @Shadow (remap = false) protected abstract void placeLadders(NAV navigator);
     @Shadow (remap = false) protected abstract void placeLeaves(NAV navigator);
@@ -45,10 +46,10 @@ public abstract class UnstuckMixin<NAV extends PathNavigation & IMinecoloniesNav
     @Shadow (remap = false) protected abstract void resetStuckTimers();
     @Shadow (remap = false) protected abstract void completeStuckAction(NAV navigator);
 
-    @Shadow (remap = false) private BlockPos prevDestination;
+    @Unique private static final int TICKS_PER_BLOCK = 20;
 
-    private int stuckLevelRecorder = 0;
-    private boolean needReset = false;
+    @Unique private int stuckLevelRecorder = 0;
+    @Unique private boolean needReset = false;
 
     /**
      * @author ARxyt
@@ -61,7 +62,8 @@ public abstract class UnstuckMixin<NAV extends PathNavigation & IMinecoloniesNav
         {
             return;
         }
-        //试图阻止一下在工位的随机游走
+
+        // (补丁)试图阻止一下在工位的随机游走
         if ((prevDestination == null || prevDestination.equals(BlockPos.ZERO)) && stuckLevel == 0 && stuckLevelRecorder != 0 ){
             stuckLevelRecorder = 5;
             return;
@@ -69,8 +71,8 @@ public abstract class UnstuckMixin<NAV extends PathNavigation & IMinecoloniesNav
 
         delayToNextUnstuckAction = 50;
 
+        // 向前小距离传送
         boolean teleported = false;
-        // Skip ahead
         if (teleportRange > 0 && hadPath)
         {
             int index = Math.min(Objects.requireNonNull(navigator.getPath()).getNextNodeIndex() + teleportRange, navigator.getPath().getNodeCount() - 1);
@@ -92,8 +94,8 @@ public abstract class UnstuckMixin<NAV extends PathNavigation & IMinecoloniesNav
             stuckLevel++;
         }
 
-        // Move away, if have teleported will skip this.
-        if ((stuckLevel <= 4 || !teleported) && prevDestination != null && !prevDestination.equals(BlockPos.ZERO)) {
+        // 新绕路算法
+        if ((stuckLevel <= 4 && !teleported) && prevDestination != null && !prevDestination.equals(BlockPos.ZERO)) {
             int range;
             if (navigator.getPath() != null) {
                 moveAwayStartPos = navigator.getPath().getNodePos(navigator.getPath().getNextNodeIndex());
@@ -101,7 +103,6 @@ public abstract class UnstuckMixin<NAV extends PathNavigation & IMinecoloniesNav
                 moveAwayStartPos = navigator.getOurEntity().blockPosition().above();
             }
             range = 20 * stuckLevel;
-            navigator.setPauseTicks(0);
             BlockPos startPos = navigator.getOurEntity().blockPosition();
             //获取一个可能是通路的方向(因为同向遍历已近似广度优先，绕道到另一侧可以最大化收益)
             BlockPos dPos = new BlockPos(prevDestination.getX()-startPos.getX(),0,prevDestination.getZ()-startPos.getZ());
@@ -113,6 +114,7 @@ public abstract class UnstuckMixin<NAV extends PathNavigation & IMinecoloniesNav
             else{
                 dPos.multiply(Mth.ceil(range/distance));
             }
+            navigator.setPauseTicks(0);
             ((MinecoloniesAdvancedPathNavigateAccessor) navigator).invokeWalkTowards(prevDestination.offset(dPos.getX(),dPos.getY(),dPos.getZ()), range, 1.0f);
             stuckLevelRecorder = stuckLevel;
             navigator.setPauseTicks( range * TICKS_PER_BLOCK + 200);
@@ -121,6 +123,7 @@ public abstract class UnstuckMixin<NAV extends PathNavigation & IMinecoloniesNav
             return;
         }
 
+        // 下面这两个放置和破坏基本上只有袭击者会用，后面需要调整一下算法，目前的放置和破坏都非常蠢，但是由于现在卫兵AI更蠢所以先不改。
         // Place ladders & leaves
         if (stuckLevel >= 5 && stuckLevel <= 6)
         {
@@ -139,7 +142,6 @@ public abstract class UnstuckMixin<NAV extends PathNavigation & IMinecoloniesNav
                 return;
             }
         }
-
         // break blocks
         if (stuckLevel >= 7 && canBreakBlocks)
         {
@@ -150,6 +152,7 @@ public abstract class UnstuckMixin<NAV extends PathNavigation & IMinecoloniesNav
             return;
         }
 
+        // 这是调用路径完全卡住之后直接传送到目标地点的算法的地方
         if (stuckLevel >= 5)
         {
             completeStuckAction(navigator);
@@ -157,7 +160,4 @@ public abstract class UnstuckMixin<NAV extends PathNavigation & IMinecoloniesNav
             stuckLevelRecorder = 0;
         }
     }
-
-    // Shadow constants
-    private static final int TICKS_PER_BLOCK = 20;
 }

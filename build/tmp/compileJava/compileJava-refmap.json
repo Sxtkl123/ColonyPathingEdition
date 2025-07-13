@@ -1,4 +1,18 @@
 {
-  "mappings": {},
-  "data": {}
+  "mappings": {
+    "com/arxyt/colonypathingedition/core/mixins/minecraft/FurnaceBlockEntityMixin": {
+      "saveAdditional": "Lnet/minecraft/world/level/block/entity/AbstractFurnaceBlockEntity;m_183515_(Lnet/minecraft/nbt/CompoundTag;)V",
+      "load": "Lnet/minecraft/world/level/block/entity/AbstractFurnaceBlockEntity;m_142466_(Lnet/minecraft/nbt/CompoundTag;)V",
+      "serverTick": "Lnet/minecraft/world/level/block/entity/AbstractFurnaceBlockEntity;m_155013_(Lnet/minecraft/world/level/Level;Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/world/level/block/entity/AbstractFurnaceBlockEntity;)V"
+    }
+  },
+  "data": {
+    "searge": {
+      "com/arxyt/colonypathingedition/core/mixins/minecraft/FurnaceBlockEntityMixin": {
+        "saveAdditional": "Lnet/minecraft/world/level/block/entity/AbstractFurnaceBlockEntity;m_183515_(Lnet/minecraft/nbt/CompoundTag;)V",
+        "load": "Lnet/minecraft/world/level/block/entity/AbstractFurnaceBlockEntity;m_142466_(Lnet/minecraft/nbt/CompoundTag;)V",
+        "serverTick": "Lnet/minecraft/world/level/block/entity/AbstractFurnaceBlockEntity;m_155013_(Lnet/minecraft/world/level/Level;Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/world/level/block/entity/AbstractFurnaceBlockEntity;)V"
+      }
+    }
+  }
 }

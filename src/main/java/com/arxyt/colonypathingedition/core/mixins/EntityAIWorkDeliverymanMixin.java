@@ -14,7 +14,6 @@ import org.spongepowered.asm.mixin.injection.Redirect;
 
 @Mixin(EntityAIWorkDeliveryman.class)
 public abstract class EntityAIWorkDeliverymanMixin implements AbstractAISkeletonAccessor<IJob<?>>, AbstractEntityAIBasicAccessor<AbstractBuilding> {
-
     // 提升单次运输容量
     /**
      * @author ARxyt

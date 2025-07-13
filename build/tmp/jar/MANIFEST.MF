@@ -3,8 +3,8 @@ Specification-Title: colonypathingedition
 Specification-Vendor: arxyt
 Specification-Version: 1
 Implementation-Title: ColonyPathingEdition
-Implementation-Version: 1.0.2-snapshot
+Implementation-Version: 1.0.3-ALPHA-8
 Implementation-Vendor: arxyt
-Implementation-Timestamp: 2025-06-01T00:01:35+0800
+Implementation-Timestamp: 2025-07-14T03:29:48+0800
 MixinConfigs: colonypathingedition.mixins.json
 

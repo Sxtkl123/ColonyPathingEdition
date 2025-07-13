@@ -7,6 +7,5 @@ import org.spongepowered.asm.mixin.gen.Accessor;
 
 @Mixin(AbstractPathJob.class)
 public interface AbstractPathJobAccessor {
-    @Accessor(value = "start",remap = false)
-    BlockPos getStartPos();
+    @Accessor(value = "start",remap = false) BlockPos getStartPos();
 }

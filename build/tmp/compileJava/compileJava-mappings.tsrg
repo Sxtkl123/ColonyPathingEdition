@@ -1,0 +1,4 @@
+com/arxyt/colonypathingedition/core/mixins/minecraft/FurnaceBlockEntityMixin litTime f_58316_
+com/arxyt/colonypathingedition/core/mixins/minecraft/FurnaceBlockEntityMixin cookingProgress f_58318_
+com/arxyt/colonypathingedition/core/mixins/minecraft/FurnaceBlockEntityMixin cookingTotalTime f_58319_
+com/arxyt/colonypathingedition/core/mixins/minecraft/FurnaceBlockEntityMixin litDuration f_58317_

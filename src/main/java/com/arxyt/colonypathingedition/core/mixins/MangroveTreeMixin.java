@@ -25,6 +25,8 @@ public abstract class MangroveTreeMixin {
     @Shadow(remap = false) private ArrayList<BlockPos> stumpLocations;
     @Shadow(remap = false) private ItemStack sapling;
     @Shadow(remap = false) private BlockPos topLog;
+    @Shadow(remap = false) private BlockPos location;
+
     public void fillMangroveTreeStumps(final int yLevel,Level world)
     {
         for (@NotNull final BlockPos pos : woodBlocks)
@@ -88,8 +90,6 @@ public abstract class MangroveTreeMixin {
         }
 
     }
-
-    @Shadow(remap = false) private BlockPos location;
 
     /**
      * @author ARxyt

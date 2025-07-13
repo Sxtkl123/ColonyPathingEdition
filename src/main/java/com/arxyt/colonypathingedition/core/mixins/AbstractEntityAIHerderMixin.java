@@ -14,35 +14,33 @@ import java.util.List;
 @Mixin(AbstractEntityAIHerder.class)
 public abstract class AbstractEntityAIHerderMixin implements AbstractEntityAIBasicAccessor<AbstractBuilding>
 {
+    @Shadow(remap = false) public abstract int getMaxAnimalMultiplier();
+
+    @Unique final private boolean isMaxAnimalChange = PathingConfig.MAX_ANIMAL_MODIFIER.get();
 
     // 修改 registerTargets 中使用的 DECIDING_DELAY
     @ModifyConstant(method = "<init>", constant = @Constant(intValue = 80))
     private static int modifyDecidingDelayInInit(int original) {
-        return 10; // 你想改成的值
+        return 10;
     }
 
     // 修改 registerTargets 中使用的 BREEDING_DELAY
     @ModifyConstant(method = "<init>", constant = @Constant(intValue = 40))
     private static int modifyBreedingDelayInInit(int original) {
-        return 10; // 你想改成的值
+        return 10;
     }
 
     // 修改 registerTargets 中使用的 BUTCHER_DELAY
     @ModifyConstant(method = "<init>", constant = @Constant(intValue = 20))
     private static int modifyButcherDelayInInit(int original) {
-        return 5; // 你想改成的值
+        return 5;
     }
 
     // 修改 decideWhatToDo 中减少 breedTimeOut 的 DECIDING_DELAY
     @ModifyConstant(method = "decideWhatToDo", constant = @Constant(intValue = 80),remap = false)
     private static int modifyDecidingDelayInDecideWhatToDo(int original) {
-        return 10; // 同样是 DECIDING_DELAY，保持一致
+        return 10;
     }
-
-    //覆写一下部分屠宰概率，因为改动太多，如果没有冲突就暂时overwrite了
-    @Shadow(remap = false) public abstract int getMaxAnimalMultiplier();
-
-    final private boolean isMaxAnimalChange = PathingConfig.MAX_ANIMAL_MODIFIER.get();
 
     /**
      * @author ARxyt

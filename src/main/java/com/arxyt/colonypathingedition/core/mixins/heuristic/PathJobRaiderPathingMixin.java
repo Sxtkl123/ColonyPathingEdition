@@ -12,9 +12,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin( PathJobRaiderPathing.class)
 public class PathJobRaiderPathingMixin {
-    @Final
-    @Shadow(remap = false)
-    private BlockPos direction;
+    @Final @Shadow(remap = false) private BlockPos direction;
 
     @Inject(method = "computeHeuristic(III)D", at = @At("HEAD"), cancellable = true,remap = false)
     protected void computeHeuristic(int x, int y, int z, CallbackInfoReturnable<Double> cir) {

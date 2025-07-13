@@ -5,6 +5,7 @@ import com.minecolonies.api.util.InventoryUtils;
 import com.minecolonies.core.Network;
 import com.minecolonies.core.colony.buildingextensions.FarmField;
 import com.minecolonies.core.colony.buildings.AbstractBuilding;
+import com.minecolonies.core.colony.buildings.workerbuildings.BuildingFarmer;
 import com.minecolonies.core.colony.jobs.JobFarmer;
 import com.minecolonies.core.entity.ai.workers.production.agriculture.EntityAIWorkFarmer;
 import com.arxyt.colonypathingedition.core.mixins.accessor.AbstractAISkeletonAccessor;
@@ -22,6 +23,7 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.gen.Invoker;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import com.arxyt.colonypathingedition.core.tag.ModTag;
@@ -34,7 +36,6 @@ public abstract class EntityAIWorkFarmerMixin implements AbstractAISkeletonAcces
     @Invoker(value="getSurfacePos",remap = false)
     public abstract BlockPos invokeGetSurfacePos(final BlockPos position);
 
-    // ================================== 核心修改 ================================== //
     /**
      * 跳过对水稻的锄地操作
      */

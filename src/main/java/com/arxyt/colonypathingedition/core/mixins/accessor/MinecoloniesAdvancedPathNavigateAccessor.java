@@ -9,6 +9,5 @@ import org.spongepowered.asm.mixin.gen.Invoker;
 
 @Mixin(MinecoloniesAdvancedPathNavigate.class)
 public interface MinecoloniesAdvancedPathNavigateAccessor {
-    @Invoker(value = "walkTowards",remap = false)
-    PathResult<AbstractPathJob> invokeWalkTowards(final BlockPos towards, final double range, final double speedFactor);
+    @Invoker(value = "walkTowards",remap = false) PathResult<AbstractPathJob> invokeWalkTowards(final BlockPos towards, final double range, final double speedFactor);
 }

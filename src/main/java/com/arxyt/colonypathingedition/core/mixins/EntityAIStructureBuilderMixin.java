@@ -7,7 +7,6 @@ import org.spongepowered.asm.mixin.injection.ModifyConstant;
 
 @Mixin(EntityAIStructureBuilder.class)
 public class EntityAIStructureBuilderMixin {
-
     @ModifyConstant(
             method = "walkToConstructionSite(Lnet/minecraft/core/BlockPos;)Z",
             constant = @Constant(doubleValue = 200.0),

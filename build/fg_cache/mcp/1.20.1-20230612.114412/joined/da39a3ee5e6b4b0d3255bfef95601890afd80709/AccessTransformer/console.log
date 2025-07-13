@@ -1,6 +1,6 @@
 JVM:         E:\Java\jdk-17.0.12\bin\java.exe
 JVM Args:    
-Run Args:    "--inJar", "E:\ForgeMDK\forge-1.20.1-47.3.0-mdk\build\fg_cache\mcp\1.20.1-20230612.114412\joined\da39a3ee5e6b4b0d3255bfef95601890afd80709\rename\output.jar", "--outJar", "E:\ForgeMDK\forge-1.20.1-47.3.0-mdk\build\fg_cache\mcp\1.20.1-20230612.114412\joined\da39a3ee5e6b4b0d3255bfef95601890afd80709\AccessTransformer\output.jar", "--atFile", "E:\ForgeMDK\forge-1.20.1-47.3.0-mdk\src\main\resources\META-INF\accesstransformer.cfg", "--atFile", "C:\Users\ROG\AppData\Local\Temp\FG_ats_2729550777496507324.cfg"
+Run Args:    "--inJar", "E:\ForgeMDK\forge-1.20.1-47.3.0-mdk\build\fg_cache\mcp\1.20.1-20230612.114412\joined\da39a3ee5e6b4b0d3255bfef95601890afd80709\rename\output.jar", "--outJar", "E:\ForgeMDK\forge-1.20.1-47.3.0-mdk\build\fg_cache\mcp\1.20.1-20230612.114412\joined\da39a3ee5e6b4b0d3255bfef95601890afd80709\AccessTransformer\output.jar", "--atFile", "E:\ForgeMDK\forge-1.20.1-47.3.0-mdk\src\main\resources\META-INF\accesstransformer.cfg", "--atFile", "C:\Users\ROG\AppData\Local\Temp\FG_ats_14534927075297474497.cfg"
 Classpath:   E:\ForgeMDK\forge-1.20.1-47.3.0-mdk\.gradle\caches\forge_gradle\maven_downloader\net\minecraftforge\accesstransformers\8.2.1\accesstransformers-8.2.1-fatjar.jar
 Working Dir: E:\ForgeMDK\forge-1.20.1-47.3.0-mdk\build\fg_cache\mcp\1.20.1-20230612.114412\joined\da39a3ee5e6b4b0d3255bfef95601890afd80709\AccessTransformer
 Main Class:  net.minecraftforge.accesstransformer.TransformerProcessor

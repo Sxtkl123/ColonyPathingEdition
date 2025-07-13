@@ -27,42 +27,48 @@ public class PathingConfig {
 
     public static ForgeConfigSpec.IntValue MAX_PATHING_DISTANCE;
     public static ForgeConfigSpec.BooleanValue MAX_ANIMAL_MODIFIER;
+    public static ForgeConfigSpec.BooleanValue LUMBERJACK_WORK_WHEN_UNCONSTRUCTED;
+
+    public static ForgeConfigSpec.DoubleValue RESTAURANT_WAITING_TIME;
+
+    public static ForgeConfigSpec.DoubleValue MAX_PERCENTAGE_HP_FOR_CURE;
+    public static ForgeConfigSpec.DoubleValue MAX_HP_FOR_CURE;
 
     public static ForgeConfigSpec init(ForgeConfigSpec.Builder builder) {
         builder.push("Pathing Cost Modifier #寻路Cost相关设置#");
         builder.push("Multiplier #乘子系数#");
         RAIL_COST_MULTIPLIER = builder
-                .comment("Rail path cost multiplier (default: 0.1, ordinary:0.1) #铁轨Cost乘数 (默认 : 0.1 殖民地原设置 : 0.1)#")
+                .comment("Rail path cost multiplier (default: 0.1, original:0.1) #铁轨Cost乘数 (默认 : 0.1 殖民地原设置 : 0.1)#")
                 .defineInRange("railCostMultiplier", 0.1, 0.0, 2.0);
         ROAD_COST_MULTIPLIER = builder
-                .comment("Road path cost multiplier (default: 0.4, ordinary:1/6) #路径Cost乘数 (默认 : 0.4 殖民地原设置 : 1/6)#")
+                .comment("Road path cost multiplier (default: 0.4, original:1/6) #路径Cost乘数 (默认 : 0.4 殖民地原设置 : 1/6)#")
                 .defineInRange("roadCostMultiplier", 0.4, 0.0, 2.0);
         DROP_COST_MULTIPLIER = builder
-                .comment("Drop cost multiplier (default: 1.0, ordinary:1.0) #掉落Cost乘数 (默认 : 1.0 殖民地原设置 : 1.0)#\n" +
+                .comment("Drop cost multiplier (default: 1.0, original:1.0) #掉落Cost乘数 (默认 : 1.0 殖民地原设置 : 1.0)#\n" +
                         "Notice: The base formula for falling cost has been modified from |dY|³ to (|dY| - 2/5)³ - 8/125. #注意:下落Cost基础公式已经从|dY|³修改为(|dY|-2/5)³-8/125.#")
                 .defineInRange("dropCostMultiplier", 1.0, 0.0, 10.0);
         builder.pop();
         builder.push("Basic Cost Definer #基础Cost定义#");
         WATER_COST_DEFINER = builder
-                .comment("Water path cost addon (default: 8.0, ordinary:2.0) #水路Cost (默认 : 8.0 殖民地原设置 : 2.0)#")
+                .comment("Water path cost addon (default: 8.0, original:2.0) #水路Cost (默认 : 8.0 殖民地原设置 : 2.0)#")
                 .defineInRange("waterCostAddon", 8.0, 0.0, 24.0);
         JUMP_COST_DEFINER = builder
-                .comment("Jump cost addon (default: 2.0, ordinary:2.0) #跳跃(准确来说是非梯子爬升)Cost (默认 : 2.0 殖民地原设置 : 2.0)#")
+                .comment("Jump cost addon (default: 2.0, original:2.0) #跳跃(准确来说是非梯子爬升)Cost (默认 : 2.0 殖民地原设置 : 2.0)#")
                 .defineInRange("jumpCostAddon", 2.0, 0.0, 24.0);
         INSHAPE_COST_DEFINER = builder
-                .comment("In shape cost addon (default: 2.0, ordinary:2.0) #实体方块内部行走的Cost (默认 : 2.0 殖民地原设置 : 2.0)#")
+                .comment("In shape cost addon (default: 2.0, original:2.0) #实体方块内部行走的Cost (默认 : 2.0 殖民地原设置 : 2.0)#")
                 .defineInRange("inShapeCostAddon", 2.0, 0.0, 24.0);
         DOORS_COST_DEFINER = builder
-                .comment("Door and trapdoor’s cost addon (default: 3.0, ordinary:3.0) #穿过各种\"门\"的Cost (默认 : 3.0 殖民地原设置 : 3.0)#")
+                .comment("Door and trapdoor’s cost addon (default: 3.0, original:3.0) #穿过各种\"门\"的Cost (默认 : 3.0 殖民地原设置 : 3.0)#")
                 .defineInRange("doorsCostAddon", 3.0, 0.0, 24.0);
         DIVE_COST_DEFINER = builder
-                .comment("Dive cost addon (default: 24.0, ordinary:4.0) #潜水(潜多了会淹死)的Cost (默认 : 24.0 殖民地原设置 : 4.0)#")
+                .comment("Dive cost addon (default: 24.0, original:4.0) #潜水(潜多了会淹死)的Cost (默认 : 24.0 殖民地原设置 : 4.0)#")
                 .defineInRange("diveCostAddon", 24.0, 0.0, 24.0);
         CAVE_COST_DEFINER = builder
-                .comment("Breathing cave air cost addon (default: 0.3, ordinary:3.0) #钻洞(人工的也算)的Cost,(默认 : 0.3 殖民地原设置 : 3.0)#")
+                .comment("Breathing cave air cost addon (default: 0.3, original:3.0) #钻洞(人工的也算)的Cost,(默认 : 0.3 殖民地原设置 : 3.0)#")
                 .defineInRange("caveCostAddon", 0.3, 0.0, 24.0);
         RAILEXIT_COST_DEFINER = builder
-                .comment("Exit railway cost addon (default: 4.0, ordinary:4.0) #下铁路(人工的也算)的Cost(探测铁轨为”站点“，不计cost) (默认 : 4.0 殖民地原设置 : 4.0)#")
+                .comment("Exit railway cost addon (default: 4.0, original:4.0) #下铁路(人工的也算)的Cost(探测铁轨为”站点“，不计cost) (默认 : 4.0 殖民地原设置 : 4.0)#")
                 .defineInRange("railExitAddon", 4.0, 0.0, 24.0);
         builder.pop();
         builder.push("Typical Cost Definer #针对性Cost定义#");
@@ -70,7 +76,7 @@ public class PathingConfig {
                 .comment("Walk into panel cost addon (default: 4.0) #走在面板方块中(会不停的跳)的Cost (默认 : 4.0)#")
                 .defineInRange("panelCostAddon", 4.0, 0.0, 24.0);
         SHINGLE_COST_DEFINER = builder
-                .comment("Walk on shingle cost addon (default: 3.0, ordinary:3.0) #上房揭瓦(走在屋瓦上)的Cost (默认 : 3.0 殖民地原设置 : 3.0)#")
+                .comment("Walk on shingle cost addon (default: 3.0, original:3.0) #上房揭瓦(走在屋瓦上)的Cost (默认 : 3.0 殖民地原设置 : 3.0)#")
                 .defineInRange("shingleCostAddon", 3.0, 0.0, 24.0);
         FARMLAND_COST_DEFINER = builder
                 .comment("Jump in farmland or drop onto farmland cost addon (default: 8.0) #在农田中跳上跳下的Cost (默认 : 8.0)#")
@@ -108,13 +114,35 @@ public class PathingConfig {
                 .defineInRange("callbackTimesTolerance", 2, 1, 25);
         builder.pop();
         builder.pop();
+        builder.push("Restaurant Related Modifier #餐厅相关逻辑修改#");
+        RESTAURANT_WAITING_TIME= builder
+                .comment("""
+                        Duration citizens wait in the restaurant for cook service (minutes) (default: 0.5, original: 2.0)
+                        你的村民在餐厅等待厨师服务的时间(分钟) (默认 : 0.5 殖民地原设置 : 2.0)""")
+                .defineInRange("restaurantWaitingTime", 0.5, 0.0, 2.0);
+        builder.pop();
+        builder.push("Hospital Related Modifier #医院相关逻辑修改#");
+        MAX_PERCENTAGE_HP_FOR_CURE= builder
+                .comment("""
+                        The percentage of HP at which your citizens will seek treatment. (default: 0.2, original: 0.0)
+                        你的村民将在剩多少比例的HP时去寻求医生治疗 (默认 : 0.2 殖民地原设置 : 0.0)""")
+                .defineInRange("curePercentageHP", 0.2, 0.0, 1.0);
+        MAX_HP_FOR_CURE= builder
+                .comment("""
+                        The absolute amount of HP at which your citizens will seek treatment. (default: 10.0, original: 6.0)
+                        你的村民将在剩多少HP时去寻求医生治疗 (默认 : 10.0 殖民地原设置 : 6.0)""")
+                .defineInRange("cureHP", 10.0, 6.0, 40.0);
+        builder.pop();
         builder.push("Basic Logic Modifier #基础逻辑修改#");
         MAX_PATHING_DISTANCE = builder
-                .comment("Max pathing distance (default: 1000, ordinary:500) #市民最大寻路距离,(默认 : 1000 殖民地原设置 : 500)#")
+                .comment("Max pathing distance (default: 1000, original:500) 市民最大寻路距离,(默认 : 1000 殖民地原设置 : 500)")
                 .defineInRange("pathingDistance", 1000, 500, 4095);
         MAX_ANIMAL_MODIFIER = builder
-                .comment("Max animal modifier, would you like to modify the max animals to 2^(building level)? (default: false)\n #养殖场最大生物数是否改为 2^建筑等级 原为 2*建筑等级(动物数目过大会导致卡顿，所以不默认开启),(默认 : false)#")
+                .comment("Max animal modifier, would you like to modify the max animals to 2^(building level)? (default: false)\n 养殖场最大生物数是否改为 2^建筑等级 原为 2*建筑等级(动物数目过大会导致卡顿，所以不默认开启),(默认 : false)")
                 .define("increaceMaxAnimal",false);
+        LUMBERJACK_WORK_WHEN_UNCONSTRUCTED = builder
+                .comment("Lumberjcak will start to work only if hut is placed.\n 伐木工会在放置工作方块后立即开始工作 (功能在后期有些超模，建议仅在前期开启以分担少量工作量)。")
+                .define("lumberjackWorkWhenUnconstructed",false);
         builder.pop();
         return builder.build(); // 返回构建结果
     }

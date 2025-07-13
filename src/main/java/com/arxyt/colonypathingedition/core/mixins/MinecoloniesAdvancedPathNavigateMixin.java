@@ -12,11 +12,11 @@ import org.spongepowered.asm.mixin.injection.ModifyConstant;
 public abstract class MinecoloniesAdvancedPathNavigateMixin
 {
     /**
-     * 将 500 * 500 替换为 (maxDistance)^2
+     * 将 900 * 900 替换为 (maxDistance)^2
      */
     @ModifyConstant(
             method = "setPathJob",
-            constant = @Constant(doubleValue = 500 * 500), // 原值为 250,000
+            constant = @Constant(doubleValue = 900 * 900),
             remap = false
     )
     private double modifyMaxDistanceSqr(double original)

@@ -17,13 +17,8 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin( PathJobMoveTowards.class)
 public abstract class PathJobMoveTowardsMixin implements AbstractPathJobAccessor{
-    @Final
-    @Shadow(remap = false)
-    protected BlockPos target;
-
-    @Final
-    @Shadow(remap = false)
-    protected int minDistance;
+    @Final @Shadow(remap = false) protected BlockPos target;
+    @Final @Shadow(remap = false) protected int minDistance;
 
     @Inject(method = "computeHeuristic(III)D", at = @At("HEAD"), cancellable = true,remap = false)
     protected void computeHeuristic(int x, int y, int z, CallbackInfoReturnable<Double> cir) {

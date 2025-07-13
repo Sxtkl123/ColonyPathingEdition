@@ -15,21 +15,12 @@ import org.spongepowered.asm.mixin.Interface;
 @Implements(@Interface(iface = IMNodeExtras.class, prefix = "extra$"))
 public abstract class MNodeMixin
 {
-    // 存储是否在农田上
-    @Unique
-    private boolean onFarmland;
-
-    // 存储是否在半砖上
-    @Unique
-    private boolean onSlab;
-
-    // 存储是否在探测铁轨上
-    @Unique
-    private boolean isStation;
+    @Unique private boolean onFarmland;
+    @Unique private boolean onSlab;
+    @Unique private boolean isStation;
 
     // 是否是绕路节点
-    @Unique
-    private boolean isCallBack;
+    @Unique private boolean isCallBack;
 
     // prefix = "extra$"，下面方法会被当作 IMNodeExtras 的实现织入 MNode
 
