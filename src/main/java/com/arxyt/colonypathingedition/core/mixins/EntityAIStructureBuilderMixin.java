@@ -1,5 +1,6 @@
 package com.arxyt.colonypathingedition.core.mixins;
 
+import com.arxyt.colonypathingedition.core.config.PathingConfig;
 import com.minecolonies.api.util.MathUtils;
 import com.minecolonies.core.colony.buildings.workerbuildings.BuildingBuilder;
 import com.minecolonies.core.colony.jobs.JobBuilder;
@@ -129,7 +130,12 @@ public abstract class EntityAIStructureBuilderMixin extends AbstractEntityAIStru
      */
     @Inject(at = @At("HEAD"), method = "walkToConstructionSite", cancellable = true)
     private void injectWalkToConstructionSite(BlockPos currentBlock, CallbackInfoReturnable<Boolean> cir) {
-        cir.setReturnValue(formalist(currentBlock));
+        switch (PathingConfig.BUILDER_MODE.get()) {
+            case FORMALIST: cir.setReturnValue(formalist(currentBlock)); break;
+            case SENTRY: cir.setReturnValue(sentry(currentBlock)); break;
+            case GOD: cir.setReturnValue(god(currentBlock)); break;
+            case GIBBON: cir.setReturnValue(gibbon(currentBlock)); break;
+        }
     }
 
 }
