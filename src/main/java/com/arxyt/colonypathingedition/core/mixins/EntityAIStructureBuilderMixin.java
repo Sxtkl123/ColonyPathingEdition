@@ -24,7 +24,7 @@ import static com.minecolonies.api.util.constant.CitizenConstants.STANDARD_WORKI
 @Mixin(EntityAIStructureBuilder.class)
 public abstract class EntityAIStructureBuilderMixin extends AbstractEntityAIStructureWithWorkOrder<JobBuilder, BuildingBuilder> {
 
-    @Shadow
+    @Shadow(remap = false)
     PathResult<?> gotoPath;
 
     /**
@@ -68,6 +68,12 @@ public abstract class EntityAIStructureBuilderMixin extends AbstractEntityAIStru
      */
     @Unique
     private boolean sentry(final BlockPos ignored) {
+        // 有时候土木工人因为垂直位移会导致没办法继续正常干活，需要重置一下寻路，原理别问，看不懂他本来的代码。
+        BlockPos workerPos = worker.getLocation().getInDimensionLocation();
+        if (workFrom != null && workerPos.getX() == workFrom.getX() && workerPos.getZ() == workFrom.getZ() && workerPos.getY() != workFrom.getY()) {
+            workFrom = null;
+        }
+
         if (workFrom == null) {
             BlockPos orderLocation = job.getWorkOrder().getLocation();
             if (gotoPath == null || gotoPath.isCancelled()) {
@@ -111,13 +117,13 @@ public abstract class EntityAIStructureBuilderMixin extends AbstractEntityAIStru
 
     /**
      * 你的建筑工人会像长臂猿一样，一边在工地上蹿下跳，一边无限距离得建造，当然前提是他们在工地附近。
-     * @param ignored
-     * @return
+     * @return 待实现
      * @author sxtkl
      * @since 2025/7/22
      */
     @Unique
     private boolean gibbon(final BlockPos ignored) {
+        // TODO)) 待实现
         return false;
     }
 
@@ -128,7 +134,7 @@ public abstract class EntityAIStructureBuilderMixin extends AbstractEntityAIStru
      * @author sxtkl
      * @since 2025/7/21
      */
-    @Inject(at = @At("HEAD"), method = "walkToConstructionSite", cancellable = true)
+    @Inject(at = @At("HEAD"), method = "walkToConstructionSite", cancellable = true, remap = false)
     private void injectWalkToConstructionSite(BlockPos currentBlock, CallbackInfoReturnable<Boolean> cir) {
         switch (PathingConfig.BUILDER_MODE.get()) {
             case FORMALIST: cir.setReturnValue(formalist(currentBlock)); break;
