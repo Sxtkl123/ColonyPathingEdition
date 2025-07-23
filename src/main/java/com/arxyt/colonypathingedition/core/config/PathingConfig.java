@@ -150,9 +150,13 @@ public class PathingConfig {
 
         builder.push("Builder Mode Modifier #土木工人建筑模式修改#");
         BUILDER_MODE = builder
-                .comment("Builder mode (default: NORMAL), optional below: 建筑工人模式, (默认: 常规)，可选项如下：" +
-                        "NORMAL: normal mode, authentic. 常规: 默认选项，原汁原味的殖民地体验。" +
-                        "FORMALIST: play as a formalist, jumping up and down on the construction site, but work when they just leave their hut. 形式主义者：像个形式主义者一样在工地上蹿下跳，但是会在离开土木小屋后立即开始工作。")
+                .comment("""
+                        Builder mode (default: NORMAL), optional below: 建筑工人模式, (默认: 常规)，可选项如下：
+                        NORMAL: Normal mode, authentic. 常规: 默认选项，原汁原味的殖民地体验。
+                        FORMALIST: Play as a formalist, jumping up and down on the construction site, but work when they just leave their hut. 形式主义者：像个形式主义者一样在工地上蹿下跳，但是会在离开土木小屋后立即开始工作。
+                        SENTRY: Play as a sentry, stand at a stable position to build. 哨兵：像一个哨兵一样，站在工地的固定位置工作。
+                        GOD: GOD SHOULD BUILD ANYWHERE THEY WANT. 创世神：神就应该想在哪儿干就在那儿干。
+                        GIBBON: Play as a gibbon, jumping up and down with a large building range. 长臂猿：像猿猴一样上蹿下跳，但是只在一定建造范围内工作。""")
                 .defineEnum("builderMode", BuilderModeEnum.NORMAL);
         builder.pop();
         return builder.build(); // 返回构建结果

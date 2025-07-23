@@ -15,7 +15,9 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Constant;
 import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.ModifyConstant;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import static com.minecolonies.api.util.constant.CitizenConstants.MIN_WORKING_RANGE;
@@ -38,18 +40,18 @@ public abstract class EntityAIStructureBuilderMixin extends AbstractEntityAIStru
         throw new RuntimeException("EntityAIStructureBuilderMixin 类不应被实例化！");
     }
 
-/*    @ModifyConstant(
+    @ModifyConstant(
             method = "walkToConstructionSite(Lnet/minecraft/core/BlockPos;)Z",
             constant = @Constant(doubleValue = 200.0),
             remap = false
     )
     private double modifyDropCost(double original) {
         return 1.5d;
-    }*/
+    }
 
     /**
      * 像矿工一样一边走一边工作，而非等到到达目的地，这个步骤需要开启一个寻路代理。
-     * @return 是否成功开启寻路代理
+     * @return 是否可以放置方块
      * @author sxtkl
      * @since 2025/7/21
      */
@@ -117,14 +119,16 @@ public abstract class EntityAIStructureBuilderMixin extends AbstractEntityAIStru
 
     /**
      * 你的建筑工人会像长臂猿一样，一边在工地上蹿下跳，一边无限距离得建造，当然前提是他们在工地附近。
+     * @param currentBlock 当前处理的方块
      * @return 待实现
      * @author sxtkl
      * @since 2025/7/22
      */
     @Unique
-    private boolean gibbon(final BlockPos ignored) {
-        // TODO)) 待实现
-        return false;
+    private boolean gibbon(final BlockPos currentBlock) {
+        workFrom = currentBlock;
+        walkWithProxy(workFrom, STANDARD_WORKING_RANGE);
+        return MathUtils.twoDimDistance(worker.blockPosition(), workFrom) < 20;
     }
 
     /**
