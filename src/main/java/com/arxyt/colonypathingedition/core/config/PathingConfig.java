@@ -36,6 +36,7 @@ public class PathingConfig {
     public static ForgeConfigSpec.DoubleValue MAX_HP_FOR_CURE;
 
     public static ForgeConfigSpec.EnumValue<BuilderModeEnum> BUILDER_MODE;
+    public static ForgeConfigSpec.IntValue BUILDER_GIBBON_RANGE;
 
     public static ForgeConfigSpec.BooleanValue PICK_MATERIAL_AT_HUT;
 
@@ -160,6 +161,8 @@ public class PathingConfig {
                         GOD: GOD SHOULD BUILD ANYWHERE THEY WANT. 创世神：神就应该想在哪儿干就在那儿干。
                         GIBBON: Play as a gibbon, jumping up and down with a large building range. 长臂猿：像猿猴一样上蹿下跳，但是只在一定建造范围内工作。""")
                 .defineEnum("builderMode", BuilderModeEnum.NORMAL);
+        BUILDER_GIBBON_RANGE = builder.comment("Building range of gibbon mode. 长臂猿模式下的建造范围。")
+                        .defineInRange("builderGibbonRange", 20, 0, 128);
         builder.pop();
         builder.push("Common Citizens Modifier #通用市民修改#");
         PICK_MATERIAL_AT_HUT = builder.comment("Should citizens pick material at their own hut. 你的非快递员市民是否应当在他们的小屋方块处取货。")

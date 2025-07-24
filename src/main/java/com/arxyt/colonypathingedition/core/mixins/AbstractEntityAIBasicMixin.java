@@ -96,7 +96,7 @@ public abstract class AbstractEntityAIBasicMixin<B extends AbstractBuilding,J ex
         IColony colony = citizenData.getColony();
         if (colony.hasTownHall()) {
             IBuilding townHall = colony.getBuildingManager().getTownHall();
-            if(checkRequestCannotBeDone()) {
+            if (checkRequestCannotBeDone()) {
                 if (nearestPlayer != null) {
                     if(townHall.isInBuilding(nearestPlayer.blockPosition())) {
                         return walkToUnSafePos(nearestPlayer.blockPosition());
