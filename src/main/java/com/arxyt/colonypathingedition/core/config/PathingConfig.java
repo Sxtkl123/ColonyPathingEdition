@@ -1,5 +1,6 @@
 package com.arxyt.colonypathingedition.core.config;
 
+import com.arxyt.colonypathingedition.core.config.enums.BuilderModeEnum;
 import net.minecraftforge.common.ForgeConfigSpec;
 
 public class PathingConfig {
@@ -33,6 +34,11 @@ public class PathingConfig {
 
     public static ForgeConfigSpec.DoubleValue MAX_PERCENTAGE_HP_FOR_CURE;
     public static ForgeConfigSpec.DoubleValue MAX_HP_FOR_CURE;
+
+    public static ForgeConfigSpec.EnumValue<BuilderModeEnum> BUILDER_MODE;
+    public static ForgeConfigSpec.IntValue BUILDER_GIBBON_RANGE;
+
+    public static ForgeConfigSpec.BooleanValue PICK_MATERIAL_AT_HUT;
 
     public static ForgeConfigSpec init(ForgeConfigSpec.Builder builder) {
         builder.push("Pathing Cost Modifier #寻路Cost相关设置#");
@@ -143,6 +149,24 @@ public class PathingConfig {
         LUMBERJACK_WORK_WHEN_UNCONSTRUCTED = builder
                 .comment("Lumberjcak will start to work only if hut is placed.\n 伐木工会在放置工作方块后立即开始工作 (功能在后期有些超模，建议仅在前期开启以分担少量工作量)。")
                 .define("lumberjackWorkWhenUnconstructed",false);
+        builder.pop();
+
+        builder.push("Builder Mode Modifier #土木人修改#");
+        BUILDER_MODE = builder
+                .comment("""
+                        Builder mode (default: NORMAL), optional below: 建筑工人模式, (默认: 常规)，可选项如下：
+                        NORMAL: Normal mode, authentic. 常规: 默认选项，原汁原味的殖民地体验。
+                        FORMALIST: Play as a formalist, jumping up and down on the construction site, but work when they just leave their hut. 形式主义者：像个形式主义者一样在工地上蹿下跳，但是会在离开土木小屋后立即开始工作。
+                        SENTRY: Play as a sentry, stand at a stable position to build. 哨兵：像一个哨兵一样，站在工地的固定位置工作。
+                        GOD: GOD SHOULD BUILD ANYWHERE THEY WANT. 创世神：神就应该想在哪儿干就在那儿干。
+                        GIBBON: Play as a gibbon, jumping up and down with a large building range. 长臂猿：像猿猴一样上蹿下跳，但是只在一定建造范围内工作。""")
+                .defineEnum("builderMode", BuilderModeEnum.NORMAL);
+        BUILDER_GIBBON_RANGE = builder.comment("Building range of gibbon mode. 长臂猿模式下的建造范围。")
+                        .defineInRange("builderGibbonRange", 20, 0, 128);
+        builder.pop();
+        builder.push("Common Citizens Modifier #通用市民修改#");
+        PICK_MATERIAL_AT_HUT = builder.comment("Should citizens pick material at their own hut. 你的非快递员市民是否应当在他们的小屋方块处取货。")
+                        .define("pickMaterialAtHut", true);
         builder.pop();
         return builder.build(); // 返回构建结果
     }
