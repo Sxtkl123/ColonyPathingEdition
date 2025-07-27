@@ -23,6 +23,9 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import org.spongepowered.asm.mixin.*;
+import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import java.util.ArrayDeque;
 import java.util.List;
@@ -175,8 +178,8 @@ public abstract class EntityAIWorkCookMixin extends AbstractEntityAIBasicMixin<B
      * @author ARxyt
      * @reason 由于餐厅方块增加记忆，所以修改监测内容
      */
-    @Overwrite(remap = false)
-    protected IAIState checkForImportantJobs() {
+    @Inject(method = "checkForImportantJobs", at=@At("HEAD"), remap = false, cancellable = true)
+    protected void checkForImportantJobs(CallbackInfoReturnable<IAIState> cir) {
         final List<? extends Player> playerList = WorldUtil.getEntitiesWithinBuilding(getWorld(), Player.class,
                 building, player -> player != null
                         && player.getFoodData().getFoodLevel() < LEVEL_TO_FEED_PLAYER
@@ -219,17 +222,19 @@ public abstract class EntityAIWorkCookMixin extends AbstractEntityAIBasicMixin<B
                 if (InventoryUtils.hasItemInProvider(building, foodPredicate))
                 {
                     needsCurrently = new Tuple<>(foodPredicate, STACKSIZE);
-                    return GATHERING_REQUIRED_MATERIALS;
+                    cir.setReturnValue(GATHERING_REQUIRED_MATERIALS);
+                    return;
                 }
             }
-            return COOK_SERVE_FOOD_TO_PLAYER;
+            cir.setReturnValue(COOK_SERVE_FOOD_TO_PLAYER);
+            return;
         }
 
         if (!initailCitizenToServe.isEmpty() || !citizenToServe.isEmpty())
         {
-            return COOK_SERVE_FOOD_TO_CITIZEN;
+            cir.setReturnValue(COOK_SERVE_FOOD_TO_CITIZEN);
+            return;
         }
-
-        return START_WORKING;
+        cir.setReturnValue(START_WORKING);
     }
 }

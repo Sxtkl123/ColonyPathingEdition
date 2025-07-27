@@ -374,8 +374,6 @@ public abstract class AbstractPathJobMixin implements AbstractAISkeletonAccessor
         }
 
         final int newY = recheckGroundHeight(nextX, firstY, nextZ);
-
-
         if (nextY != newY)
         {
             int conerX,conerY,conerZ;
@@ -457,8 +455,8 @@ public abstract class AbstractPathJobMixin implements AbstractAISkeletonAccessor
 
         final boolean swimStart = isSwimming && !node.isSwimming();
         final boolean onRails = pathingOptions.canUseRails() && state.getBlock() instanceof BaseRailBlock && checkConnection(node,dX,dZ);
-        final boolean ladder = PathfindingUtils.isLadder(state, pathingOptions)||PathfindingUtils.isLadder(belowState, pathingOptions);
-        final boolean onRoad =ladder||HasPathTag(below)||HasPathTag(pos)||(WorkerUtil.isPathBlock(belowState.getBlock())||WorkerUtil.isPathBlock(state.getBlock()))&&!(HasNotPathTag(below)||HasNotPathTag(pos));
+        final boolean ladder = PathfindingUtils.isLadder(state, pathingOptions);
+        final boolean onRoad =HasPathTag(below)||HasPathTag(pos)||(ladder||PathfindingUtils.isLadder(belowState, pathingOptions)||WorkerUtil.isPathBlock(belowState.getBlock())||WorkerUtil.isPathBlock(state.getBlock()))&&!(HasNotPathTag(below)||HasNotPathTag(pos));
         final boolean isDiving = isSwimming && PathfindingUtils.isWater(world, null, aboveState, null);
 
 

@@ -8,8 +8,6 @@ import com.minecolonies.api.colony.buildings.IBuilding;
 import com.minecolonies.api.colony.interactionhandling.ChatPriority;
 import com.minecolonies.api.colony.jobs.IJob;
 import com.minecolonies.api.crafting.ItemStorage;
-import com.minecolonies.api.entity.ai.statemachine.states.AIWorkerState;
-import com.minecolonies.api.entity.ai.statemachine.states.IState;
 import com.minecolonies.api.entity.citizen.citizenhandlers.ICitizenFoodHandler;
 import com.minecolonies.api.util.*;
 import com.minecolonies.core.colony.buildings.workerbuildings.BuildingCook;
@@ -26,11 +24,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
 import org.spongepowered.asm.mixin.*;
-import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-import javax.swing.text.html.parser.Entity;
 import java.util.Objects;
 import java.util.Set;
 
@@ -78,7 +72,7 @@ public abstract class EntityAIEatTaskMixin {
         final BlockPos buildingPos = buildingWorker.getPosition();
         // 对不在小屋附近工作的村民来说，就近吃饭可能更方便，顺便也防止触发村民在工作地点和厨房来回跑的bug,这里跳过chef,因为chef一般来说可以在自己小屋吃饭
         // 在餐厅一段时间后如果发现餐厅没有食物，会再次触发"Force Eat At Hut"状态，此时市民会无视丰富度和质量要求尝试在自己的工作岗位尝试食用一次食物，然后聚集回餐厅，并触发警告(警告暂时没做)
-        if ( forceEatAtHut || bestRestaurantPos == null || BlockPosUtil.dist(citizenPos,buildingPos) < BlockPosUtil.dist(citizenPos,bestRestaurantPos) || JOBS_EAT_IMMEDIATELY.contains(citizenData.getJob().getClass()) ){
+        if ( forceEatAtHut || bestRestaurantPos == null || BlockPosUtil.dist(citizenPos,buildingPos) < BlockPosUtil.dist(citizenPos,bestRestaurantPos) || (citizenData.getJob() != null && JOBS_EAT_IMMEDIATELY.contains(citizenData.getJob().getClass()))){
             if (EntityNavigationUtils.walkToBuilding(citizen, buildingWorker))
             {
                 final ICitizenFoodHandler foodHandler = citizenData.getCitizenFoodHandler();
@@ -247,7 +241,7 @@ public abstract class EntityAIEatTaskMixin {
     {
         IJob<?> jobCitizen = citizen.getCitizenData().getJob();
         BuildingCookExtra restaurantExtra = ((BuildingCookExtra)restaurant);
-        if(JOBS_EAT_IMMEDIATELY.contains(jobCitizen.getClass()) || eatPos == null || !restaurantExtra.checkCustomerRegistry(citizen.getCivilianID()) || (jobCitizen instanceof AbstractJobGuard<?> && !WorldUtil.isDayTime(citizen.level())))
+        if((jobCitizen != null && JOBS_EAT_IMMEDIATELY.contains(jobCitizen.getClass())) || eatPos == null || !restaurantExtra.checkCustomerRegistry(citizen.getCivilianID()) || (jobCitizen instanceof AbstractJobGuard<?> && !WorldUtil.isDayTime(citizen.level())))
         {
             restaurantExtra.deleteCustomer(citizen.getCivilianID());
             return GET_FOOD_YOURSELF;

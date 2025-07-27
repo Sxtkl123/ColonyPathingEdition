@@ -146,6 +146,9 @@ public abstract class EntityAIWorkFarmerMixin implements AbstractAISkeletonAcces
             remap = false
     )
     private void onFinalReturnCheck(BlockPos position, CallbackInfoReturnable<BlockPos> cir) {
+        if( cir.getReturnValue() != null ){
+            return;
+        }
         BlockState surfaceState = getWorld().getBlockState(position.above());
         Block surfaceBlock = surfaceState.getBlock();
         if (surfaceBlock instanceof BushBlock){

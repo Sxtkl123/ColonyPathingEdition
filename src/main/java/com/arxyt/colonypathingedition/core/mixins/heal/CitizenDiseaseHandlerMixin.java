@@ -103,10 +103,10 @@ public abstract class CitizenDiseaseHandlerMixin implements ICitizenDiseaseHandl
             if(this.sickTime < 0){
                 this.sickTime = 0;
             }
-            int lastTime = this.sickTime - 480;
+            int lastTime = this.sickTime - 480 * 20;
             this.sickTime += tickRate;
             if(citizenData.getEntity().isPresent()) {
-                if (lastTime >= 0 && citizenData.getEntity().get().getRandom().nextInt(2000 - lastTime) < tickRate) {
+                if (lastTime >= 0 && citizenData.getEntity().get().getRandom().nextInt(2000 * 20 - lastTime) < tickRate) {
                     cure();
                 }
             }
