@@ -37,6 +37,7 @@ public class PathingConfig {
 
     public static ForgeConfigSpec.EnumValue<BuilderModeEnum> BUILDER_MODE;
     public static ForgeConfigSpec.IntValue BUILDER_GIBBON_RANGE;
+    public static ForgeConfigSpec.BooleanValue BUILDER_TAKE_ORDERS_EVERYWHERE;
 
     public static ForgeConfigSpec.BooleanValue PICK_MATERIAL_AT_HUT;
 
@@ -163,6 +164,8 @@ public class PathingConfig {
                 .defineEnum("builderMode", BuilderModeEnum.NORMAL);
         BUILDER_GIBBON_RANGE = builder.comment("Building range of gibbon mode. 长臂猿模式下的建造范围。")
                         .defineInRange("builderGibbonRange", 20, 0, 128);
+        BUILDER_TAKE_ORDERS_EVERYWHERE = builder.comment("Can builder take orders everywhere. 土木工人是否可以随时随地接单。")
+                        .define("builderTakeOrdersEverywhere", true);
         builder.pop();
         builder.push("Common Citizens Modifier #通用市民修改#");
         PICK_MATERIAL_AT_HUT = builder.comment("Should citizens pick material at their own hut. 你的非快递员市民是否应当在他们的小屋方块处取货。")
