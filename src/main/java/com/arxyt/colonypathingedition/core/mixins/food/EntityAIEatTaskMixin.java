@@ -37,17 +37,23 @@ import static com.minecolonies.core.entity.ai.minimal.EntityAIEatTask.EatingStat
 
 @Mixin(EntityAIEatTask.class)
 public abstract class EntityAIEatTaskMixin {
+
     @Final
     @Shadow(remap = false)
     private EntityCitizen citizen;
+
     @Shadow(remap = false)
     private IBuilding restaurant;
+
     @Shadow(remap = false)
     private BlockPos restaurantPos;
+
     @Shadow(remap = false)
     private BlockPos eatPos;
+
     @Shadow(remap = false)
     private int timeOutWalking;
+
     @Shadow(remap = false)
     private int waitingTicks;
 
@@ -59,11 +65,13 @@ public abstract class EntityAIEatTaskMixin {
 
     @Unique
     private boolean forceEatAtHut = false;
+
     @Unique
     public int STOP_EATING_SATURATION = 18;
 
     @Unique
     private final double WAITING_MINUTES = PathingConfig.RESTAURANT_WAITING_TIME.get();
+
     @Unique
     private static final Set<Class<?>> JOBS_EAT_IMMEDIATELY = Set.of(JobChef.class, JobCook.class);
 
@@ -195,7 +203,7 @@ public abstract class EntityAIEatTaskMixin {
                 }
             }
 
-            if (citizen.getCitizenData().getJob() instanceof JobCook jobCook && jobCook.getBuildingPos().equals(restaurantPos) && MathUtils.RANDOM.nextInt(TICKS_SECOND) <= 0) {
+            if (citizen.getCitizenData().getJob() instanceof JobCook jobCook && jobCook.getBuildingPos().equals(restaurantPos) && MathUtils.RANDOM.nextInt(TICKS_SECOND) == 0) {
                 reset();
                 return DONE;
             }

@@ -44,18 +44,24 @@ import static com.minecolonies.api.util.constant.TranslationConstants.PATIENT_FU
 
 @Mixin(EntityAIWorkHealer.class)
 public abstract class EntityAIWorkHealerMixin extends AbstractEntityAIBasicMixin<BuildingHospital, IJob<?>> implements AbstractEntityAIBasicAccessor<BuildingHospital> {
+
     @Final
     @Shadow(remap = false)
     private static double BASE_XP_GAIN;
+
     @Final
     @Shadow(remap = false)
     private static int MAX_PROGRESS_TICKS;
+
     @Shadow(remap = false)
     private Patient currentPatient;
+
     @Shadow(remap = false)
     private int progressTicks;
+
     @Shadow(remap = false)
     private ICitizenData remotePatient;
+
     @Shadow(remap = false)
     private Player playerToHeal;
 
@@ -139,7 +145,7 @@ public abstract class EntityAIWorkHealerMixin extends AbstractEntityAIBasicMixin
 
                 if (citizen.getInventoryCitizen().hasSpace()) {
                     if (hasCureInInventory(disease, getWorker().getInventoryCitizen()) ||
-                            hasCureInInventory(disease, getBuilding().getCapability(ForgeCapabilities.ITEM_HANDLER).orElseGet(null))) {
+                            hasCureInInventory(disease, getBuilding().getCapability(ForgeCapabilities.ITEM_HANDLER).orElse(null))) {
                         this.currentPatient = patient;
                         patientExtras.setEmployed(getWorker().getCivilianID());
                         return CURE;
@@ -149,7 +155,7 @@ public abstract class EntityAIWorkHealerMixin extends AbstractEntityAIBasicMixin
                     final ImmutableList<IRequest<? extends Stack>> completed = getBuilding().getCompletedRequestsOfType(getWorker().getCitizenData(), TypeToken.of(Stack.class));
                     for (final ItemStorage cure : disease.cureItems()) {
                         if (!InventoryUtils.hasItemInItemHandler(getWorker().getInventoryCitizen(), Disease.hasCureItem(cure))) {
-                            if (InventoryUtils.getItemCountInItemHandler(getBuilding().getCapability(ForgeCapabilities.ITEM_HANDLER).orElseGet(null),
+                            if (InventoryUtils.getItemCountInItemHandler(getBuilding().getCapability(ForgeCapabilities.ITEM_HANDLER).orElse(null),
                                     Disease.hasCureItem(cure)) >= cure.getAmount()) {
                                 needsCurrently = new Tuple<>(Disease.hasCureItem(cure), cure.getAmount());
                                 return GATHERING_REQUIRED_MATERIALS;
@@ -238,7 +244,7 @@ public abstract class EntityAIWorkHealerMixin extends AbstractEntityAIBasicMixin
         }
 
         if (!hasCureInInventory(disease, getWorker().getInventoryCitizen())) {
-            if (hasCureInInventory(disease, building.getCapability(ForgeCapabilities.ITEM_HANDLER).orElseGet(null))) {
+            if (hasCureInInventory(disease, building.getCapability(ForgeCapabilities.ITEM_HANDLER).orElse(null))) {
                 for (final ItemStorage cure : disease.cureItems()) {
                     if (InventoryUtils.getItemCountInItemHandler(getWorker().getInventoryCitizen(), Disease.hasCureItem(cure)) < cure.getAmount()) {
                         needsCurrently = new Tuple<>(Disease.hasCureItem(cure), 1);
@@ -280,18 +286,15 @@ public abstract class EntityAIWorkHealerMixin extends AbstractEntityAIBasicMixin
      */
     @Overwrite(remap = false)
     private IAIState freeCure() {
-        if (currentPatient == null) {
-            return DECIDE;
-        }
-        PatientExtras patientExtras = (PatientExtras) currentPatient;
-        final ICitizenData data = building.getColony().getCitizenManager().getCivilian(currentPatient.getId());
-        if (data == null || data.getEntity().isEmpty() || !(data.getEntity().get().getCitizenData().getCitizenDiseaseHandler().isSick() || notFullHealth(data.getEntity().get()))) {
-            patientExtras.setEmployed(-1);
-            currentPatient = null;
+        final ICitizenData data = getCurrentPatientData();
+        if (data == null) {
             return DECIDE;
         }
 
-        final EntityCitizen citizen = (EntityCitizen) data.getEntity().get();
+        final EntityCitizen citizen = (EntityCitizen) data.getEntity().orElse(null);
+        if (citizen == null) {
+            return DECIDE;
+        }
         if (!invokeWalkToSafePos(citizen.blockPosition())) {
             progressTicks = 0;
             return FREE_CURE;
@@ -323,8 +326,8 @@ public abstract class EntityAIWorkHealerMixin extends AbstractEntityAIBasicMixin
         getWorker().getCitizenExperienceHandler().addExperience(BASE_XP_GAIN);
         citizen.getCitizenData().getCitizenDiseaseHandler().cure();
         currentPatient.setState(Patient.PatientState.TREATED);
+        ((PatientExtras) currentPatient).setEmployed(-1);
         currentPatient = null;
-        patientExtras.setEmployed(-1);
         return DECIDE;
     }
 
@@ -382,5 +385,26 @@ public abstract class EntityAIWorkHealerMixin extends AbstractEntityAIBasicMixin
         remotePatient = null;
 
         return START_WORKING;
+    }
+
+    /**
+     * 获取当前处理的病人的市民数据信息
+     * @return 当前处理的病人的市民数据信息
+     * @author sxtkl
+     * @since 2025/7/28
+     */
+    @Unique
+    private ICitizenData getCurrentPatientData() {
+        if (currentPatient == null) {
+            return null;
+        }
+        PatientExtras patientExtras = (PatientExtras) currentPatient;
+        final ICitizenData data = building.getColony().getCitizenManager().getCivilian(currentPatient.getId());
+        if (data == null || data.getEntity().isEmpty() || !(data.getEntity().get().getCitizenData().getCitizenDiseaseHandler().isSick() || notFullHealth(data.getEntity().get()))) {
+            patientExtras.setEmployed(-1);
+            currentPatient = null;
+            return null;
+        }
+        return data;
     }
 }

@@ -29,9 +29,11 @@ import static com.minecolonies.core.entity.ai.minimal.EntityAISickTask.DiseaseSt
 
 @Mixin(EntityAISickTask.class)
 abstract public class EntityAISickTaskMixin {
+
     @Final
     @Shadow(remap = false)
     private EntityCitizen citizen;
+
     @Final
     @Shadow(remap = false)
     private ICitizenData citizenData;
@@ -73,13 +75,7 @@ abstract public class EntityAISickTaskMixin {
         return APPLY_CURE;
     }
 
-    // 预留位置，在仓库库存AI修正的时候会将此状态修改为清理背包的状态
-//    /**
-//     * @author ARxyt
-//     * @reason
-//     */
-//    @Overwrite(remap = false)
-//    private IState goToHut()
+    // TODO)) 预留位置，在仓库库存AI修正的时候会将 goToHut() 状态修改为清理背包的状态
 
     @Inject(
             method = "wander",
@@ -217,5 +213,4 @@ abstract public class EntityAISickTaskMixin {
         guessDisease = null;
     }
 
-    // Math.max(PathingConfig.MAX_PERCENTAGE_HP_FOR_CURE.get() * citizen.getMaxHealth(), PathingConfig.MAX_HP_FOR_CURE.get());
 }

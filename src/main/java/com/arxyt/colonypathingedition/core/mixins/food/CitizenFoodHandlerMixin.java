@@ -20,11 +20,14 @@ import java.util.Set;
 
 @Mixin(CitizenFoodHandler.class)
 public class CitizenFoodHandlerMixin {
+
     @Final
     @Shadow(remap = false)
     private EvictingQueue<Item> lastEatenFoods;
+
     @Shadow(remap = false)
     private ICitizenFoodHandler.CitizenFoodStats foodStatCache;
+
     @Shadow(remap = false)
     private boolean dirty;
 

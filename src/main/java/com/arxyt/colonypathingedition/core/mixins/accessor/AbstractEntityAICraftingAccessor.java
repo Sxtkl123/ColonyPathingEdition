@@ -10,6 +10,7 @@ import org.spongepowered.asm.mixin.gen.Invoker;
 
 @Mixin(AbstractEntityAICrafting.class)
 public interface AbstractEntityAICraftingAccessor {
+
     @Accessor(value = "currentRecipeStorage", remap = false)
     IRecipeStorage getCurrentRecipeStorage();
 
@@ -18,4 +19,5 @@ public interface AbstractEntityAICraftingAccessor {
 
     @Invoker(value = "resetValues", remap = false)
     void invokeResetValues();
+
 }

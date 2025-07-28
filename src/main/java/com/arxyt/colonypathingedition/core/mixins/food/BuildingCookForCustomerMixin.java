@@ -3,6 +3,7 @@ package com.arxyt.colonypathingedition.core.mixins.food;
 import com.arxyt.colonypathingedition.core.api.BuildingCookExtra;
 import com.minecolonies.core.colony.buildings.workerbuildings.BuildingCook;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Unique;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -13,7 +14,11 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 
 @Mixin(BuildingCook.class)
 public class BuildingCookForCustomerMixin implements BuildingCookExtra {
+
+    @Unique
     private final Queue<Integer> customerQueue = new ConcurrentLinkedQueue<>();
+
+    @Unique
     private final Set<Integer> processingCustomers = ConcurrentHashMap.newKeySet();
 
     // 分片获取 Customers
@@ -26,14 +31,6 @@ public class BuildingCookForCustomerMixin implements BuildingCookExtra {
             }
         }
         return assigned;
-    }
-
-    // 释放 Customer
-    public void releaseProcessingCustomer(int customerId, boolean requeue) {
-        processingCustomers.remove(customerId);
-        if (requeue) {
-            customerQueue.offer(customerId);
-        }
     }
 
     // 完全删除 Customer

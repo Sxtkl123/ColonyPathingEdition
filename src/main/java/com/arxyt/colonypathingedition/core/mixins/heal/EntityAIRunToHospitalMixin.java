@@ -18,14 +18,17 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(EntityAICitizenAvoidEntity.class)
 public class EntityAIRunToHospitalMixin {
+
     @Final
     @Shadow(remap = false)
     private EntityCitizen citizen;
+
     @Final
     @Shadow(remap = false)
     private double nearSpeed;
+
     @Shadow(remap = false)
-    private PathResult moveAwayPath;
+    private PathResult<?> moveAwayPath;
 
     @Unique
     private BlockPos nearestHospital;
@@ -49,4 +52,5 @@ public class EntityAIRunToHospitalMixin {
             }
         }
     }
+
 }

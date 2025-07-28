@@ -15,7 +15,8 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import java.util.Objects;
 
 @Mixin(CitizenAI.class)
-public class CitizenAIForHealerMixin {
+public class CitizenAIMixin {
+
     @Final
     @Shadow(remap = false)
     private EntityCitizen citizen;
