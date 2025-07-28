@@ -26,28 +26,29 @@ import static com.minecolonies.api.util.constant.CitizenConstants.MAX_GUARD_CALL
 
 @Mixin(EntityCitizen.class)
 public abstract class EntityCitizenMoveAwayMixin {
-    @Shadow(remap = false) private ITickRateStateMachine<IState> citizenAI;
+    @Shadow(remap = false)
+    private ITickRateStateMachine<IState> citizenAI;
 
-    @Unique BlockPos nearestHospital;
+    @Unique
+    BlockPos nearestHospital;
 
-    @Unique private EntityCitizen asCitizen() {
-        return (EntityCitizen)(Object)this;
+    @Unique
+    private EntityCitizen asCitizen() {
+        return (EntityCitizen) (Object) this;
     }
 
-    @Inject(method = "performMoveAway",at=@At("HEAD"),remap = false)
-    private void performMoveAway(Entity attacker, CallbackInfo ci){
+    @Inject(method = "performMoveAway", at = @At("HEAD"), remap = false)
+    private void performMoveAway(Entity attacker, CallbackInfo ci) {
         EntityCitizen citizen = asCitizen();
         // Environmental damage
         if (!(attacker instanceof LivingEntity) &&
-                (!(citizen.getCitizenJobHandler().getColonyJob() instanceof AbstractJobGuard) || citizen.getCitizenJobHandler().getColonyJob().canAIBeInterrupted()))
-        {
-            if(citizen.getCitizenData().getCitizenDiseaseHandler().isHurt()){
+                (!(citizen.getCitizenJobHandler().getColonyJob() instanceof AbstractJobGuard) || citizen.getCitizenJobHandler().getColonyJob().canAIBeInterrupted())) {
+            if (citizen.getCitizenData().getCitizenDiseaseHandler().isHurt()) {
                 final BlockPos tpPos = BlockPosUtil.findAround(citizen.level(), citizen.blockPosition(), 10, 10,
                         (posworld, pos) -> SurfaceType.getSurfaceType(posworld, posworld.getBlockState(pos.below()), pos.below()) == SurfaceType.WALKABLE
                                 && SurfaceType.getSurfaceType(posworld, posworld.getBlockState(pos), pos) == SurfaceType.DROPABLE
                                 && SurfaceType.getSurfaceType(posworld, posworld.getBlockState(pos.above()), pos.above()) == SurfaceType.DROPABLE);
-                if (tpPos != null)
-                {
+                if (tpPos != null) {
                     citizen.teleportTo(tpPos.getX() + 0.5, tpPos.getY(), tpPos.getZ() + 0.5);
                     return;
                 }
@@ -56,13 +57,11 @@ public abstract class EntityCitizenMoveAwayMixin {
             return;
         }
 
-        if (attacker == null)
-        {
+        if (attacker == null) {
             return;
         }
 
-        if ((citizen.getCitizenJobHandler().getColonyJob() instanceof AbstractJobGuard))
-        {
+        if ((citizen.getCitizenJobHandler().getColonyJob() instanceof AbstractJobGuard)) {
             // 30 Blocks range
             citizen.callForHelp(attacker, 900);
             return;
@@ -70,12 +69,12 @@ public abstract class EntityCitizenMoveAwayMixin {
 
         citizenAI.addTransition(new AIOneTimeEventTarget<>(CitizenAIState.FLEE));
         citizen.callForHelp(attacker, MAX_GUARD_CALL_RANGE);
-        if(citizen.getCitizenData().getCitizenDiseaseHandler().isHurt() && !(citizen.getCitizenJobHandler().getColonyJob() instanceof AbstractJobGuard)){
+        if (citizen.getCitizenData().getCitizenDiseaseHandler().isHurt() && !(citizen.getCitizenJobHandler().getColonyJob() instanceof AbstractJobGuard)) {
             final IColony colony = citizen.getCitizenData().getColony();
-            if (nearestHospital == null){
+            if (nearestHospital == null) {
                 nearestHospital = colony.getBuildingManager().getBestBuilding(citizen, BuildingHospital.class);
             }
-            if (nearestHospital != null ){
+            if (nearestHospital != null) {
                 EntityNavigationUtils.walkToPos(citizen, nearestHospital, 3, true);
                 return;
             }

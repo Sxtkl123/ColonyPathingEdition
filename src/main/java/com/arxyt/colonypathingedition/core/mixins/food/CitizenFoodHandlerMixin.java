@@ -20,41 +20,38 @@ import java.util.Set;
 
 @Mixin(CitizenFoodHandler.class)
 public class CitizenFoodHandlerMixin {
-    @Final @Shadow(remap = false) private EvictingQueue<Item> lastEatenFoods;
-    @Shadow(remap = false) private ICitizenFoodHandler.CitizenFoodStats foodStatCache;
-    @Shadow(remap = false) private boolean dirty;
+    @Final
+    @Shadow(remap = false)
+    private EvictingQueue<Item> lastEatenFoods;
+    @Shadow(remap = false)
+    private ICitizenFoodHandler.CitizenFoodStats foodStatCache;
+    @Shadow(remap = false)
+    private boolean dirty;
 
-    @Inject(remap = false,method ="getFoodHappinessStats" ,at = @At("HEAD"), cancellable = true)
-    public void rewriteGetFoodHappinessStats(CallbackInfoReturnable<ICitizenFoodHandler.CitizenFoodStats> cir)
-    {
-        if (foodStatCache == null || dirty)
-        {
+    @Inject(remap = false, method = "getFoodHappinessStats", at = @At("HEAD"), cancellable = true)
+    public void rewriteGetFoodHappinessStats(CallbackInfoReturnable<ICitizenFoodHandler.CitizenFoodStats> cir) {
+        if (foodStatCache == null || dirty) {
             float qualityFoodCounter = 0;
             float diversityFoodCounter = 0;
             Set<Item> uniqueFoods = new HashSet<>();
-            for (final Item foodItem : lastEatenFoods)
-            {
-                if (foodItem instanceof IMinecoloniesFoodItem)
-                {
+            for (final Item foodItem : lastEatenFoods) {
+                if (foodItem instanceof IMinecoloniesFoodItem) {
                     qualityFoodCounter += 1;
-                }
-                else{
-                    FoodProperties foodProperties=foodItem.getFoodProperties(new ItemStack(foodItem),null);
-                    if(foodProperties != null){
+                } else {
+                    FoodProperties foodProperties = foodItem.getFoodProperties(new ItemStack(foodItem), null);
+                    if (foodProperties != null) {
                         qualityFoodCounter += foodProperties.getSaturationModifier();
                     }
                 }
                 uniqueFoods.add(foodItem);
             }
-            for (final Item foodItem : uniqueFoods){
-                if (foodItem instanceof IMinecoloniesFoodItem)
-                {
+            for (final Item foodItem : uniqueFoods) {
+                if (foodItem instanceof IMinecoloniesFoodItem) {
                     diversityFoodCounter += 1;
-                }
-                else{
-                    FoodProperties foodProperties=foodItem.getFoodProperties(new ItemStack(foodItem),null);
-                    if(foodProperties != null){
-                        diversityFoodCounter += Math.max(foodProperties.getSaturationModifier() * 2.0f , 1.0f);
+                } else {
+                    FoodProperties foodProperties = foodItem.getFoodProperties(new ItemStack(foodItem), null);
+                    if (foodProperties != null) {
+                        diversityFoodCounter += Math.max(foodProperties.getSaturationModifier() * 2.0f, 1.0f);
                     }
                 }
             }

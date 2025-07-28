@@ -5,18 +5,22 @@ import com.arxyt.colonypathingedition.core.mixins.accessor.AbstractEntityAIBasic
 import com.minecolonies.core.colony.buildings.AbstractBuilding;
 import com.minecolonies.core.entity.ai.workers.production.herders.AbstractEntityAIHerder;
 import net.minecraft.world.entity.animal.Animal;
-import org.spongepowered.asm.mixin.*;
+import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Overwrite;
+import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.Constant;
 import org.spongepowered.asm.mixin.injection.ModifyConstant;
 
 import java.util.List;
 
 @Mixin(AbstractEntityAIHerder.class)
-public abstract class AbstractEntityAIHerderMixin implements AbstractEntityAIBasicAccessor<AbstractBuilding>
-{
-    @Shadow(remap = false) public abstract int getMaxAnimalMultiplier();
+public abstract class AbstractEntityAIHerderMixin implements AbstractEntityAIBasicAccessor<AbstractBuilding> {
+    @Shadow(remap = false)
+    public abstract int getMaxAnimalMultiplier();
 
-    @Unique final private boolean isMaxAnimalChange = PathingConfig.MAX_ANIMAL_MODIFIER.get();
+    @Unique
+    final private boolean isMaxAnimalChange = PathingConfig.MAX_ANIMAL_MODIFIER.get();
 
     // 修改 registerTargets 中使用的 DECIDING_DELAY
     @ModifyConstant(method = "<init>", constant = @Constant(intValue = 80))
@@ -37,7 +41,7 @@ public abstract class AbstractEntityAIHerderMixin implements AbstractEntityAIBas
     }
 
     // 修改 decideWhatToDo 中减少 breedTimeOut 的 DECIDING_DELAY
-    @ModifyConstant(method = "decideWhatToDo", constant = @Constant(intValue = 80),remap = false)
+    @ModifyConstant(method = "decideWhatToDo", constant = @Constant(intValue = 80), remap = false)
     private static int modifyDecidingDelayInDecideWhatToDo(int original) {
         return 10;
     }
@@ -47,34 +51,29 @@ public abstract class AbstractEntityAIHerderMixin implements AbstractEntityAIBas
      * @reason 写的太狗屎，重构一下
      */
     @Overwrite(remap = false)
-    public double chanceToButcher(final List<? extends Animal> allAnimals)
-    {
+    public double chanceToButcher(final List<? extends Animal> allAnimals) {
         // 用幂运算替代原先的乘法
-        int maxAnimals = (int) Math.pow(getMaxAnimalMultiplier(),getBuilding().getBuildingLevel());
+        int maxAnimals = (int) Math.pow(getMaxAnimalMultiplier(), getBuilding().getBuildingLevel());
         int minAnimals = getMaxAnimalMultiplier() * getBuilding().getBuildingLevel();
-        if (!isMaxAnimalChange){
+        if (!isMaxAnimalChange) {
             maxAnimals = minAnimals;
         }
         // 如果没开启繁殖设置，且动物总数未超过上限，则不屠宰
         if (!getBuilding().getSetting(AbstractBuilding.BREEDING).getValue()
-                && allAnimals.size() <= maxAnimals)
-        {
+                && allAnimals.size() <= maxAnimals) {
             return 0;
         }
 
         // 统计所有成年动物
         int grownUp = 0;
-        for (Animal animal : allAnimals)
-        {
-            if (!animal.isBaby())
-            {
+        for (Animal animal : allAnimals) {
+            if (!animal.isBaby()) {
                 grownUp++;
             }
         }
 
         // 成年动物太少时不屠宰
-        if (grownUp <= minAnimals)
-        {
+        if (grownUp <= minAnimals) {
             return 0;
         }
 

@@ -122,19 +122,19 @@ public class PathingConfig {
         builder.pop();
         builder.pop();
         builder.push("Restaurant Related Modifier #餐厅相关逻辑修改#");
-        RESTAURANT_WAITING_TIME= builder
+        RESTAURANT_WAITING_TIME = builder
                 .comment("""
                         Duration citizens wait in the restaurant for cook service (minutes) (default: 0.5, original: 2.0)
                         你的村民在餐厅等待厨师服务的时间(分钟) (默认 : 0.5 殖民地原设置 : 2.0)""")
                 .defineInRange("restaurantWaitingTime", 0.5, 0.0, 2.0);
         builder.pop();
         builder.push("Hospital Related Modifier #医院相关逻辑修改#");
-        MAX_PERCENTAGE_HP_FOR_CURE= builder
+        MAX_PERCENTAGE_HP_FOR_CURE = builder
                 .comment("""
                         The percentage of HP at which your citizens will seek treatment. (default: 0.2, original: 0.0)
                         你的村民将在剩多少比例的HP时去寻求医生治疗 (默认 : 0.2 殖民地原设置 : 0.0)""")
                 .defineInRange("curePercentageHP", 0.2, 0.0, 1.0);
-        MAX_HP_FOR_CURE= builder
+        MAX_HP_FOR_CURE = builder
                 .comment("""
                         The absolute amount of HP at which your citizens will seek treatment. (default: 10.0, original: 6.0)
                         你的村民将在剩多少HP时去寻求医生治疗 (默认 : 10.0 殖民地原设置 : 6.0)""")
@@ -146,10 +146,10 @@ public class PathingConfig {
                 .defineInRange("pathingDistance", 1000, 500, 4095);
         MAX_ANIMAL_MODIFIER = builder
                 .comment("Max animal modifier, would you like to modify the max animals to 2^(building level)? (default: false)\n 养殖场最大生物数是否改为 2^建筑等级 原为 2*建筑等级(动物数目过大会导致卡顿，所以不默认开启),(默认 : false)")
-                .define("increaceMaxAnimal",false);
+                .define("increaceMaxAnimal", false);
         LUMBERJACK_WORK_WHEN_UNCONSTRUCTED = builder
                 .comment("Lumberjcak will start to work only if hut is placed.\n 伐木工会在放置工作方块后立即开始工作 (功能在后期有些超模，建议仅在前期开启以分担少量工作量)。")
-                .define("lumberjackWorkWhenUnconstructed",false);
+                .define("lumberjackWorkWhenUnconstructed", false);
         builder.pop();
 
         builder.push("Builder Mode Modifier #土木人修改#");
@@ -163,13 +163,13 @@ public class PathingConfig {
                         GIBBON: Play as a gibbon, jumping up and down with a large building range. 长臂猿：像猿猴一样上蹿下跳，但是只在一定建造范围内工作。""")
                 .defineEnum("builderMode", BuilderModeEnum.NORMAL);
         BUILDER_GIBBON_RANGE = builder.comment("Building range of gibbon mode. 长臂猿模式下的建造范围。")
-                        .defineInRange("builderGibbonRange", 20, 0, 128);
+                .defineInRange("builderGibbonRange", 20, 0, 128);
         BUILDER_TAKE_ORDERS_EVERYWHERE = builder.comment("Can builder take orders everywhere. 土木工人是否可以随时随地接单。")
-                        .define("builderTakeOrdersEverywhere", true);
+                .define("builderTakeOrdersEverywhere", true);
         builder.pop();
         builder.push("Common Citizens Modifier #通用市民修改#");
         PICK_MATERIAL_AT_HUT = builder.comment("Should citizens pick material at their own hut. 你的非快递员市民是否应当在他们的小屋方块处取货。")
-                        .define("pickMaterialAtHut", true);
+                .define("pickMaterialAtHut", true);
         builder.pop();
         return builder.build(); // 返回构建结果
     }

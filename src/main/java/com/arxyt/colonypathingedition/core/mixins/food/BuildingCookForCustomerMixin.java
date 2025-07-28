@@ -50,12 +50,12 @@ public class BuildingCookForCustomerMixin implements BuildingCookExtra {
     }
 
     // 顾客监测
-    public boolean checkCustomerRegistry(int citizenId){
+    public boolean checkCustomerRegistry(int citizenId) {
         return customerQueue.contains(citizenId) || processingCustomers.contains(citizenId);
     }
 
     // 获取当前顾客数量
-    public int checkSize(){
+    public int checkSize() {
         return customerQueue.size() + processingCustomers.size();
     }
 }

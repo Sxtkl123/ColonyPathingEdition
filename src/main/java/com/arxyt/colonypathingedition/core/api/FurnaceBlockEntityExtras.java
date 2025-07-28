@@ -2,9 +2,10 @@ package com.arxyt.colonypathingedition.core.api;
 
 import net.minecraft.world.level.block.entity.AbstractFurnaceBlockEntity;
 
-public interface FurnaceBlockEntityExtras{
+public interface FurnaceBlockEntityExtras {
     /**
      * 直接给当前熔炉的 Progress 加 adder
+     *
      * @return 如果 adder 大于实际上熔炉还未完成的部分，会返回剩余的 adder
      */
     int addProgress(int adder);
@@ -39,7 +40,7 @@ public interface FurnaceBlockEntityExtras{
      */
     boolean atProtectTime();
 
-    // 这是 protectTime 相关的 servertick 事件
+    // 这是 protectTime 相关的 server tick 事件
     void tickProtect();
 
     // 设置拿取人为当前占用熔炉的工人

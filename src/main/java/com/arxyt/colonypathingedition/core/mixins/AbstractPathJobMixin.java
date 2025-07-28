@@ -3,35 +3,43 @@ package com.arxyt.colonypathingedition.core.mixins;
 import com.arxyt.colonypathingedition.core.api.IMNodeExtras;
 import com.arxyt.colonypathingedition.core.config.PathingConfig;
 import com.arxyt.colonypathingedition.core.mixins.accessor.AbstractAISkeletonAccessor;
-import com.ldtteam.domumornamentum.block.decorative.*;
+import com.ldtteam.domumornamentum.block.decorative.PanelBlock;
+import com.ldtteam.domumornamentum.block.decorative.PostBlock;
+import com.ldtteam.domumornamentum.block.decorative.ShingleBlock;
+import com.ldtteam.domumornamentum.block.decorative.ShingleSlabBlock;
 import com.ldtteam.structurize.blockentities.interfaces.IBlueprintDataProviderBE;
 import com.minecolonies.api.colony.buildings.workerbuildings.ITownHall;
 import com.minecolonies.api.colony.jobs.IJob;
 import com.minecolonies.api.entity.citizen.AbstractEntityCitizen;
 import com.minecolonies.api.util.Log;
 import com.minecolonies.api.util.ShapeUtil;
+import com.minecolonies.api.util.constant.ColonyConstants;
+import com.minecolonies.core.entity.pathfinding.MNode;
 import com.minecolonies.core.entity.pathfinding.PathfindingUtils;
 import com.minecolonies.core.entity.pathfinding.PathingOptions;
 import com.minecolonies.core.entity.pathfinding.pathjobs.AbstractPathJob;
 import com.minecolonies.core.entity.pathfinding.world.CachingBlockLookup;
-import com.minecolonies.core.entity.pathfinding.MNode;
-import com.minecolonies.api.util.constant.ColonyConstants;
 import com.minecolonies.core.util.WorkerUtil;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
+import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelReader;
 import net.minecraft.world.level.block.*;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.core.BlockPos;
-import net.minecraft.world.level.block.state.properties.*;
+import net.minecraft.world.level.block.state.properties.BlockStateProperties;
+import net.minecraft.world.level.block.state.properties.Half;
+import net.minecraft.world.level.block.state.properties.RailShape;
+import net.minecraft.world.level.block.state.properties.SlabType;
 import net.minecraft.world.level.pathfinder.Path;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.*;
 import org.spongepowered.asm.mixin.gen.Invoker;
-import org.spongepowered.asm.mixin.injection.*;
+import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
@@ -43,24 +51,39 @@ import static com.minecolonies.api.util.BlockPosUtil.directionFromDelta;
 import static com.minecolonies.core.entity.pathfinding.PathingOptions.MAX_COST;
 
 @Mixin(AbstractPathJob.class)
-public abstract class AbstractPathJobMixin implements AbstractAISkeletonAccessor<IJob<?>>{
+public abstract class AbstractPathJobMixin implements AbstractAISkeletonAccessor<IJob<?>> {
 
-    @Final @Shadow(remap = false) private Level actualWorld;
-    @Final @Shadow(remap = false) public static int MAX_NODES;
-    @Shadow(remap = false) private PathingOptions pathingOptions;
-    @Shadow(remap = false) protected CachingBlockLookup cachedBlockLookup;
-    @Shadow(remap = false) protected BlockPos.MutableBlockPos tempWorldPos;
-    @Shadow(remap = false) protected int maxNodes;
+    @Final
+    @Shadow(remap = false)
+    private Level actualWorld;
+    @Final
+    @Shadow(remap = false)
+    public static int MAX_NODES;
+    @Shadow(remap = false)
+    private PathingOptions pathingOptions;
+    @Shadow(remap = false)
+    protected CachingBlockLookup cachedBlockLookup;
+    @Shadow(remap = false)
+    protected BlockPos.MutableBlockPos tempWorldPos;
+    @Shadow(remap = false)
+    protected int maxNodes;
 
-    @Shadow(remap = false) protected abstract void recalcHeuristic(final MNode node);
+    @Shadow(remap = false)
+    protected abstract void recalcHeuristic(final MNode node);
 
-    @Unique protected int actualMaxNodes;
+    @Unique
+    protected int actualMaxNodes;
 
-    @Unique public double panelCost = PathingConfig.PANEL_COST_DEFINER.get();
-    @Unique public double shingleCost = PathingConfig.SHINGLE_COST_DEFINER.get();
-    @Unique public double destroyingFarmlandCost = PathingConfig.FARMLAND_COST_DEFINER.get();
-    @Unique public double leafCost = PathingConfig.LEAF_COST_DEFINER.get();
-    @Unique public double sweetBerryCost = PathingConfig.WATER_COST_DEFINER.get();
+    @Unique
+    public double panelCost = PathingConfig.PANEL_COST_DEFINER.get();
+    @Unique
+    public double shingleCost = PathingConfig.SHINGLE_COST_DEFINER.get();
+    @Unique
+    public double destroyingFarmlandCost = PathingConfig.FARMLAND_COST_DEFINER.get();
+    @Unique
+    public double leafCost = PathingConfig.LEAF_COST_DEFINER.get();
+    @Unique
+    public double sweetBerryCost = PathingConfig.WATER_COST_DEFINER.get();
 
     /**
      * 重写 computeCost 方法，修改游泳进入成本并添加自定义逻辑。
@@ -86,14 +109,12 @@ public abstract class AbstractPathJobMixin implements AbstractAISkeletonAccessor
         IMNodeExtras extras = (IMNodeExtras) parent;
         if (onRails) {
             cost *= pathingOptions.onRailCost;
-            if (state.getBlock() instanceof PoweredRailBlock && !(state.getValue(PoweredRailBlock.POWERED)))
-            {
+            if (state.getBlock() instanceof PoweredRailBlock && !(state.getValue(PoweredRailBlock.POWERED))) {
                 return 25.0;
             }
-            return cost ;
+            return cost;
         }
-        if (railsExit && !extras.isStation())
-        {
+        if (railsExit && !extras.isStation()) {
             cost += pathingOptions.railsExitCost;
         }
 
@@ -107,14 +128,10 @@ public abstract class AbstractPathJobMixin implements AbstractAISkeletonAccessor
             cost += pathingOptions.caveAirCost;
         }
 
-        if (state.hasProperty(BlockStateProperties.OPEN) && !(state.getBlock() instanceof PanelBlock))
-        {
+        if (state.hasProperty(BlockStateProperties.OPEN) && !(state.getBlock() instanceof PanelBlock)) {
             cost += pathingOptions.traverseToggleAbleCost;
-        }
-        else
-        {
-            if (!onPath && ShapeUtil.hasCollision(cachedBlockLookup, tempWorldPos.set(x, y, z), state))
-            {
+        } else {
+            if (!onPath && ShapeUtil.hasCollision(cachedBlockLookup, tempWorldPos.set(x, y, z), state)) {
                 cost += pathingOptions.walkInShapesCost;
             }
         }
@@ -125,73 +142,61 @@ public abstract class AbstractPathJobMixin implements AbstractAISkeletonAccessor
             }
         }
 
-        boolean nextOnSlab = (below.getBlock() instanceof SlabBlock) && below.getValue(SlabBlock.TYPE)== SlabType.BOTTOM;
+        boolean nextOnSlab = (below.getBlock() instanceof SlabBlock) && below.getValue(SlabBlock.TYPE) == SlabType.BOTTOM;
         double halfY = (nextOnSlab ? -0.5 : 0.0) + (extras.getOnSlab() ? 0.5 : 0.0);
-        double dYDouble = (double)dY + halfY;
+        double dYDouble = (double) dY + halfY;
 
-        if (!isDiving)
-        {
-            if (Math.abs(dYDouble) > 0.6 && !ladder && !(dY == 1 && (below.getBlock() instanceof StairBlock) && below.getValue(StairBlock.FACING)==directionFromDelta(dX,0,dZ) && below.getValue(StairBlock.HALF)== Half.BOTTOM))
-            {
-                if (dYDouble > 0.0)
-                {
+        if (!isDiving) {
+            if (Math.abs(dYDouble) > 0.6 && !ladder && !(dY == 1 && (below.getBlock() instanceof StairBlock) && below.getValue(StairBlock.FACING) == directionFromDelta(dX, 0, dZ) && below.getValue(StairBlock.HALF) == Half.BOTTOM)) {
+                if (dYDouble > 0.0) {
                     double basicJumpCost = pathingOptions.jumpCost;
-                    if (onPath){
+                    if (onPath) {
                         basicJumpCost *= pathingOptions.onPathCost;
                     }
-                    if (extras.getOnFarmland()){
+                    if (extras.getOnFarmland()) {
                         basicJumpCost += destroyingFarmlandCost;
                     }
                     cost += basicJumpCost;
-                }
-                else if ( pathingOptions.dropCost != 0)
-                {
-                    if (!(dY==1 && below.getBlock() instanceof StairBlock)) {
-                        double basicDropCost = Math.abs(Math.pow((dYDouble + 2. / 5) , 3))- 8. / 125;
-                        if (dYDouble > -3.0 && onPath){
+                } else if (pathingOptions.dropCost != 0) {
+                    if (!(dY == 1 && below.getBlock() instanceof StairBlock)) {
+                        double basicDropCost = Math.abs(Math.pow((dYDouble + 2. / 5), 3)) - 8. / 125;
+                        if (dYDouble > -3.0 && onPath) {
                             basicDropCost *= pathingOptions.onPathCost;
-                        }
-                        else {
+                        } else {
                             basicDropCost *= Math.abs(dYDouble);
                         }
                         cost += pathingOptions.dropCost * basicDropCost;
                     }
-                    if (below.getBlock() instanceof FarmBlock){
+                    if (below.getBlock() instanceof FarmBlock) {
                         cost += destroyingFarmlandCost;
                     }
                 }
-            }
-            else if (ladder && parent.isLadder() && dY == 0){
+            } else if (ladder && parent.isLadder() && dY == 0) {
                 cost += panelCost;
             }
         }
 
-        if (below.getBlock() instanceof ShingleBlock || below.getBlock() instanceof ShingleSlabBlock)
-        {
+        if (below.getBlock() instanceof ShingleBlock || below.getBlock() instanceof ShingleSlabBlock) {
             cost += shingleCost;
         }
 
-        if (state.getBlock() instanceof PanelBlock)
-        {
+        if (state.getBlock() instanceof PanelBlock) {
             cost += panelCost;
         }
 
-        if (below.getBlock() instanceof LeavesBlock)
-        {
+        if (below.getBlock() instanceof LeavesBlock) {
             cost += leafCost;
         }
 
-        if (state.getBlock() instanceof SweetBerryBushBlock)
-        {
+        if (state.getBlock() instanceof SweetBerryBushBlock) {
             cost += sweetBerryCost;
         }
 
-        if (!isDiving && ladder && !parent.isLadder() && !(state.getBlock() instanceof LadderBlock))
-        {
+        if (!isDiving && ladder && !parent.isLadder() && !(state.getBlock() instanceof LadderBlock)) {
             cost += pathingOptions.nonLadderClimbableCost;
         }
 
-        if (isSwimming){
+        if (isSwimming) {
             if (swimStart) {
                 cost += pathingOptions.swimCostEnter;
             } else {
@@ -209,15 +214,13 @@ public abstract class AbstractPathJobMixin implements AbstractAISkeletonAccessor
      */
     @Inject(
             method = "search",
-            at     = @At("HEAD"),
+            at = @At("HEAD"),
             remap = false
     )
-    private void onSearchHead(CallbackInfoReturnable<Path> cir)
-    {
+    private void onSearchHead(CallbackInfoReturnable<Path> cir) {
         this.actualMaxNodes = this.maxNodes;
         // 如果需要记录到日志，可在此加入 Log.info(...)
     }
-
 
 
     /**
@@ -227,15 +230,14 @@ public abstract class AbstractPathJobMixin implements AbstractAISkeletonAccessor
     @Redirect(
             method = "search()Lnet/minecraft/world/level/pathfinder/Path;",
             at = @At(
-                    value   = "INVOKE",
-                    target  = "Lcom/minecolonies/core/entity/pathfinding/pathjobs/AbstractPathJob;recalcHeuristic(Lcom/minecolonies/core/entity/pathfinding/MNode;)V",
+                    value = "INVOKE",
+                    target = "Lcom/minecolonies/core/entity/pathfinding/pathjobs/AbstractPathJob;recalcHeuristic(Lcom/minecolonies/core/entity/pathfinding/MNode;)V",
                     ordinal = 0,
                     remap = false
             ),
             remap = false
     )
-    private void onRecalcHeuristicAndThen1(AbstractPathJob instance, MNode bestNode)
-    {
+    private void onRecalcHeuristicAndThen1(AbstractPathJob instance, MNode bestNode) {
         // 1) 先执行原来的 recalcHeuristic(bestNode)
         recalcHeuristic(bestNode);
 
@@ -243,7 +245,7 @@ public abstract class AbstractPathJobMixin implements AbstractAISkeletonAccessor
         //    例如，按 bestNode 的 heuristic 调整 maxNodes：
         double h = bestNode.getHeuristic();
         int extra = (int) Math.ceil(Math.sqrt(h) * 10);  // 举例：heuristic*10 向上取整
-        maxNodes = Math.max(Math.min(actualMaxNodes + extra , MAX_NODES),maxNodes);
+        maxNodes = Math.max(Math.min(actualMaxNodes + extra, MAX_NODES), maxNodes);
     }
 
     /**
@@ -253,38 +255,43 @@ public abstract class AbstractPathJobMixin implements AbstractAISkeletonAccessor
     @Redirect(
             method = "search()Lnet/minecraft/world/level/pathfinder/Path;",
             at = @At(
-                    value   = "INVOKE",
-                    target  = "Lcom/minecolonies/core/entity/pathfinding/pathjobs/AbstractPathJob;recalcHeuristic(Lcom/minecolonies/core/entity/pathfinding/MNode;)V",
+                    value = "INVOKE",
+                    target = "Lcom/minecolonies/core/entity/pathfinding/pathjobs/AbstractPathJob;recalcHeuristic(Lcom/minecolonies/core/entity/pathfinding/MNode;)V",
                     ordinal = 1,
                     remap = false
             ),
             remap = false
     )
-    private void onRecalcHeuristicAndThen2(AbstractPathJob instance, MNode bestNode)
-    {
+    private void onRecalcHeuristicAndThen2(AbstractPathJob instance, MNode bestNode) {
         recalcHeuristic(bestNode);
 
         double h = bestNode.getHeuristic();
         int extra = (int) Math.ceil(Math.sqrt(h) * 10);  // 举例：heuristic*10 向上取整
-        maxNodes = Math.max(Math.min(actualMaxNodes + extra , MAX_NODES),maxNodes);
+        maxNodes = Math.max(Math.min(actualMaxNodes + extra, MAX_NODES), maxNodes);
     }
 
-    @Shadow(remap = false) private double maxCost;
-    @Shadow(remap = false) protected double heuristicMod;
-    @Final @Shadow(remap = false) private Int2ObjectOpenHashMap<MNode> nodes;
-    @Final @Shadow(remap = false) protected LevelReader world;
+    @Shadow(remap = false)
+    private double maxCost;
+    @Shadow(remap = false)
+    protected double heuristicMod;
+    @Final
+    @Shadow(remap = false)
+    private Int2ObjectOpenHashMap<MNode> nodes;
+    @Final
+    @Shadow(remap = false)
+    protected LevelReader world;
 
-    @Invoker(value="getGroundHeight",remap = false)
+    @Invoker(value = "getGroundHeight", remap = false)
     public abstract int invokeGetGroundHeight(final MNode node, final int x, final int y, final int z);
 
-    @Invoker(value="createNode",remap = false)
+    @Invoker(value = "createNode", remap = false)
     public abstract MNode invokeCreateNode(
             final MNode parent, final int x, final int y, final int z, final int nodeKey, final double heuristic, final double cost);
 
-    @Invoker(value="calculateSwimming",remap = false)
+    @Invoker(value = "calculateSwimming", remap = false)
     public abstract boolean invokeCalculateSwimming(final BlockState below, final BlockState state, final BlockState above, @Nullable final MNode node);
 
-    @Invoker(value="modifyCost",remap = false)
+    @Invoker(value = "modifyCost", remap = false)
     public abstract double invokeModifyCost(
             final double cost,
             final MNode parent,
@@ -295,53 +302,47 @@ public abstract class AbstractPathJobMixin implements AbstractAISkeletonAccessor
             final int z,
             final BlockState state, final BlockState below);
 
-    @Invoker(value="computeHeuristic",remap = false)
+    @Invoker(value = "computeHeuristic", remap = false)
     protected abstract double computeHeuristic(final int x, final int y, final int z);
 
-    private int recheckGroundHeight(int x, int y, int z){
+    private int recheckGroundHeight(int x, int y, int z) {
         //final BlockState state = cachedBlockLookup.getBlockState(x, y , z);
         final BlockState belowState = cachedBlockLookup.getBlockState(x, y - 1, z);
-        if(!PathfindingUtils.isWater(cachedBlockLookup, null, belowState, null) && (ShapeUtil.getEndY(belowState.getCollisionShape(world, tempWorldPos.set(x, y - 1, z)), 0) < 0.125) )
-        {
+        if (!PathfindingUtils.isWater(cachedBlockLookup, null, belowState, null) && (ShapeUtil.getEndY(belowState.getCollisionShape(world, tempWorldPos.set(x, y - 1, z)), 0) < 0.125)) {
             return y - 1;
         }
         return y;
     }
 
-    private boolean checkConerCollision(int x,int y,int z) {
-        final BlockState above = cachedBlockLookup.getBlockState(x,y+1,z);
-        return !(ShapeUtil.getStartY(above.getCollisionShape(world, tempWorldPos.set(x, y + 1, z)), 1) < 0.875)||(above.hasProperty(BlockStateProperties.OPEN)&&!(above.getBlock() instanceof PanelBlock));
+    private boolean checkConerCollision(int x, int y, int z) {
+        final BlockState above = cachedBlockLookup.getBlockState(x, y + 1, z);
+        return !(ShapeUtil.getStartY(above.getCollisionShape(world, tempWorldPos.set(x, y + 1, z)), 1) < 0.875) || (above.hasProperty(BlockStateProperties.OPEN) && !(above.getBlock() instanceof PanelBlock));
     }
 
-    private boolean checkPossiblyPassing(MNode node,int nextX,int nextY,int nextZ,MNode cornerNode,int dY){
-        BlockPos cornerPos = new BlockPos(cornerNode.x,cornerNode.y,cornerNode.z).above();
+    private boolean checkPossiblyPassing(MNode node, int nextX, int nextY, int nextZ, MNode cornerNode, int dY) {
+        BlockPos cornerPos = new BlockPos(cornerNode.x, cornerNode.y, cornerNode.z).above();
         BlockState cornerState = cachedBlockLookup.getBlockState(cornerPos);
         BlockPos checkPos;
-        if(dY > 0){
-            checkPos = new BlockPos(nextX,nextY,nextZ).below();
-        }
-        else{
-            checkPos = new BlockPos(node.x,node.y,node.z).below();
+        if (dY > 0) {
+            checkPos = new BlockPos(nextX, nextY, nextZ).below();
+        } else {
+            checkPos = new BlockPos(node.x, node.y, node.z).below();
         }
         BlockState checkState = cachedBlockLookup.getBlockState(checkPos);
-        double rawDY = 2 + ShapeUtil.getStartY(cornerState.getCollisionShape(world, tempWorldPos.set(cornerPos)), 1)-ShapeUtil.getEndY(checkState.getCollisionShape(world, tempWorldPos.set(checkPos)),0);
+        double rawDY = 2 + ShapeUtil.getStartY(cornerState.getCollisionShape(world, tempWorldPos.set(cornerPos)), 1) - ShapeUtil.getEndY(checkState.getCollisionShape(world, tempWorldPos.set(checkPos)), 0);
         //目前先用着rawDY，这是对楼梯间缝隙的粗略估计，精细估计需要对缝隙进行更详细的刻画，之后再补，现在先这么用着
         return !(rawDY > 1.8);
     }
 
-    private boolean checkConnection(MNode node, int dX, int dZ){
-        if (node.isOnRails()){
+    private boolean checkConnection(MNode node, int dX, int dZ) {
+        if (node.isOnRails()) {
             BlockState railState = cachedBlockLookup.getBlockState(node.x, node.y, node.z);
             RailShape railShape;
-            if (railState.hasProperty(BlockStateProperties.RAIL_SHAPE))
-            {
-                railShape=railState.getValue(BlockStateProperties.RAIL_SHAPE);
-            }
-            else if(railState.hasProperty(BlockStateProperties.RAIL_SHAPE_STRAIGHT))
-            {
-                railShape=railState.getValue(BlockStateProperties.RAIL_SHAPE_STRAIGHT);
-            }
-            else{
+            if (railState.hasProperty(BlockStateProperties.RAIL_SHAPE)) {
+                railShape = railState.getValue(BlockStateProperties.RAIL_SHAPE);
+            } else if (railState.hasProperty(BlockStateProperties.RAIL_SHAPE_STRAIGHT)) {
+                railShape = railState.getValue(BlockStateProperties.RAIL_SHAPE_STRAIGHT);
+            } else {
                 return true;
             }
             return switch (railShape) {
@@ -355,12 +356,13 @@ public abstract class AbstractPathJobMixin implements AbstractAISkeletonAccessor
         }
         return true;
     }
+
     /**
      * @author ARxyt
      * @reason 重构代码，取消corner链接，使用统一规则缩减代码量，同时de奇怪的bug
      */
 
-    @Overwrite( remap = false)
+    @Overwrite(remap = false)
     protected final void exploreInDirection(final MNode node, int dX, int dY, int dZ) {
         int nextX = node.x + dX;
         int nextY = node.y + dY;
@@ -368,19 +370,16 @@ public abstract class AbstractPathJobMixin implements AbstractAISkeletonAccessor
 
         //  Can we traverse into this node?  Fix the y up, skip on already explored nodes
         final int firstY = invokeGetGroundHeight(node, nextX, nextY, nextZ);
-        if (firstY < world.getMinBuildHeight())
-        {
+        if (firstY < world.getMinBuildHeight()) {
             return;
         }
 
         final int newY = recheckGroundHeight(nextX, firstY, nextZ);
-        if (nextY != newY)
-        {
-            int conerX,conerY,conerZ;
+        if (nextY != newY) {
+            int conerX, conerY, conerZ;
             // if the new position is above the current node, we're taking the node directly above
-            if (newY - node.y > 0 )
-            {
-                if (newY - node.y > 1){
+            if (newY - node.y > 0) {
+                if (newY - node.y > 1) {
                     return;
                 }
                 conerX = node.x;
@@ -388,28 +387,26 @@ public abstract class AbstractPathJobMixin implements AbstractAISkeletonAccessor
                 conerZ = node.z;
             }
             // If we're going down, take the air-corner before going to the lower node
-            else
-            {
+            else {
                 conerX = nextX;
                 conerY = node.y;
                 conerZ = nextZ;
             }
             final int nodeKey = MNode.computeNodeKey(conerX, conerY, conerZ);
             MNode conerNode = nodes.get(nodeKey);
-            if (conerNode == null){
+            if (conerNode == null) {
                 boolean isPassable = checkConerCollision(conerX, conerY, conerZ);
                 conerNode = invokeCreateNode(null, conerX, conerY, conerZ, nodeKey, node.getHeuristic(), node.getCost());
                 conerNode.setCornerNode(isPassable);
                 conerNode.increaseVisited();
-                if(!isPassable){
-                    if(checkPossiblyPassing(node, nextX, newY, nextZ, conerNode, newY - node.y)){
+                if (!isPassable) {
+                    if (checkPossiblyPassing(node, nextX, newY, nextZ, conerNode, newY - node.y)) {
                         return;
                     }
                 }
-            }
-            else{
-                if(!conerNode.isCornerNode()){
-                    if(checkPossiblyPassing(node, nextX, newY, nextZ, conerNode, newY - node.y)){
+            } else {
+                if (!conerNode.isCornerNode()) {
+                    if (checkPossiblyPassing(node, nextX, newY, nextZ, conerNode, newY - node.y)) {
                         return;
                     }
                 }
@@ -422,10 +419,8 @@ public abstract class AbstractPathJobMixin implements AbstractAISkeletonAccessor
         MNode nextNode = nodes.get(nodeKey);
 
         // Current node is already visited, only update nearby costs do not create new nodes
-        if (node.isVisited())
-        {
-            if (nextNode == null || nextNode == node.parent || nextNode == node)
-            {
+        if (node.isVisited()) {
+            if (nextNode == null || nextNode == node.parent || nextNode == node) {
                 return;
             }
         }
@@ -436,27 +431,26 @@ public abstract class AbstractPathJobMixin implements AbstractAISkeletonAccessor
         final BlockPos below = new BlockPos(nextX, nextY - 1, nextZ);
         final BlockState belowState = cachedBlockLookup.getBlockState(nextX, nextY - 1, nextZ);
 
-        if(HasBlockedTag(pos)||HasBlockedTag(below)){
+        if (HasBlockedTag(pos) || HasBlockedTag(below)) {
             return;
         }
 
         final boolean isSwimming = invokeCalculateSwimming(belowState, state, aboveState, nextNode);
-        if (isSwimming && !pathingOptions.canSwim())
-        {
+        if (isSwimming && !pathingOptions.canSwim()) {
             return;
         }
 
-        if(belowState.getBlock() instanceof AbstractCauldronBlock){
+        if (belowState.getBlock() instanceof AbstractCauldronBlock) {
             return;
         }
-        if(state.getBlock() instanceof PostBlock){
+        if (state.getBlock() instanceof PostBlock) {
             return;
         }
 
         final boolean swimStart = isSwimming && !node.isSwimming();
-        final boolean onRails = pathingOptions.canUseRails() && state.getBlock() instanceof BaseRailBlock && checkConnection(node,dX,dZ);
+        final boolean onRails = pathingOptions.canUseRails() && state.getBlock() instanceof BaseRailBlock && checkConnection(node, dX, dZ);
         final boolean ladder = PathfindingUtils.isLadder(state, pathingOptions);
-        final boolean onRoad =HasPathTag(below)||HasPathTag(pos)||(ladder||PathfindingUtils.isLadder(belowState, pathingOptions)||WorkerUtil.isPathBlock(belowState.getBlock())||WorkerUtil.isPathBlock(state.getBlock()))&&!(HasNotPathTag(below)||HasNotPathTag(pos));
+        final boolean onRoad = HasPathTag(below) || HasPathTag(pos) || (ladder || PathfindingUtils.isLadder(belowState, pathingOptions) || WorkerUtil.isPathBlock(belowState.getBlock()) || WorkerUtil.isPathBlock(state.getBlock())) && !(HasNotPathTag(below) || HasNotPathTag(pos));
         final boolean isDiving = isSwimming && PathfindingUtils.isWater(world, null, aboveState, null);
 
 
@@ -465,51 +459,44 @@ public abstract class AbstractPathJobMixin implements AbstractAISkeletonAccessor
         nextCost = computeCost(node, dX, dY, dZ, isSwimming, onRoad, isDiving, onRails, railsExit, swimStart, ladder, state, belowState, nextX, nextY, nextZ);
         nextCost = invokeModifyCost(nextCost, node, swimStart, isSwimming, nextX, nextY, nextZ, state, belowState);
 
-        if (nextCost > maxCost)
-        {
+        if (nextCost > maxCost) {
             maxCost = Math.min(MAX_COST, Math.ceil(nextCost));
         }
 
         final double heuristic = computeHeuristic(nextX, nextY, nextZ) * heuristicMod;
         final double cost = node.getCost() + nextCost;
 
-        if (nextNode == null)
-        {
+        if (nextNode == null) {
             nextNode = invokeCreateNode(node, nextX, nextY, nextZ, nodeKey, heuristic, cost);
             nextNode.setOnRails(onRails);
             nextNode.setCornerNode(false);
 
-            if (isSwimming)
-            {
+            if (isSwimming) {
                 nextNode.setSwimming();
             }
-            if (ladder)
-            {
+            if (ladder) {
                 nextNode.setLadder();
             }
 
             MNode extraNextNode = extraNodeState(nextNode);
-            if ((onRoad || onRails) && Math.abs(dY) <= 1 ){
+            if ((onRoad || onRails) && Math.abs(dY) <= 1) {
                 extraNextNode.setHeuristic(modifyHeuristic(node, extraNextNode, nextNode.getHeuristic(), onRoad, onRails));
             }
             nodesToVisit.offer(extraNextNode);
-        }
-        else
-        {
-            if ((onRoad || onRails) && Math.abs(dY) <= 1){
+        } else {
+            if ((onRoad || onRails) && Math.abs(dY) <= 1) {
                 nextNode.setHeuristic(modifyHeuristic(node, nextNode, nextNode.getHeuristic(), onRoad, onRails));
             }
             updateNode(node, nextNode, heuristic, cost, onRails);
         }
     }
 
-    private MNode extraNodeState(final MNode nextNode)
-    {
+    private MNode extraNodeState(final MNode nextNode) {
         IMNodeExtras extras = (IMNodeExtras) nextNode;
-        if (nextNode.isCornerNode() && nextNode.parent!=null) {
+        if (nextNode.isCornerNode() && nextNode.parent != null) {
             nextNode.setHeuristic(nextNode.parent.getHeuristic());
             IMNodeExtras extrasPre = (IMNodeExtras) nextNode.parent;
-            if (extrasPre.isCallbackNode()){
+            if (extrasPre.isCallbackNode()) {
                 extras.setCallbackNode();
             }
         }
@@ -518,16 +505,13 @@ public abstract class AbstractPathJobMixin implements AbstractAISkeletonAccessor
         BlockState state = cachedBlockLookup.getBlockState(nextNode.x, nextNode.y, nextNode.z);
 
         // 根据方块类型初始化你的字段
-        if (below.getBlock() instanceof FarmBlock)
-        {
+        if (below.getBlock() instanceof FarmBlock) {
             extras.setOnFarmland();
         }
-        if (below.getBlock() instanceof SlabBlock && below.getValue(SlabBlock.TYPE)== SlabType.BOTTOM)
-        {
+        if (below.getBlock() instanceof SlabBlock && below.getValue(SlabBlock.TYPE) == SlabType.BOTTOM) {
             extras.setOnSlab();
         }
-        if (state.getBlock() instanceof DetectorRailBlock)
-        {
+        if (state.getBlock() instanceof DetectorRailBlock) {
             extras.setStation();
         }
         return nextNode;
@@ -541,47 +525,44 @@ public abstract class AbstractPathJobMixin implements AbstractAISkeletonAccessor
     /**
      * 启发值修正函数，根据 node、onRoad、onRails 做“绕路豁免”或其他调整。
      */
-    private double modifyHeuristic(MNode node, MNode nextNode, double heuristic, boolean onRoad, boolean onRails)
-    {
+    private double modifyHeuristic(MNode node, MNode nextNode, double heuristic, boolean onRoad, boolean onRails) {
         double newHeuristic = heuristic;
-        double lastHeuristic =node.getHeuristic();
+        double lastHeuristic = node.getHeuristic();
         IMNodeExtras extras = (IMNodeExtras) node;
         IMNodeExtras extrasNext = (IMNodeExtras) nextNode;
         double callbackAddon = 0.0;
-        if (onRails){
+        if (onRails) {
             heuristic *= onRailPreference;
             callbackAddon = pathingOptions.onRailCost * onRailCallbackMultiplier;
-        }
-        else if (onRoad && (!node.isOnRails() || extras.isStation()))
-        {
+        } else if (onRoad && (!node.isOnRails() || extras.isStation())) {
             heuristic *= onRoadPreference;
             callbackAddon = pathingOptions.onPathCost * onRoadCallbackMultiplier;
         }
-        if (lastHeuristic + callbackAddon <= heuristic){
-            if (callbackAddon != 0.0){
+        if (lastHeuristic + callbackAddon <= heuristic) {
+            if (callbackAddon != 0.0) {
                 newHeuristic = lastHeuristic + callbackAddon;
                 extrasNext.setCallbackNode();
             }
-        }
-        else{
+        } else {
             newHeuristic = heuristic;
         }
         return newHeuristic;
     }
 
-    final private int callbackTimesTolerance =  PathingConfig.CALLBACK_TIMES_TOLERANCE.get();
+    final private int callbackTimesTolerance = PathingConfig.CALLBACK_TIMES_TOLERANCE.get();
 
-    @Shadow(remap = false) private int visitedLevel;
-    @Shadow(remap = false) private Queue<MNode> nodesToVisit;
+    @Shadow(remap = false)
+    private int visitedLevel;
+    @Shadow(remap = false)
+    private Queue<MNode> nodesToVisit;
 
-    @Shadow(remap = false) public abstract Mob getEntity();
+    @Shadow(remap = false)
+    public abstract Mob getEntity();
 
-    private void updateNode(@NotNull final MNode node, @NotNull final MNode nextNode, final double heuristic, final double cost, boolean onRails)
-    {
+    private void updateNode(@NotNull final MNode node, @NotNull final MNode nextNode, final double heuristic, final double cost, boolean onRails) {
         IMNodeExtras extras = (IMNodeExtras) node;
         //  This node already exists
-        if ((cost >= nextNode.getCost() || nextNode.getVisitedCount() > visitedLevel) && !(extras.isCallbackNode() && nextNode.getVisitedCount() <= visitedLevel * callbackTimesTolerance))
-        {
+        if ((cost >= nextNode.getCost() || nextNode.getVisitedCount() > visitedLevel) && !(extras.isCallbackNode() && nextNode.getVisitedCount() <= visitedLevel * callbackTimesTolerance)) {
             return;
         }
         nodesToVisit.remove(nextNode);
@@ -589,13 +570,12 @@ public abstract class AbstractPathJobMixin implements AbstractAISkeletonAccessor
             nextNode.parent = node;
             nextNode.setCost(cost);
             nextNode.setOnRails(onRails);
-        }
-        else if ( extras.isCallbackNode() && nextNode.isVisited() ){
+        } else if (extras.isCallbackNode() && nextNode.isVisited()) {
             IMNodeExtras extrasNext = (IMNodeExtras) nextNode;
-            if (extrasNext.isCallbackNode() && nextNode.getHeuristic() <= heuristic){
+            if (extrasNext.isCallbackNode() && nextNode.getHeuristic() <= heuristic) {
                 return;
             }
-            if (nextNode.parent != null && Math.abs(nextNode.parent.y-nextNode.y) > 1){
+            if (nextNode.parent != null && Math.abs(nextNode.parent.y - nextNode.y) > 1) {
                 return;
             }
         }
@@ -615,14 +595,14 @@ public abstract class AbstractPathJobMixin implements AbstractAISkeletonAccessor
     @Unique
     private BlockEntity computeInitialValue() {
         Mob entity = getEntity();
-        if(entity instanceof AbstractEntityCitizen citizen) {
+        if (entity instanceof AbstractEntityCitizen citizen) {
             ITownHall building = citizen.getCitizenData().getColony().getBuildingManager().getTownHall();
-            if(building == null){
+            if (building == null) {
                 return null;
             }
             BlockEntity townHall = actualWorld.getBlockEntity(building.getPosition());
             if (!(townHall instanceof IBlueprintDataProviderBE)) {
-                if (townHall == null){
+                if (townHall == null) {
                     Log.getLogger()
                             .warn("Town hall invalid!");
                 }
@@ -633,8 +613,8 @@ public abstract class AbstractPathJobMixin implements AbstractAISkeletonAccessor
         return null;
     }
 
-    private boolean HasNotPathTag (BlockPos pos){
-        if(townhall != null) {
+    private boolean HasNotPathTag(BlockPos pos) {
+        if (townhall != null) {
             Map<BlockPos, List<String>> tagPosMap = ((IBlueprintDataProviderBE) townhall).getPositionedTags();
             BlockPos relativePos = pos.subtract(townhall.getBlockPos());
             return tagPosMap.containsKey(relativePos) && tagPosMap.get(relativePos).contains("not_path");
@@ -642,8 +622,8 @@ public abstract class AbstractPathJobMixin implements AbstractAISkeletonAccessor
         return false;
     }
 
-    private boolean HasPathTag (BlockPos pos){
-        if(townhall != null) {
+    private boolean HasPathTag(BlockPos pos) {
+        if (townhall != null) {
             Map<BlockPos, List<String>> tagPosMap = ((IBlueprintDataProviderBE) townhall).getPositionedTags();
             BlockPos relativePos = pos.subtract(townhall.getBlockPos());
             return tagPosMap.containsKey(relativePos) && tagPosMap.get(relativePos).contains("path");
@@ -651,8 +631,8 @@ public abstract class AbstractPathJobMixin implements AbstractAISkeletonAccessor
         return false;
     }
 
-    private boolean HasBlockedTag (BlockPos pos){
-        if(townhall != null) {
+    private boolean HasBlockedTag(BlockPos pos) {
+        if (townhall != null) {
             Map<BlockPos, List<String>> tagPosMap = ((IBlueprintDataProviderBE) townhall).getPositionedTags();
             BlockPos relativePos = pos.subtract(townhall.getBlockPos());
             return tagPosMap.containsKey(relativePos) && tagPosMap.get(relativePos).contains("blocked");

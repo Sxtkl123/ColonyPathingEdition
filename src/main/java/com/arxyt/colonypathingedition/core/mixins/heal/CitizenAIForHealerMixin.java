@@ -1,7 +1,7 @@
 package com.arxyt.colonypathingedition.core.mixins.heal;
 
-import com.minecolonies.api.entity.ai.statemachine.states.IState;
 import com.minecolonies.api.entity.ai.statemachine.states.CitizenAIState;
+import com.minecolonies.api.entity.ai.statemachine.states.IState;
 import com.minecolonies.core.colony.jobs.JobHealer;
 import com.minecolonies.core.entity.ai.workers.CitizenAI;
 import com.minecolonies.core.entity.citizen.EntityCitizen;
@@ -16,7 +16,9 @@ import java.util.Objects;
 
 @Mixin(CitizenAI.class)
 public class CitizenAIForHealerMixin {
-    @Final @Shadow(remap = false) private EntityCitizen citizen;
+    @Final
+    @Shadow(remap = false)
+    private EntityCitizen citizen;
 
     @Inject(
             method = "calculateNextState",
@@ -29,7 +31,7 @@ public class CitizenAIForHealerMixin {
         if (cir.getReturnValue() == CitizenAIState.SLEEP
                 && Objects.requireNonNull(citizen.getCitizenColonyHandler().getColonyOrRegister()).getRaiderManager().isRaided()
                 && citizen.getCitizenJobHandler().getColonyJob() instanceof JobHealer) {
-            if (citizen.getCitizenSleepHandler().isAsleep()){
+            if (citizen.getCitizenSleepHandler().isAsleep()) {
                 citizen.getCitizenSleepHandler().onWakeUp();
             }
             cir.setReturnValue(CitizenAIState.WORK);

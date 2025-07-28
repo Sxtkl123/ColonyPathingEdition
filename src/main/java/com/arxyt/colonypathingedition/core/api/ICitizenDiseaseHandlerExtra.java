@@ -4,6 +4,9 @@ import com.minecolonies.api.entity.citizen.citizenhandlers.ICitizenDiseaseHandle
 
 // 战争遗产，先留着，怕之后有用
 public interface ICitizenDiseaseHandlerExtra extends ICitizenDiseaseHandler {
+
     int getSickTime();
+
     void setSickTime(int sickTime);
+
 }

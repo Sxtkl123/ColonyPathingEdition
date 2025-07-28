@@ -29,38 +29,40 @@ import static com.minecolonies.core.entity.ai.minimal.EntityAISickTask.DiseaseSt
 
 @Mixin(EntityAISickTask.class)
 abstract public class EntityAISickTaskMixin {
-    @Final @Shadow(remap = false) private EntityCitizen citizen;
-    @Final @Shadow(remap = false) private ICitizenData citizenData;
+    @Final
+    @Shadow(remap = false)
+    private EntityCitizen citizen;
+    @Final
+    @Shadow(remap = false)
+    private ICitizenData citizenData;
 
-    @Shadow(remap = false) private BlockPos bestHospital;
+    @Shadow(remap = false)
+    private BlockPos bestHospital;
 
-    @Shadow (remap = false) protected abstract void reset();
+    @Shadow(remap = false)
+    protected abstract void reset();
 
-    @Unique private Disease guessDisease = null;
+    @Unique
+    private Disease guessDisease = null;
 
     /**
      * @author ARxyt
      * @reason 降低要求，防止低血量村民暴毙
      */
     @Overwrite(remap = false)
-    private IState checkForCure()
-    {
+    private IState checkForCure() {
         final Disease disease = citizen.getCitizenData().getCitizenDiseaseHandler().getDisease();
-        if (disease == null)
-        {
-            if(citizen.getHealth() >= Math.min(citizen.getMaxHealth(),100)){
+        if (disease == null) {
+            if (citizen.getHealth() >= Math.min(citizen.getMaxHealth(), 100)) {
                 reset();
                 return CitizenAIState.IDLE;
             }
             return SEARCH_HOSPITAL;
         }
-        for (final ItemStorage cure : disease.cureItems())
-        {
+        for (final ItemStorage cure : disease.cureItems()) {
             final int slot = InventoryUtils.findFirstSlotInProviderNotEmptyWith(citizen, Disease.hasCureItem(cure));
-            if (slot == -1)
-            {
-                if (citizen.getCitizenData().getCitizenDiseaseHandler().isSick())
-                {
+            if (slot == -1) {
+                if (citizen.getCitizenData().getCitizenDiseaseHandler().isSick()) {
                     guessDisease = disease;
                     return SEARCH_HOSPITAL;
                 }
@@ -85,9 +87,8 @@ abstract public class EntityAISickTaskMixin {
             cancellable = true,
             remap = false
     )
-    public void wanderWithRecoveryCheck(CallbackInfoReturnable <IState> cir)
-    {
-        if(citizen.getCitizenData().getCitizenDiseaseHandler().getDisease() == null && guessDisease != null){
+    public void wanderWithRecoveryCheck(CallbackInfoReturnable<IState> cir) {
+        if (citizen.getCitizenData().getCitizenDiseaseHandler().getDisease() == null && guessDisease != null) {
             reset();
             cir.setReturnValue(CHECK_FOR_CURE);
         }
@@ -99,17 +100,14 @@ abstract public class EntityAISickTaskMixin {
      * @reason 检查生病时间
      */
     @Overwrite(remap = false)
-    private IState searchHospital()
-    {
+    private IState searchHospital() {
         final IColony colony = citizenData.getColony();
         final Disease disease = citizen.getCitizenData().getCitizenDiseaseHandler().getDisease();
         bestHospital = colony.getBuildingManager().getBestBuilding(citizen, BuildingHospital.class);
 
-        if (bestHospital == null)
-        {
-            if (disease == null)
-            {
-                if(citizenData.getSaturation() < CitizenConstants.FULL_SATURATION){
+        if (bestHospital == null) {
+            if (disease == null) {
+                if (citizenData.getSaturation() < CitizenConstants.FULL_SATURATION) {
                     return CitizenAIState.EATING;
                 }
                 return CitizenAIState.IDLE;
@@ -118,9 +116,7 @@ abstract public class EntityAISickTaskMixin {
                     Component.translatable(NO_HOSPITAL),
                     ChatPriority.BLOCKING));
             return WANDER;
-        }
-        else if (disease != null)
-        {
+        } else if (disease != null) {
             citizenData.triggerInteraction(new StandardInteraction(Component.translatable(WAITING_FOR_CURE, disease.name(), disease.getCureString()),
                     Component.translatable(WAITING_FOR_CURE),
                     ChatPriority.BLOCKING));
@@ -135,9 +131,8 @@ abstract public class EntityAISickTaskMixin {
             cancellable = true,
             remap = false
     )
-    public void goToHospitalWithRecoveryCheck(CallbackInfoReturnable <IState> cir)
-    {
-        if(citizen.getCitizenData().getCitizenDiseaseHandler().getDisease() == null && guessDisease != null){
+    public void goToHospitalWithRecoveryCheck(CallbackInfoReturnable<IState> cir) {
+        if (citizen.getCitizenData().getCitizenDiseaseHandler().getDisease() == null && guessDisease != null) {
             cir.setReturnValue(CHECK_FOR_CURE);
         }
     }
@@ -147,64 +142,54 @@ abstract public class EntityAISickTaskMixin {
      * @reason 降低要求，防止低血量村民暴毙
      */
     @Overwrite(remap = false)
-    private IState waitForCure()
-    {
+    private IState waitForCure() {
         final IColony colony = citizenData.getColony();
         bestHospital = colony.getBuildingManager().getBestBuilding(citizen, BuildingHospital.class);
 
-        if (bestHospital == null)
-        {
+        if (bestHospital == null) {
             return SEARCH_HOSPITAL;
         }
 
         final IState state = checkForCure();
-        if (state == APPLY_CURE)
-        {
+        if (state == APPLY_CURE) {
             return APPLY_CURE;
-        }
-        else if (state == CitizenAIState.IDLE)
-        {
+        } else if (state == CitizenAIState.IDLE) {
             reset();
             return CitizenAIState.IDLE;
         }
 
-        if(citizen.getCitizenData().getCitizenDiseaseHandler().getDisease() == null && guessDisease != null){
+        if (citizen.getCitizenData().getCitizenDiseaseHandler().getDisease() == null && guessDisease != null) {
             reset();
             return CitizenAIState.IDLE;
         }
 
         IBuilding building = colony.getBuildingManager().getBuilding(bestHospital);
-        if(!(building instanceof BuildingHospital hospital)){
+        if (!(building instanceof BuildingHospital hospital)) {
             return SEARCH_HOSPITAL;
         }
         boolean inBuilding = false;
-        for (Patient patient : hospital.getPatients()){
-            if (patient.getId() == citizen.getCivilianID()){
+        for (Patient patient : hospital.getPatients()) {
+            if (patient.getId() == citizen.getCivilianID()) {
                 inBuilding = true;
                 break;
             }
         }
 
-        if(!inBuilding){
+        if (!inBuilding) {
             hospital.checkOrCreatePatientFile(citizen.getCivilianID());
         }
 
         boolean asleep = citizen.getCitizenSleepHandler().isAsleep();
-        if(guessDisease != null){
-            if (asleep)
-            {
-                if ( !(hospital.getBedList().contains(citizen.getCitizenSleepHandler().getBedLocation())))
-                {
+        if (guessDisease != null) {
+            if (asleep) {
+                if (!(hospital.getBedList().contains(citizen.getCitizenSleepHandler().getBedLocation()))) {
                     citizen.getCitizenSleepHandler().onWakeUp();
                     asleep = false;
                 }
-            }
-            else if(inBuilding)
-            {
+            } else if (inBuilding) {
                 return FIND_EMPTY_BED;
             }
-            if (!asleep)
-            {
+            if (!asleep) {
                 return GO_TO_HOSPITAL;
             }
         }
@@ -217,8 +202,8 @@ abstract public class EntityAISickTaskMixin {
             cancellable = true,
             remap = false
     )
-    private void findEmptyBedWithRecoveryCheck(CallbackInfoReturnable <IState> cir){
-        if(citizen.getCitizenData().getCitizenDiseaseHandler().getDisease() == null){
+    private void findEmptyBedWithRecoveryCheck(CallbackInfoReturnable<IState> cir) {
+        if (citizen.getCitizenData().getCitizenDiseaseHandler().getDisease() == null) {
             cir.setReturnValue(CHECK_FOR_CURE);
         }
     }
@@ -228,7 +213,7 @@ abstract public class EntityAISickTaskMixin {
             at = @At("RETURN"),
             remap = false
     )
-    private void afterReset(CallbackInfo cir){
+    private void afterReset(CallbackInfo cir) {
         guessDisease = null;
     }
 

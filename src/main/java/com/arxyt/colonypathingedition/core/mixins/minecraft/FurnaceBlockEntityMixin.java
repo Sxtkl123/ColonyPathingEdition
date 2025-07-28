@@ -16,23 +16,30 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(AbstractFurnaceBlockEntity.class)
 public abstract class FurnaceBlockEntityMixin implements FurnaceBlockEntityExtras {
-    @Shadow int litTime;
-    @Shadow int cookingProgress;
-    @Shadow int cookingTotalTime;
-    @Shadow int litDuration;
+    @Shadow
+    int litTime;
+    @Shadow
+    int cookingProgress;
+    @Shadow
+    int cookingTotalTime;
+    @Shadow
+    int litDuration;
 
-    @Unique private int workerID = -1;
-    @Unique private int pickerID = -1;
-    @Unique private int protectTime = 0;
+    @Unique
+    private int workerID = -1;
+    @Unique
+    private int pickerID = -1;
+    @Unique
+    private int protectTime = 0;
 
     // 增加进度
     @Unique
-    public int addProgress(int adder){
+    public int addProgress(int adder) {
         cookingProgress += adder;
-        if(cookingProgress >= cookingTotalTime){
+        if (cookingProgress >= cookingTotalTime) {
             int left = cookingProgress - cookingTotalTime;
-            cookingProgress =  cookingTotalTime - 1;
-            litTime ++;
+            cookingProgress = cookingTotalTime - 1;
+            litTime++;
             return left;
         }
         return 0;
@@ -40,26 +47,26 @@ public abstract class FurnaceBlockEntityMixin implements FurnaceBlockEntityExtra
 
     // 增加燃料点燃时间
     @Unique
-    public void addLitTime(int adder){
-        if(litTime == 0){
+    public void addLitTime(int adder) {
+        if (litTime == 0) {
             return;
         }
         litTime += adder;
-        if(litDuration < litTime){
+        if (litDuration < litTime) {
             litTime = litDuration;
         }
     }
 
     @Unique
-    public void tickProtect(){
-        if(protectTime > 0){
-            protectTime --;
+    public void tickProtect() {
+        if (protectTime > 0) {
+            protectTime--;
         }
     }
 
     @Unique
-    public void setPickup(AbstractFurnaceBlockEntity pBlockEntity){
-        if(cookingTotalTime == cookingProgress + 1 && pBlockEntity.getItem(Constants.SMELTABLE_SLOT).getCount() == 1){
+    public void setPickup(AbstractFurnaceBlockEntity pBlockEntity) {
+        if (cookingTotalTime == cookingProgress + 1 && pBlockEntity.getItem(Constants.SMELTABLE_SLOT).getCount() == 1) {
             setFurnacePicker(workerID);
         }
     }
@@ -72,26 +79,24 @@ public abstract class FurnaceBlockEntityMixin implements FurnaceBlockEntityExtra
     @Unique
     public void setFurnaceWorker(int workerID) {
         this.workerID = workerID;
-        if(workerID < 0){
+        if (workerID < 0) {
             protectTime = 0;
-        }
-        else{
+        } else {
             protectTime = 60; //保护三秒
         }
     }
 
     @Unique
-    public int getFurnacePicker(){
+    public int getFurnacePicker() {
         return pickerID;
     }
 
     @Unique
-    public void setFurnacePicker(int pickerID){
+    public void setFurnacePicker(int pickerID) {
         this.pickerID = pickerID;
-        if(pickerID < 0){
+        if (pickerID < 0) {
             protectTime = 0;
-        }
-        else{
+        } else {
             protectTime = 40; //保护两秒
         }
     }
@@ -110,19 +115,18 @@ public abstract class FurnaceBlockEntityMixin implements FurnaceBlockEntityExtra
     private void onLoad(CompoundTag tag, CallbackInfo ci) {
         if (tag.contains("WorkerID")) {
             workerID = tag.getInt("WorkerID");
-        }
-        else{
+        } else {
             workerID = -1;
         }
     }
 
     @Inject(method = "serverTick", at = @At("RETURN"))
-    private static void afterServerTick(Level pLevel, BlockPos pPos, BlockState pState, AbstractFurnaceBlockEntity pBlockEntity, CallbackInfo ci){
-        ((FurnaceBlockEntityExtras)pBlockEntity).tickProtect();
+    private static void afterServerTick(Level pLevel, BlockPos pPos, BlockState pState, AbstractFurnaceBlockEntity pBlockEntity, CallbackInfo ci) {
+        ((FurnaceBlockEntityExtras) pBlockEntity).tickProtect();
     }
 
     @Inject(method = "serverTick", at = @At("HEAD"))
-    private static void beforeServerTick(Level pLevel, BlockPos pPos, BlockState pState, AbstractFurnaceBlockEntity pBlockEntity, CallbackInfo ci){
-        ((FurnaceBlockEntityExtras)pBlockEntity).setPickup(pBlockEntity);
+    private static void beforeServerTick(Level pLevel, BlockPos pPos, BlockState pState, AbstractFurnaceBlockEntity pBlockEntity, CallbackInfo ci) {
+        ((FurnaceBlockEntityExtras) pBlockEntity).setPickup(pBlockEntity);
     }
 }

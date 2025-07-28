@@ -35,19 +35,35 @@ import java.util.*;
 import java.util.function.Predicate;
 
 @Mixin(value = AbstractEntityAIBasic.class, remap = false)
-public abstract class AbstractEntityAIBasicMixin<B extends AbstractBuilding,J extends IJob<?>> implements AbstractAISkeletonAccessor<J> {
-    @Final @Shadow(remap = false) public B building;
-    @Shadow(remap = false) protected Tuple<Predicate<ItemStack>, Integer> needsCurrently;
-    @Shadow(remap = false) protected BlockPos walkTo;
+public abstract class AbstractEntityAIBasicMixin<B extends AbstractBuilding, J extends IJob<?>> implements AbstractAISkeletonAccessor<J> {
+    @Final
+    @Shadow(remap = false)
+    public B building;
+    @Shadow(remap = false)
+    protected Tuple<Predicate<ItemStack>, Integer> needsCurrently;
+    @Shadow(remap = false)
+    protected BlockPos walkTo;
 
-    @Shadow(remap = false) protected abstract boolean walkToBuilding();
-    @Shadow(remap = false) protected abstract boolean walkToUnSafePos(BlockPos pos);
-    @Shadow(remap = false) protected abstract boolean walkToWorkPos(BlockPos pos);
-    @Shadow(remap = false) public abstract void incrementActionsDoneAndDecSaturation();
-    @Shadow(remap = false) public abstract IAIState getStateAfterPickUp();
-    @Shadow(remap = false) public abstract void setDelay(int timeout);
+    @Shadow(remap = false)
+    protected abstract boolean walkToBuilding();
 
-    @Unique Player nearestPlayer = null;
+    @Shadow(remap = false)
+    protected abstract boolean walkToUnSafePos(BlockPos pos);
+
+    @Shadow(remap = false)
+    protected abstract boolean walkToWorkPos(BlockPos pos);
+
+    @Shadow(remap = false)
+    public abstract void incrementActionsDoneAndDecSaturation();
+
+    @Shadow(remap = false)
+    public abstract IAIState getStateAfterPickUp();
+
+    @Shadow(remap = false)
+    public abstract void setDelay(int timeout);
+
+    @Unique
+    Player nearestPlayer = null;
 
     @Unique
     private ImmutableList<IRequest<?>> getRequestCannotBeDone() {
@@ -73,7 +89,7 @@ public abstract class AbstractEntityAIBasicMixin<B extends AbstractBuilding,J ex
     @Unique
     private boolean checkRequestCannotBeDone() {
         ImmutableList<IRequest<?>> requests = getRequestCannotBeDone();
-        for(IRequest<?> request : requests) {
+        for (IRequest<?> request : requests) {
             if (request.getRequester().getLocation().equals(building.getLocation()) && !getWorker().getCitizenData().isRequestAsync(request.getId())) {
                 return true;
             }
@@ -98,7 +114,7 @@ public abstract class AbstractEntityAIBasicMixin<B extends AbstractBuilding,J ex
             IBuilding townHall = colony.getBuildingManager().getTownHall();
             if (checkRequestCannotBeDone()) {
                 if (nearestPlayer != null) {
-                    if(townHall.isInBuilding(nearestPlayer.blockPosition())) {
+                    if (townHall.isInBuilding(nearestPlayer.blockPosition())) {
                         return walkToUnSafePos(nearestPlayer.blockPosition());
                     } else {
                         nearestPlayer = null;
@@ -106,7 +122,7 @@ public abstract class AbstractEntityAIBasicMixin<B extends AbstractBuilding,J ex
                 } else if (townHall.isInBuilding(worker.blockPosition())) {
                     // 在level中查找玩家实体
                     List<? extends Player> players = WorldUtil.getEntitiesWithinBuilding(getWorld(), Player.class, townHall,
-                            player -> !player.isSpectator() && colony.getPermissions().hasPermission(player,Action.RIGHTCLICK_ENTITY));
+                            player -> !player.isSpectator() && colony.getPermissions().hasPermission(player, Action.RIGHTCLICK_ENTITY));
                     Player nearestOfficer = players.stream()
                             .min(Comparator.comparingDouble(p -> p.distanceTo(worker)))
                             .orElse(null);
@@ -115,7 +131,7 @@ public abstract class AbstractEntityAIBasicMixin<B extends AbstractBuilding,J ex
                         return walkToUnSafePos(nearestPlayer.blockPosition());
                     }
                 }
-                return EntityNavigationUtils.walkToBuilding(worker,townHall);
+                return EntityNavigationUtils.walkToBuilding(worker, townHall);
             }
         }
         // 调用原方法行为：

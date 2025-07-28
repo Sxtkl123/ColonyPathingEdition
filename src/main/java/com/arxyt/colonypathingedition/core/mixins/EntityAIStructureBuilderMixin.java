@@ -33,6 +33,7 @@ public abstract class EntityAIStructureBuilderMixin extends AbstractEntityAIStru
 
     /**
      * 这是为了通过 abstract 语法才创建的实例化方法，实际上任何情况下这个类都不应该被实例化。
+     *
      * @param job 工作
      * @author sxtkl
      * @since 2025/7/21
@@ -53,6 +54,7 @@ public abstract class EntityAIStructureBuilderMixin extends AbstractEntityAIStru
 
     /**
      * 像矿工一样一边走一边工作，而非等到到达目的地，这个步骤需要开启一个寻路代理。
+     *
      * @return 是否可以放置方块
      * @author sxtkl
      * @since 2025/7/21
@@ -66,6 +68,7 @@ public abstract class EntityAIStructureBuilderMixin extends AbstractEntityAIStru
 
     /**
      * 像哨兵一样站在工地的某个位置开始工作。
+     *
      * @return 是否走到了工作地点
      * @author sxtkl
      * @since 2025/7/22
@@ -110,6 +113,7 @@ public abstract class EntityAIStructureBuilderMixin extends AbstractEntityAIStru
 
     /**
      * 你的建筑工人会和神一样，无视物理法则直接在小屋平地起高楼。
+     *
      * @return 只要有材料，一直都可以放置方块
      * @author sxtkl
      * @since 2025/7/22
@@ -121,6 +125,7 @@ public abstract class EntityAIStructureBuilderMixin extends AbstractEntityAIStru
 
     /**
      * 你的建筑工人会像长臂猿一样，一边在工地上蹿下跳，一边无限距离得建造，当然前提是他们在工地附近。
+     *
      * @param currentBlock 当前处理的方块
      * @return 待实现
      * @author sxtkl
@@ -135,18 +140,27 @@ public abstract class EntityAIStructureBuilderMixin extends AbstractEntityAIStru
 
     /**
      * 注入修改，使建筑工可以一边走一边放置方块
+     *
      * @param currentBlock 当前工作的方块位置，暂时用不到
-     * @param cir 回调信息
+     * @param cir          回调信息
      * @author sxtkl
      * @since 2025/7/21
      */
     @Inject(at = @At("HEAD"), method = "walkToConstructionSite", cancellable = true, remap = false)
     private void injectWalkToConstructionSite(BlockPos currentBlock, CallbackInfoReturnable<Boolean> cir) {
         switch (PathingConfig.BUILDER_MODE.get()) {
-            case FORMALIST: cir.setReturnValue(formalist(currentBlock)); break;
-            case SENTRY: cir.setReturnValue(sentry(currentBlock)); break;
-            case GOD: cir.setReturnValue(god(currentBlock)); break;
-            case GIBBON: cir.setReturnValue(gibbon(currentBlock)); break;
+            case FORMALIST:
+                cir.setReturnValue(formalist(currentBlock));
+                break;
+            case SENTRY:
+                cir.setReturnValue(sentry(currentBlock));
+                break;
+            case GOD:
+                cir.setReturnValue(god(currentBlock));
+                break;
+            case GIBBON:
+                cir.setReturnValue(gibbon(currentBlock));
+                break;
         }
     }
 

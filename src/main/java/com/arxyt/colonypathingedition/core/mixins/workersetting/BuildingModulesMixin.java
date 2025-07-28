@@ -3,16 +3,18 @@ package com.arxyt.colonypathingedition.core.mixins.workersetting;
 import com.minecolonies.api.colony.buildings.modules.IBuildingModule;
 import com.minecolonies.api.colony.jobs.ModJobs;
 import com.minecolonies.api.entity.citizen.Skill;
-import com.minecolonies.core.colony.buildings.modules.*;
-import org.spongepowered.asm.mixin.*;
+import com.minecolonies.core.colony.buildings.modules.BuildingModules;
+import com.minecolonies.core.colony.buildings.modules.CraftingWorkerBuildingModule;
+import com.minecolonies.core.colony.buildings.modules.HospitalAssignmentModule;
+import com.minecolonies.core.colony.buildings.modules.NoPrivateCrafterWorkerModule;
+import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.ModifyArg;
 
 import java.util.function.Supplier;
 
 @Mixin(BuildingModules.class)
-public class BuildingModulesMixin
-{
+public class BuildingModulesMixin {
     /**
      * 可以用这个函数在注册时修改小屋的各种参数设置，这里仅用来修改上限人数。
      */
@@ -26,11 +28,10 @@ public class BuildingModulesMixin
             ),
             index = 1
     )
-    private static Supplier<IBuildingModule> modifyProducerArg(String key , Supplier<IBuildingModule> moduleSupplier , Supplier<?> viewSupplier)
-    {
+    private static Supplier<IBuildingModule> modifyProducerArg(String key, Supplier<IBuildingModule> moduleSupplier, Supplier<?> viewSupplier) {
         switch (key) {
             case "cook_craft":
-                return  () -> new NoPrivateCrafterWorkerModule(
+                return () -> new NoPrivateCrafterWorkerModule(
                         ModJobs.cook.get(),
                         Skill.Adaptability,
                         Skill.Knowledge,
@@ -38,7 +39,7 @@ public class BuildingModulesMixin
                         (b) -> Math.max(1, (b.getBuildingLevel() + 1) / 2)
                 );
             case "chef_work":
-                return  () -> new CraftingWorkerBuildingModule(
+                return () -> new CraftingWorkerBuildingModule(
                         ModJobs.chef.get(),
                         Skill.Creativity,
                         Skill.Knowledge,

@@ -1,21 +1,24 @@
 package com.arxyt.colonypathingedition.core.mixins;
 
+import com.arxyt.colonypathingedition.core.mixins.accessor.AbstractAISkeletonAccessor;
 import com.arxyt.colonypathingedition.core.mixins.accessor.AbstractEntityAIBasicAccessor;
+import com.arxyt.colonypathingedition.core.tag.ModTag;
 import com.minecolonies.api.util.InventoryUtils;
 import com.minecolonies.core.Network;
 import com.minecolonies.core.colony.buildingextensions.FarmField;
 import com.minecolonies.core.colony.buildings.AbstractBuilding;
-import com.minecolonies.core.colony.buildings.workerbuildings.BuildingFarmer;
 import com.minecolonies.core.colony.jobs.JobFarmer;
 import com.minecolonies.core.entity.ai.workers.production.agriculture.EntityAIWorkFarmer;
-import com.arxyt.colonypathingedition.core.mixins.accessor.AbstractAISkeletonAccessor;
 import com.minecolonies.core.network.messages.client.CompostParticleMessage;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.block.*;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.BonemealableBlock;
+import net.minecraft.world.level.block.BushBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.network.PacketDistributor;
 import org.jetbrains.annotations.NotNull;
@@ -23,17 +26,15 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.gen.Invoker;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
-import com.arxyt.colonypathingedition.core.tag.ModTag;
 
 import static com.minecolonies.api.util.constant.CitizenConstants.BLOCK_BREAK_SOUND_RANGE;
 
 
 @Mixin(EntityAIWorkFarmer.class)
-public abstract class EntityAIWorkFarmerMixin implements AbstractAISkeletonAccessor<JobFarmer>, AbstractEntityAIBasicAccessor<AbstractBuilding>{
-    @Invoker(value="getSurfacePos",remap = false)
+public abstract class EntityAIWorkFarmerMixin implements AbstractAISkeletonAccessor<JobFarmer>, AbstractEntityAIBasicAccessor<AbstractBuilding> {
+    @Invoker(value = "getSurfacePos", remap = false)
     public abstract BlockPos invokeGetSurfacePos(final BlockPos position);
 
     /**
@@ -48,7 +49,7 @@ public abstract class EntityAIWorkFarmerMixin implements AbstractAISkeletonAcces
     private void onHoeIfAble(BlockPos position, @NotNull FarmField farmField, CallbackInfoReturnable<Boolean> cir) {
         ItemStack seed = farmField.getSeed();
         // 若种子标记为无需耕地，直接跳过锄地
-        if (isUnderWater(seed)||isNoFarmland(seed)) {
+        if (isUnderWater(seed) || isNoFarmland(seed)) {
             cir.setReturnValue(true); // 返回 true 表示“已处理”
         }
     }
@@ -92,8 +93,7 @@ public abstract class EntityAIWorkFarmerMixin implements AbstractAISkeletonAcces
             position = invokeGetSurfacePos(position);
             if (position == null
                     || (!getWorld().getBlockState(position).is(Blocks.WATER) && !(getWorld().getBlockState(position).getBlock() instanceof BushBlock))
-            )
-            {
+            ) {
                 cir.setReturnValue(null);
                 return;
             }
@@ -134,7 +134,7 @@ public abstract class EntityAIWorkFarmerMixin implements AbstractAISkeletonAcces
         }
     }
 
-    @Invoker(value = "isCompost",remap = false)
+    @Invoker(value = "isCompost", remap = false)
     public abstract boolean invokeIsCompost(final ItemStack itemStack);
 
     @Inject(
@@ -146,39 +146,36 @@ public abstract class EntityAIWorkFarmerMixin implements AbstractAISkeletonAcces
             remap = false
     )
     private void onFinalReturnCheck(BlockPos position, CallbackInfoReturnable<BlockPos> cir) {
-        if( cir.getReturnValue() != null ){
+        if (cir.getReturnValue() != null) {
             return;
         }
         BlockState surfaceState = getWorld().getBlockState(position.above());
         Block surfaceBlock = surfaceState.getBlock();
-        if (surfaceBlock instanceof BushBlock){
+        if (surfaceBlock instanceof BushBlock) {
             // 通过 BonemealableBlock 接口判断成熟状态
             if (surfaceBlock instanceof BonemealableBlock bonemealable) {
-                if (!isBoneMealAble(position.above(),bonemealable)) {
+                if (!isBoneMealAble(position.above(), bonemealable)) {
                     cir.setReturnValue(position.above()); //此处应该为position，目前这么设置是因为已知的水中种植的方块只有水稻，为了长得快些就只处理伸出水面的部分
                     return;
                 }
                 final int amountOfCompostInInv = InventoryUtils.getItemCountInItemHandler(getWorker().getInventoryCitizen(), this::invokeIsCompost);
-                if (amountOfCompostInInv == 0)
-                {
+                if (amountOfCompostInInv == 0) {
                     cir.setReturnValue(null);
                     return;
                 }
 
-                if (InventoryUtils.shrinkItemCountInItemHandler(getWorker().getInventoryCitizen(), this::invokeIsCompost))
-                {
+                if (InventoryUtils.shrinkItemCountInItemHandler(getWorker().getInventoryCitizen(), this::invokeIsCompost)) {
                     Network.getNetwork().sendToPosition(new CompostParticleMessage(position.above()),
                             new PacketDistributor.TargetPoint(position.getX(), position.getY(), position.getZ(), BLOCK_BREAK_SOUND_RANGE, getWorld().dimension()));
-                    bonemealable.performBonemeal((ServerLevel)getWorld(), getWorld().getRandom(), position.above(), surfaceState);
+                    bonemealable.performBonemeal((ServerLevel) getWorld(), getWorld().getRandom(), position.above(), surfaceState);
                     surfaceState = getWorld().getBlockState(position.above());
                     surfaceBlock = surfaceState.getBlock();
-                    if (!(surfaceBlock instanceof BushBlock && surfaceBlock instanceof BonemealableBlock))
-                    {
+                    if (!(surfaceBlock instanceof BushBlock && surfaceBlock instanceof BonemealableBlock)) {
                         cir.setReturnValue(null);
                         return;
                     }
                     bonemealable = (BonemealableBlock) surfaceBlock;
-                    cir.setReturnValue(isBoneMealAble(position.above(),bonemealable) ? null : position.above()); //此处应该为position，目前这么设置是因为已知的水中种植的方块只有水稻，为了长得快些就只处理伸出水面的部分
+                    cir.setReturnValue(isBoneMealAble(position.above(), bonemealable) ? null : position.above()); //此处应该为position，目前这么设置是因为已知的水中种植的方块只有水稻，为了长得快些就只处理伸出水面的部分
                     return;
                 }
             }
@@ -196,7 +193,7 @@ public abstract class EntityAIWorkFarmerMixin implements AbstractAISkeletonAcces
             remap = false
     )
     private void onCreateFarmland(ItemStack seed, BlockPos pos, CallbackInfo ci) {
-        if (isUnderWater(seed)||isNoFarmland(seed)) {
+        if (isUnderWater(seed) || isNoFarmland(seed)) {
             ci.cancel(); // 跳过原方法（不创建耕地）
         }
     }
@@ -209,13 +206,15 @@ public abstract class EntityAIWorkFarmerMixin implements AbstractAISkeletonAcces
     private static boolean isUnderWater(@NotNull ItemStack stack) {
         return stack.is(ModTag.SEEDS_UNDERWATER);
     }
+
     private static boolean isNoFarmland(@NotNull ItemStack stack) {
         return stack.is(ModTag.SEEDS_NOFARMLAND);   //目前暂未对相关内容进行处理，预计过几个版本后会尝试完成对浆果类的作物的适配。
     }
+
     /**
      * 一个方便的调用是否可以使用骨粉来确定是否成熟的方法
      */
-    private boolean isBoneMealAble(BlockPos position,BonemealableBlock bonemealable) {
+    private boolean isBoneMealAble(BlockPos position, BonemealableBlock bonemealable) {
         BlockState state = getWorld().getBlockState(position);
         return bonemealable.isValidBonemealTarget(
                 getWorld(),

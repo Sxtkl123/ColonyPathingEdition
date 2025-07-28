@@ -18,7 +18,6 @@ import com.minecolonies.core.colony.buildings.workerbuildings.BuildingCook;
 import com.minecolonies.core.colony.interactionhandling.StandardInteraction;
 import com.minecolonies.core.colony.jobs.JobCook;
 import com.minecolonies.core.entity.ai.workers.service.EntityAIWorkCook;
-import com.minecolonies.core.entity.citizen.EntityCitizen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -43,26 +42,38 @@ import static com.minecolonies.api.util.constant.TranslationConstants.POOR_RESTA
 import static com.minecolonies.core.colony.buildings.modules.BuildingModules.RESTAURANT_MENU;
 
 @Mixin(EntityAIWorkCook.class)
-public abstract class EntityAIWorkCookMixin extends AbstractEntityAIBasicMixin<BuildingCook,JobCook> implements AbstractEntityAIBasicAccessor<BuildingCook> {
+public abstract class EntityAIWorkCookMixin extends AbstractEntityAIBasicMixin<BuildingCook, JobCook> implements AbstractEntityAIBasicAccessor<BuildingCook> {
 
-    @Final @Shadow(remap = false) private static VisibleCitizenStatus COOK;
-    @Final @Shadow(remap = false) private static int LEVEL_TO_FEED_PLAYER;
-    @Final @Shadow(remap = false) private Queue<Player> playerToServe = new ArrayDeque<>();
-    @Final @Shadow(remap = false) private Queue<AbstractEntityCitizen> citizenToServe = new ArrayDeque<>();
+    @Final
+    @Shadow(remap = false)
+    private static VisibleCitizenStatus COOK;
+    @Final
+    @Shadow(remap = false)
+    private static int LEVEL_TO_FEED_PLAYER;
+    @Final
+    @Shadow(remap = false)
+    private Queue<Player> playerToServe = new ArrayDeque<>();
+    @Final
+    @Shadow(remap = false)
+    private Queue<AbstractEntityCitizen> citizenToServe = new ArrayDeque<>();
 
-    @Unique private Queue<Integer> initailCitizenToServe = new ArrayDeque<>();
-    @Unique private static final double BASE_XP_GAIN = 2;
-    @Unique boolean checkCustomer = true;
-    @Unique boolean withSpecialReturn = false;
+    @Unique
+    private Queue<Integer> initailCitizenToServe = new ArrayDeque<>();
+    @Unique
+    private static final double BASE_XP_GAIN = 2;
+    @Unique
+    boolean checkCustomer = true;
+    @Unique
+    boolean withSpecialReturn = false;
 
-    @Unique private int canServeInRow(){
+    @Unique
+    private int canServeInRow() {
         return invokeGetPrimarySkillLevel() / 15 + 1;
     }
 
     @Override
-    public IAIState getStateAfterPickUp()
-    {
-        if(withSpecialReturn){
+    public IAIState getStateAfterPickUp() {
+        if (withSpecialReturn) {
             withSpecialReturn = false;
             return COOK_SERVE_FOOD_TO_CITIZEN;
         }
@@ -74,37 +85,32 @@ public abstract class EntityAIWorkCookMixin extends AbstractEntityAIBasicMixin<B
      * @reason 所以修改监测内容的同时允许厨师单次服务多个村民
      */
     @Overwrite(remap = false)
-    private IAIState serveFoodToCitizen(){
+    private IAIState serveFoodToCitizen() {
         getWorker().getCitizenData().setVisibleStatus(COOK);
-        if(checkCustomer) {
+        if (checkCustomer) {
             final RestaurantMenuModule module = building.getModule(RESTAURANT_MENU);
             while (!initailCitizenToServe.isEmpty()) {
                 int citizenID = initailCitizenToServe.poll();
                 ICitizenData citizenData = building.getColony().getCitizenManager().getCivilian(citizenID);
-                if(citizenData.getEntity().isEmpty()){
-                    ((BuildingCookExtra)building).deleteCustomer(citizenID);
+                if (citizenData.getEntity().isEmpty()) {
+                    ((BuildingCookExtra) building).deleteCustomer(citizenID);
                     continue;
                 }
                 AbstractEntityCitizen citizen = citizenData.getEntity().get();
                 if (building.isInBuilding(citizen.blockPosition())) {
-                    if (FoodUtils.hasBestOptionInInv(getWorker().getInventoryCitizen(), citizenData, module.getMenu(), building))
-                    {
+                    if (FoodUtils.hasBestOptionInInv(getWorker().getInventoryCitizen(), citizenData, module.getMenu(), building)) {
                         citizenToServe.add(citizen);
-                    }
-                    else
-                    {
+                    } else {
                         final ItemStorage storage = FoodUtils.checkForFoodInBuilding(citizenData, module.getMenu(), building);
-                        if (storage != null)
-                        {
+                        if (storage != null) {
                             citizenToServe.add(citizen);
                             needsCurrently = new Tuple<>(stack -> new ItemStorage(stack).equals(storage), STACKSIZE);
                             withSpecialReturn = true;
                             return GATHERING_REQUIRED_MATERIALS;
                         }
                     }
-                }
-                else{
-                    ((BuildingCookExtra)building).deleteCustomer(citizenID);
+                } else {
+                    ((BuildingCookExtra) building).deleteCustomer(citizenID);
                 }
             }
             checkCustomer = false;
@@ -178,7 +184,7 @@ public abstract class EntityAIWorkCookMixin extends AbstractEntityAIBasicMixin<B
      * @author ARxyt
      * @reason 由于餐厅方块增加记忆，所以修改监测内容
      */
-    @Inject(method = "checkForImportantJobs", at=@At("HEAD"), remap = false, cancellable = true)
+    @Inject(method = "checkForImportantJobs", at = @At("HEAD"), remap = false, cancellable = true)
     protected void checkForImportantJobs(CallbackInfoReturnable<IAIState> cir) {
         final List<? extends Player> playerList = WorldUtil.getEntitiesWithinBuilding(getWorld(), Player.class,
                 building, player -> player != null
@@ -190,17 +196,15 @@ public abstract class EntityAIWorkCookMixin extends AbstractEntityAIBasicMixin<B
 
         final RestaurantMenuModule module = building.getModule(RESTAURANT_MENU);
         int menuDiversity = 0;
-        for (ItemStorage menuItem : module.getMenu())
-        {
-            if(FoodUtils.canEatLevel(menuItem.getItemStack(),building.getBuildingLevel())){
-                menuDiversity ++;
+        for (ItemStorage menuItem : module.getMenu()) {
+            if (FoodUtils.canEatLevel(menuItem.getItemStack(), building.getBuildingLevel())) {
+                menuDiversity++;
             }
-            if(menuDiversity >= building.getBuildingLevel()){
+            if (menuDiversity >= building.getBuildingLevel()) {
                 break;
             }
         }
-        if (menuDiversity < building.getBuildingLevel())
-        {
+        if (menuDiversity < building.getBuildingLevel()) {
             getWorker().getCitizenData().triggerInteraction(new StandardInteraction(Component.translatable(POOR_MENU_INTERACTION), ChatPriority.BLOCKING));
         }
 
@@ -214,13 +218,10 @@ public abstract class EntityAIWorkCookMixin extends AbstractEntityAIBasicMixin<B
             initailCitizenToServe = new ArrayDeque<>(cookExtra.getCustomers(canServeInRow));
         }
 
-        if (!playerToServe.isEmpty())
-        {
+        if (!playerToServe.isEmpty()) {
             final Predicate<ItemStack> foodPredicate = stack -> module.getMenu().contains(new ItemStorage(stack));
-            if (!InventoryUtils.hasItemInItemHandler(getWorker().getInventoryCitizen(), foodPredicate))
-            {
-                if (InventoryUtils.hasItemInProvider(building, foodPredicate))
-                {
+            if (!InventoryUtils.hasItemInItemHandler(getWorker().getInventoryCitizen(), foodPredicate)) {
+                if (InventoryUtils.hasItemInProvider(building, foodPredicate)) {
                     needsCurrently = new Tuple<>(foodPredicate, STACKSIZE);
                     cir.setReturnValue(GATHERING_REQUIRED_MATERIALS);
                     return;
@@ -230,8 +231,7 @@ public abstract class EntityAIWorkCookMixin extends AbstractEntityAIBasicMixin<B
             return;
         }
 
-        if (!initailCitizenToServe.isEmpty() || !citizenToServe.isEmpty())
-        {
+        if (!initailCitizenToServe.isEmpty() || !citizenToServe.isEmpty()) {
             cir.setReturnValue(COOK_SERVE_FOOD_TO_CITIZEN);
             return;
         }

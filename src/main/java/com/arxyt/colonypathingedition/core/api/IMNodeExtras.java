@@ -1,7 +1,6 @@
 package com.arxyt.colonypathingedition.core.api;
 
-public interface IMNodeExtras
-{
+public interface IMNodeExtras {
     /**
      * @return 如果节点在农田上返回 true
      */

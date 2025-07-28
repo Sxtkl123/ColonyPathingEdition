@@ -9,11 +9,19 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.gen.Accessor;
 import org.spongepowered.asm.mixin.gen.Invoker;
 
-@Mixin(value = AbstractAISkeleton.class,remap = false)
+@Mixin(value = AbstractAISkeleton.class, remap = false)
 public interface AbstractAISkeletonAccessor<J extends IJob<?>> {
-    @Accessor(value = "job",remap = false) J getJob();
-    @Accessor(value = "worker",remap = false) AbstractEntityCitizen getWorker();
-    @Accessor(value = "world",remap = false) Level getWorld();
 
-    @Invoker(value = "getState",remap = false) IAIState invokeGetState();
+    @Accessor(value = "job", remap = false)
+    J getJob();
+
+    @Accessor(value = "worker", remap = false)
+    AbstractEntityCitizen getWorker();
+
+    @Accessor(value = "world", remap = false)
+    Level getWorld();
+
+    @Invoker(value = "getState", remap = false)
+    IAIState invokeGetState();
+
 }

@@ -28,11 +28,13 @@ import static com.minecolonies.api.util.constant.Constants.RESULT_SLOT;
 import static com.minecolonies.api.util.constant.Constants.SMELTABLE_SLOT;
 
 @Mixin(AbstractEntityAIUsesFurnace.class)
-public abstract class AbstractEntityAIUsesFurnaceMixin implements AbstractAISkeletonAccessor<IJob<?>>, AbstractEntityAIBasicAccessor<AbstractBuilding>
-{
-    @Final @Shadow(remap = false)  private static int RETRIEVE_SMELTABLE_IF_MORE_THAN;
+public abstract class AbstractEntityAIUsesFurnaceMixin implements AbstractAISkeletonAccessor<IJob<?>>, AbstractEntityAIBasicAccessor<AbstractBuilding> {
+    @Final
+    @Shadow(remap = false)
+    private static int RETRIEVE_SMELTABLE_IF_MORE_THAN;
 
-    @Shadow(remap = false) protected abstract void extractFromFurnace(final FurnaceBlockEntity furnace);
+    @Shadow(remap = false)
+    protected abstract void extractFromFurnace(final FurnaceBlockEntity furnace);
 
     /**
      * 原方法在向熔炉输入可熔炼物后调用，之后提取成品。
@@ -47,13 +49,10 @@ public abstract class AbstractEntityAIUsesFurnaceMixin implements AbstractAISkel
             ),
             remap = false
     )
-    private void onAfterSmeltableTransfer(CallbackInfoReturnable<?> cir)
-    {
-        if (getWalkTo() != null)
-        {
+    private void onAfterSmeltableTransfer(CallbackInfoReturnable<?> cir) {
+        if (getWalkTo() != null) {
             BlockEntity entity = getWorld().getBlockEntity(getWalkTo());
-            if (entity instanceof FurnaceBlockEntity furnace && !(ItemStackUtils.isEmpty(furnace.getItem(RESULT_SLOT))))
-            {
+            if (entity instanceof FurnaceBlockEntity furnace && !(ItemStackUtils.isEmpty(furnace.getItem(RESULT_SLOT)))) {
                 // 提取已熔炼产物,防止卡炉
                 extractFromFurnace(furnace);
             }
@@ -65,17 +64,13 @@ public abstract class AbstractEntityAIUsesFurnaceMixin implements AbstractAISkel
      * @reason 修改
      */
     @Overwrite(remap = false)
-    protected BlockPos getPositionOfOvenToRetrieveFrom()
-    {
-        for (final BlockPos pos : getBuilding().getFirstModuleOccurance(FurnaceUserModule.class).getFurnaces())
-        {
+    protected BlockPos getPositionOfOvenToRetrieveFrom() {
+        for (final BlockPos pos : getBuilding().getFirstModuleOccurance(FurnaceUserModule.class).getFurnaces()) {
             final BlockEntity entity = getWorld().getBlockEntity(pos);
-            if (entity instanceof final FurnaceBlockEntity furnace)
-            {
+            if (entity instanceof final FurnaceBlockEntity furnace) {
                 final int countInResultSlot = ItemStackUtils.isEmpty(furnace.getItem(RESULT_SLOT)) ? 0 : furnace.getItem(RESULT_SLOT).getCount();
 
-                if ( countInResultSlot > RETRIEVE_SMELTABLE_IF_MORE_THAN || (furnace.getItem(SMELTABLE_SLOT).isEmpty() && countInResultSlot > 0))
-                {
+                if (countInResultSlot > RETRIEVE_SMELTABLE_IF_MORE_THAN || (furnace.getItem(SMELTABLE_SLOT).isEmpty() && countInResultSlot > 0)) {
                     return pos;
                 }
             }
@@ -88,22 +83,17 @@ public abstract class AbstractEntityAIUsesFurnaceMixin implements AbstractAISkel
      * @reason 加强加速幅度，增加燃烧时长的同时降低servertick调用量。
      */
     @Overwrite(remap = false)
-    private IAIState accelerateFurnaces()
-    {
+    private IAIState accelerateFurnaces() {
         final Level world = getBuilding().getColony().getWorld();
-        for (final BlockPos pos : getBuilding().getModule(BuildingModules.FURNACE).getFurnaces())
-        {
-            if (WorldUtil.isBlockLoaded(world, pos))
-            {
+        for (final BlockPos pos : getBuilding().getModule(BuildingModules.FURNACE).getFurnaces()) {
+            if (WorldUtil.isBlockLoaded(world, pos)) {
                 final BlockEntity entity = world.getBlockEntity(pos);
-                if (entity instanceof final FurnaceBlockEntity furnace)
-                {
+                if (entity instanceof final FurnaceBlockEntity furnace) {
                     FurnaceBlockEntityExtras extrasFurnace = (FurnaceBlockEntityExtras) furnace;
                     extrasFurnace.addLitTime(getWorker().getCitizenData().getCitizenSkillHandler().getLevel(invokeGetModuleForJob().getSecondarySkill()) / 15);
-                    if (!(furnace.getItem(SMELTABLE_SLOT).isEmpty()))
-                    {
+                    if (!(furnace.getItem(SMELTABLE_SLOT).isEmpty())) {
                         int addProgress = getWorker().getCitizenData().getCitizenSkillHandler().getLevel(invokeGetModuleForJob().getPrimarySkill()) / 2;
-                        while (addProgress > 0 && !furnace.getItem(SMELTABLE_SLOT).isEmpty()){
+                        while (addProgress > 0 && !furnace.getItem(SMELTABLE_SLOT).isEmpty()) {
                             addProgress = extrasFurnace.addProgress(addProgress);
                             AbstractFurnaceBlockEntity.serverTick(world, pos, world.getBlockState(pos), furnace);
                         }

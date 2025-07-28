@@ -10,10 +10,12 @@ import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
 
 @Mixin(AbstractEntityAICrafting.class)
-public abstract class AbstractEntityAICraftingMixin<B extends AbstractBuilding, J extends AbstractJobCrafter<?, J>> extends AbstractEntityAIBasicMixin<B,J> implements AbstractEntityAICraftingAccessor {
-    @Shadow(remap = false) protected IRecipeStorage currentRecipeStorage;
+public abstract class AbstractEntityAICraftingMixin<B extends AbstractBuilding, J extends AbstractJobCrafter<?, J>> extends AbstractEntityAIBasicMixin<B, J> implements AbstractEntityAICraftingAccessor {
+    @Shadow(remap = false)
+    protected IRecipeStorage currentRecipeStorage;
 
-    @Unique public void resetCurrentRecipeStorage(){
+    @Unique
+    public void resetCurrentRecipeStorage() {
         currentRecipeStorage = null;
     }
 }

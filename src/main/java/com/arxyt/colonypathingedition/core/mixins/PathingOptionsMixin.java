@@ -2,7 +2,6 @@ package com.arxyt.colonypathingedition.core.mixins;
 
 import com.arxyt.colonypathingedition.core.config.PathingConfig;
 import com.minecolonies.core.entity.pathfinding.PathingOptions;
-
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
@@ -15,16 +14,26 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 @Mixin(PathingOptions.class)
 public abstract class PathingOptionsMixin {
     // Shadow 目标字段
-    @Shadow(remap = false) public double railsExitCost;
-    @Shadow(remap = false) public double swimCost;
-    @Shadow(remap = false) public double onRailCost;
-    @Shadow(remap = false) public double onPathCost;
-    @Shadow(remap = false) public double caveAirCost;
-    @Shadow(remap = false) public double jumpCost;
-    @Shadow(remap = false) public double dropCost;
-    @Shadow(remap = false) public double traverseToggleAbleCost;
-    @Shadow(remap = false) public double walkInShapesCost;
-    @Shadow(remap = false) public double divingCost;
+    @Shadow(remap = false)
+    public double railsExitCost;
+    @Shadow(remap = false)
+    public double swimCost;
+    @Shadow(remap = false)
+    public double onRailCost;
+    @Shadow(remap = false)
+    public double onPathCost;
+    @Shadow(remap = false)
+    public double caveAirCost;
+    @Shadow(remap = false)
+    public double jumpCost;
+    @Shadow(remap = false)
+    public double dropCost;
+    @Shadow(remap = false)
+    public double traverseToggleAbleCost;
+    @Shadow(remap = false)
+    public double walkInShapesCost;
+    @Shadow(remap = false)
+    public double divingCost;
 
     // 在构造函数中注入，覆盖默认值
     @Inject(

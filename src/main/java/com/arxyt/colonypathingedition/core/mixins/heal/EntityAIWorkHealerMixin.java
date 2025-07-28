@@ -42,25 +42,33 @@ import java.util.Objects;
 import static com.minecolonies.api.entity.ai.statemachine.states.AIWorkerState.*;
 import static com.minecolonies.api.util.constant.TranslationConstants.PATIENT_FULL_INVENTORY;
 
-@Mixin( EntityAIWorkHealer.class)
-public abstract class EntityAIWorkHealerMixin extends AbstractEntityAIBasicMixin<BuildingHospital, IJob<?>> implements AbstractEntityAIBasicAccessor<BuildingHospital>{
-    @Final @Shadow(remap = false) private static double BASE_XP_GAIN;
-    @Final @Shadow(remap = false) private static int MAX_PROGRESS_TICKS;
-    @Shadow(remap = false) private Patient currentPatient;
-    @Shadow(remap = false) private int progressTicks;
-    @Shadow(remap = false) private ICitizenData remotePatient;
-    @Shadow(remap = false) private Player playerToHeal;
+@Mixin(EntityAIWorkHealer.class)
+public abstract class EntityAIWorkHealerMixin extends AbstractEntityAIBasicMixin<BuildingHospital, IJob<?>> implements AbstractEntityAIBasicAccessor<BuildingHospital> {
+    @Final
+    @Shadow(remap = false)
+    private static double BASE_XP_GAIN;
+    @Final
+    @Shadow(remap = false)
+    private static int MAX_PROGRESS_TICKS;
+    @Shadow(remap = false)
+    private Patient currentPatient;
+    @Shadow(remap = false)
+    private int progressTicks;
+    @Shadow(remap = false)
+    private ICitizenData remotePatient;
+    @Shadow(remap = false)
+    private Player playerToHeal;
 
-    @Shadow(remap = false) protected abstract boolean hasCureInInventory(final Disease disease, final IItemHandler handler);
+    @Shadow(remap = false)
+    protected abstract boolean hasCureInInventory(final Disease disease, final IItemHandler handler);
 
     @Unique
-    private boolean testRandomCureChance()
-    {
-        return getWorker().getRandom().nextInt(1200 ) <= 1 + invokeGetSecondarySkillLevel() / 20;
+    private boolean testRandomCureChance() {
+        return getWorker().getRandom().nextInt(1200) <= 1 + invokeGetSecondarySkillLevel() / 20;
     }
 
     @Unique
-    private boolean notFullHealth(AbstractEntityCitizen citizen){
+    private boolean notFullHealth(AbstractEntityCitizen citizen) {
         return citizen.getMaxHealth() > citizen.getHealth();
     }
 
@@ -69,82 +77,69 @@ public abstract class EntityAIWorkHealerMixin extends AbstractEntityAIBasicMixin
      * @reason 后期会调整请求物资的方案，由于过于费时先搁置
      */
     @Overwrite(remap = false)
-    private IAIState decide()
-    {
-        if (!invokeWalkToBuilding())
-        {
+    private IAIState decide() {
+        if (!invokeWalkToBuilding()) {
             return DECIDE;
         }
 
         for (final Player player : WorldUtil.getEntitiesWithinBuilding(getWorld(),
                 Player.class,
                 getBuilding(),
-                player -> player.getHealth() < player.getMaxHealth() - 10 ))
-        {
+                player -> player.getHealth() < player.getMaxHealth() - 10)) {
             playerToHeal = player;
             return CURE_PLAYER;
         }
 
         BuildingHospital hospital = this.building;
 
-        for (Patient patient : hospital.getPatients())
-        {
+        for (Patient patient : hospital.getPatients()) {
             ICitizenData data = hospital.getColony().getCitizenManager().getCivilian(patient.getId());
-            if (data == null || data.getEntity().isEmpty())
-            {
+            if (data == null || data.getEntity().isEmpty()) {
                 hospital.removePatientFile(patient);
                 continue;
             }
             EntityCitizen citizen = (EntityCitizen) data.getEntity().get();
             Disease disease = citizen.getCitizenData().getCitizenDiseaseHandler().getDisease();
-            if ( disease == null && !notFullHealth(citizen) ){
+            if (disease == null && !notFullHealth(citizen)) {
                 hospital.removePatientFile(patient);
                 continue;
             }
 
-            PatientExtras patientExtras = (PatientExtras)patient;
+            PatientExtras patientExtras = (PatientExtras) patient;
             int doctorID = patientExtras.getEmployed();
-            if ( doctorID != getWorker().getCivilianID()){
+            if (doctorID != getWorker().getCivilianID()) {
                 ICitizenData thisCitizen = hospital.getColony().getCitizenManager().getCivilian(doctorID);
-                if ( thisCitizen == null || thisCitizen.getWorkBuilding() == null || !thisCitizen.getWorkBuilding().getPosition().equals(hospital.getPosition())){
+                if (thisCitizen == null || thisCitizen.getWorkBuilding() == null || !thisCitizen.getWorkBuilding().getPosition().equals(hospital.getPosition())) {
                     patientExtras.setEmployed(getWorker().getCivilianID());
-                }
-                else{
+                } else {
                     continue;
                 }
             }
-            if (patient.getState() == Patient.PatientState.NEW)
-            {
-                if( disease == null && !notFullHealth(citizen) ){
+            if (patient.getState() == Patient.PatientState.NEW) {
+                if (disease == null && !notFullHealth(citizen)) {
                     this.currentPatient = patient;
                     return REQUEST_CURE;
-                }
-                else{
+                } else {
                     patient.setState(Patient.PatientState.REQUESTED);
                 }
             }
 
-            if (patient.getState() == Patient.PatientState.REQUESTED)
-            {
-                if (testRandomCureChance())
-                {
+            if (patient.getState() == Patient.PatientState.REQUESTED) {
+                if (testRandomCureChance()) {
                     this.currentPatient = patient;
                     patientExtras.setEmployed(getWorker().getCivilianID());
                     return FREE_CURE;
                 }
 
-                if (disease == null)
-                {
+                if (disease == null) {
                     this.currentPatient = patient;
                     patientExtras.setEmployed(getWorker().getCivilianID());
                     return CURE;
                 }
 
-                if (citizen.getInventoryCitizen().hasSpace())
-                {
+                if (citizen.getInventoryCitizen().hasSpace()) {
                     if (hasCureInInventory(disease, getWorker().getInventoryCitizen()) ||
-                            hasCureInInventory(disease, getBuilding().getCapability(ForgeCapabilities.ITEM_HANDLER).orElseGet(null)))
-                    {
+                            hasCureInInventory(disease, getBuilding().getCapability(ForgeCapabilities.ITEM_HANDLER).orElseGet(null))) {
                         this.currentPatient = patient;
                         patientExtras.setEmployed(getWorker().getCivilianID());
                         return CURE;
@@ -152,72 +147,58 @@ public abstract class EntityAIWorkHealerMixin extends AbstractEntityAIBasicMixin
 
                     final ImmutableList<IRequest<? extends Stack>> list = getBuilding().getOpenRequestsOfType(getWorker().getCitizenData().getId(), TypeToken.of(Stack.class));
                     final ImmutableList<IRequest<? extends Stack>> completed = getBuilding().getCompletedRequestsOfType(getWorker().getCitizenData(), TypeToken.of(Stack.class));
-                    for (final ItemStorage cure : disease.cureItems())
-                    {
-                        if (!InventoryUtils.hasItemInItemHandler(getWorker().getInventoryCitizen(), Disease.hasCureItem(cure)))
-                        {
+                    for (final ItemStorage cure : disease.cureItems()) {
+                        if (!InventoryUtils.hasItemInItemHandler(getWorker().getInventoryCitizen(), Disease.hasCureItem(cure))) {
                             if (InventoryUtils.getItemCountInItemHandler(getBuilding().getCapability(ForgeCapabilities.ITEM_HANDLER).orElseGet(null),
-                                    Disease.hasCureItem(cure)) >= cure.getAmount())
-                            {
+                                    Disease.hasCureItem(cure)) >= cure.getAmount()) {
                                 needsCurrently = new Tuple<>(Disease.hasCureItem(cure), cure.getAmount());
                                 return GATHERING_REQUIRED_MATERIALS;
                             }
                             boolean hasCureRequested = false;
-                            for (final IRequest<? extends Stack> request : list)
-                            {
-                                if (Disease.isCureItem(request.getRequest().getStack(), cure))
-                                {
+                            for (final IRequest<? extends Stack> request : list) {
+                                if (Disease.isCureItem(request.getRequest().getStack(), cure)) {
                                     hasCureRequested = true;
                                     break;
                                 }
                             }
-                            for (final IRequest<? extends Stack> request : completed)
-                            {
-                                if (Disease.isCureItem(request.getRequest().getStack(), cure))
-                                {
+                            for (final IRequest<? extends Stack> request : completed) {
+                                if (Disease.isCureItem(request.getRequest().getStack(), cure)) {
                                     hasCureRequested = true;
                                     break;
                                 }
                             }
-                            if (!hasCureRequested)
-                            {
+                            if (!hasCureRequested) {
                                 patient.setState(Patient.PatientState.NEW);
                                 break;
                             }
                         }
                     }
-                }
-                else
-                {
+                } else {
                     data.triggerInteraction(new StandardInteraction(Component.translatable(PATIENT_FULL_INVENTORY), ChatPriority.BLOCKING));
                 }
             }
 
-            if (patient.getState() == Patient.PatientState.TREATED)
-            {
-                if (disease == null)
-                {
+            if (patient.getState() == Patient.PatientState.TREATED) {
+                if (disease == null) {
                     this.currentPatient = patient;
                     patientExtras.setEmployed(getWorker().getCivilianID());
                     return CURE;
                 }
 
-                if (!hasCureInInventory(disease, citizen.getInventoryCitizen()))
-                {
+                if (!hasCureInInventory(disease, citizen.getInventoryCitizen())) {
                     patient.setState(Patient.PatientState.NEW);
                     return DECIDE;
                 }
             }
         }
 
-        if(Objects.requireNonNull(getWorker().getCitizenColonyHandler().getColonyOrRegister()).getRaiderManager().isRaided()){
+        if (Objects.requireNonNull(getWorker().getCitizenColonyHandler().getColonyOrRegister()).getRaiderManager().isRaided()) {
             return DECIDE;
         }
 
         final ICitizenData data = getBuilding().getColony().getCitizenManager().getRandomCitizen();
         if (data.getEntity().isPresent() && data.getCitizenDiseaseHandler().isHurt()
-                && BlockPosUtil.getDistance2D(data.getEntity().get().blockPosition(), getBuilding().getPosition()) < getBuilding().getBuildingLevel() * 40L)
-        {
+                && BlockPosUtil.getDistance2D(data.getEntity().get().blockPosition(), getBuilding().getPosition()) < getBuilding().getBuildingLevel() * 40L) {
             remotePatient = data;
             return WANDER;
         }
@@ -229,46 +210,37 @@ public abstract class EntityAIWorkHealerMixin extends AbstractEntityAIBasicMixin
      * @reason 修改治疗方案和能力
      */
     @Overwrite(remap = false)
-    private IAIState cure()
-    {
-        if (currentPatient == null)
-        {
+    private IAIState cure() {
+        if (currentPatient == null) {
             return DECIDE;
         }
         PatientExtras patientExtras = (PatientExtras) currentPatient;
         final ICitizenData data = building.getColony().getCitizenManager().getCivilian(currentPatient.getId());
-        if (data == null || data.getEntity().isEmpty() || !(data.getEntity().get().getCitizenData().getCitizenDiseaseHandler().isSick() || notFullHealth(data.getEntity().get())))
-        {
+        if (data == null || data.getEntity().isEmpty() || !(data.getEntity().get().getCitizenData().getCitizenDiseaseHandler().isSick() || notFullHealth(data.getEntity().get()))) {
             patientExtras.setEmployed(-1);
             currentPatient = null;
             return DECIDE;
         }
 
         final EntityCitizen citizen = (EntityCitizen) data.getEntity().get();
-        if (!invokeWalkToSafePos(citizen.blockPosition()))
-        {
+        if (!invokeWalkToSafePos(citizen.blockPosition())) {
             return CURE;
         }
 
         final Disease disease = citizen.getCitizenData().getCitizenDiseaseHandler().getDisease();
-        if (disease == null)
-        {
+        if (disease == null) {
             currentPatient = null;
-            citizen.heal(10 + invokeGetPrimarySkillLevel() / 4.0F );
-            citizen.addEffect(new MobEffectInstance(MobEffects.REGENERATION,20 + invokeGetSecondarySkillLevel() * 2,getBuilding().getBuildingLevel()));
+            citizen.heal(10 + invokeGetPrimarySkillLevel() / 4.0F);
+            citizen.addEffect(new MobEffectInstance(MobEffects.REGENERATION, 20 + invokeGetSecondarySkillLevel() * 2, getBuilding().getBuildingLevel()));
             getWorker().getCitizenExperienceHandler().addExperience(BASE_XP_GAIN);
             patientExtras.setEmployed(-1);
             return DECIDE;
         }
 
-        if (!hasCureInInventory(disease, getWorker().getInventoryCitizen()))
-        {
-            if (hasCureInInventory(disease, building.getCapability(ForgeCapabilities.ITEM_HANDLER).orElseGet(null)))
-            {
-                for (final ItemStorage cure : disease.cureItems())
-                {
-                    if (InventoryUtils.getItemCountInItemHandler(getWorker().getInventoryCitizen(), Disease.hasCureItem(cure)) < cure.getAmount())
-                    {
+        if (!hasCureInInventory(disease, getWorker().getInventoryCitizen())) {
+            if (hasCureInInventory(disease, building.getCapability(ForgeCapabilities.ITEM_HANDLER).orElseGet(null))) {
+                for (final ItemStorage cure : disease.cureItems()) {
+                    if (InventoryUtils.getItemCountInItemHandler(getWorker().getInventoryCitizen(), Disease.hasCureItem(cure)) < cure.getAmount()) {
                         needsCurrently = new Tuple<>(Disease.hasCureItem(cure), 1);
                         return GATHERING_REQUIRED_MATERIALS;
                     }
@@ -279,14 +251,10 @@ public abstract class EntityAIWorkHealerMixin extends AbstractEntityAIBasicMixin
             return DECIDE;
         }
 
-        if (!hasCureInInventory(disease, citizen.getInventoryCitizen()))
-        {
-            for (final ItemStorage cure : disease.cureItems())
-            {
-                if (InventoryUtils.getItemCountInItemHandler(citizen.getInventoryCitizen(), Disease.hasCureItem(cure)) < cure.getAmount())
-                {
-                    if (!citizen.getInventoryCitizen().hasSpace())
-                    {
+        if (!hasCureInInventory(disease, citizen.getInventoryCitizen())) {
+            for (final ItemStorage cure : disease.cureItems()) {
+                if (InventoryUtils.getItemCountInItemHandler(citizen.getInventoryCitizen(), Disease.hasCureItem(cure)) < cure.getAmount()) {
+                    if (!citizen.getInventoryCitizen().hasSpace()) {
                         data.triggerInteraction(new StandardInteraction(Component.translatable(PATIENT_FULL_INVENTORY), ChatPriority.BLOCKING));
                         currentPatient = null;
                         return DECIDE;
@@ -311,31 +279,26 @@ public abstract class EntityAIWorkHealerMixin extends AbstractEntityAIBasicMixin
      * @reason 修改治疗方案和能力
      */
     @Overwrite(remap = false)
-    private IAIState freeCure()
-    {
-        if (currentPatient == null)
-        {
+    private IAIState freeCure() {
+        if (currentPatient == null) {
             return DECIDE;
         }
         PatientExtras patientExtras = (PatientExtras) currentPatient;
         final ICitizenData data = building.getColony().getCitizenManager().getCivilian(currentPatient.getId());
-        if (data == null || data.getEntity().isEmpty() || !(data.getEntity().get().getCitizenData().getCitizenDiseaseHandler().isSick() || notFullHealth(data.getEntity().get())))
-        {
+        if (data == null || data.getEntity().isEmpty() || !(data.getEntity().get().getCitizenData().getCitizenDiseaseHandler().isSick() || notFullHealth(data.getEntity().get()))) {
             patientExtras.setEmployed(-1);
             currentPatient = null;
             return DECIDE;
         }
 
         final EntityCitizen citizen = (EntityCitizen) data.getEntity().get();
-        if (!invokeWalkToSafePos(citizen.blockPosition()))
-        {
+        if (!invokeWalkToSafePos(citizen.blockPosition())) {
             progressTicks = 0;
             return FREE_CURE;
         }
 
         progressTicks++;
-        if (progressTicks < MAX_PROGRESS_TICKS)
-        {
+        if (progressTicks < MAX_PROGRESS_TICKS) {
             Network.getNetwork().sendToTrackingEntity(
                     new StreamParticleEffectMessage(
                             getWorker().position().add(0, 2, 0),
@@ -354,9 +317,9 @@ public abstract class EntityAIWorkHealerMixin extends AbstractEntityAIBasicMixin
         }
 
         progressTicks = 0;
-        citizen.addEffect(new MobEffectInstance(MobEffects.REGENERATION,20 + invokeGetSecondarySkillLevel() * 2,getBuilding().getBuildingLevel()));
-        citizen.addEffect(new MobEffectInstance(MobEffects.DAMAGE_RESISTANCE,20 + invokeGetSecondarySkillLevel() * 2,2));
-        citizen.addEffect(new MobEffectInstance(MobEffects.ABSORPTION,20 + invokeGetSecondarySkillLevel() * 2,1 + invokeGetPrimarySkillLevel() / 8));
+        citizen.addEffect(new MobEffectInstance(MobEffects.REGENERATION, 20 + invokeGetSecondarySkillLevel() * 2, getBuilding().getBuildingLevel()));
+        citizen.addEffect(new MobEffectInstance(MobEffects.DAMAGE_RESISTANCE, 20 + invokeGetSecondarySkillLevel() * 2, 2));
+        citizen.addEffect(new MobEffectInstance(MobEffects.ABSORPTION, 20 + invokeGetSecondarySkillLevel() * 2, 1 + invokeGetPrimarySkillLevel() / 8));
         getWorker().getCitizenExperienceHandler().addExperience(BASE_XP_GAIN);
         citizen.getCitizenData().getCitizenDiseaseHandler().cure();
         currentPatient.setState(Patient.PatientState.TREATED);
@@ -370,21 +333,18 @@ public abstract class EntityAIWorkHealerMixin extends AbstractEntityAIBasicMixin
      * @reason 修改治疗方案和能力
      */
     @Overwrite(remap = false)
-    private IAIState curePlayer()
-    {
-        if (playerToHeal == null)
-        {
+    private IAIState curePlayer() {
+        if (playerToHeal == null) {
             return DECIDE;
         }
 
-        if (!walkToUnSafePos(playerToHeal.blockPosition()))
-        {
+        if (!walkToUnSafePos(playerToHeal.blockPosition())) {
             return invokeGetState();
         }
 
         playerToHeal.heal(2 + 2 * building.getBuildingLevel());
-        playerToHeal.addEffect(new MobEffectInstance(MobEffects.REGENERATION,20 + invokeGetSecondarySkillLevel() * 2,getBuilding().getBuildingLevel()));
-        playerToHeal.addEffect(new MobEffectInstance(MobEffects.DAMAGE_RESISTANCE,20 + invokeGetSecondarySkillLevel() * 2,2));
+        playerToHeal.addEffect(new MobEffectInstance(MobEffects.REGENERATION, 20 + invokeGetSecondarySkillLevel() * 2, getBuilding().getBuildingLevel()));
+        playerToHeal.addEffect(new MobEffectInstance(MobEffects.DAMAGE_RESISTANCE, 20 + invokeGetSecondarySkillLevel() * 2, 2));
         getWorker().getCitizenExperienceHandler().addExperience(1);
 
         return DECIDE;
@@ -395,20 +355,17 @@ public abstract class EntityAIWorkHealerMixin extends AbstractEntityAIBasicMixin
      * @reason 修改治疗方案和能力
      */
     @Overwrite(remap = false)
-    private IAIState wander()
-    {
-        if (remotePatient == null || remotePatient.getEntity().isEmpty())
-        {
+    private IAIState wander() {
+        if (remotePatient == null || remotePatient.getEntity().isEmpty()) {
             return DECIDE;
         }
 
         final EntityCitizen citizen = (EntityCitizen) remotePatient.getEntity().get();
-        if(citizen.getMaxHealth() <= citizen.getHealth()){
+        if (citizen.getMaxHealth() <= citizen.getHealth()) {
             return START_WORKING;
         }
         BlockPos nowPlace = remotePatient.getEntity().get().blockPosition();
-        if (!walkToUnSafePos(nowPlace) && DistanceUtils.dist(nowPlace,getWorker().blockPosition()) > 5)
-        {
+        if (!walkToUnSafePos(nowPlace) && DistanceUtils.dist(nowPlace, getWorker().blockPosition()) > 5) {
             return invokeGetState();
         }
 
@@ -418,8 +375,8 @@ public abstract class EntityAIWorkHealerMixin extends AbstractEntityAIBasicMixin
                         ParticleTypes.HEART,
                         1), getWorker());
 
-        citizen.heal(10 + invokeGetPrimarySkillLevel() / 4.0F );
-        citizen.addEffect(new MobEffectInstance(MobEffects.REGENERATION,20 + invokeGetSecondarySkillLevel() * 2, getBuilding().getBuildingLevel()));
+        citizen.heal(10 + invokeGetPrimarySkillLevel() / 4.0F);
+        citizen.addEffect(new MobEffectInstance(MobEffects.REGENERATION, 20 + invokeGetSecondarySkillLevel() * 2, getBuilding().getBuildingLevel()));
         getWorker().getCitizenExperienceHandler().addExperience(1);
 
         remotePatient = null;

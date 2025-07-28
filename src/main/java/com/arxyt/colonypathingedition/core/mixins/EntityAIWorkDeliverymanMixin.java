@@ -15,6 +15,7 @@ import org.spongepowered.asm.mixin.injection.Redirect;
 @Mixin(EntityAIWorkDeliveryman.class)
 public abstract class EntityAIWorkDeliverymanMixin implements AbstractAISkeletonAccessor<IJob<?>>, AbstractEntityAIBasicAccessor<AbstractBuilding> {
     // 提升单次运输容量
+
     /**
      * @author ARxyt
      * @reason 略微加大一下可用slot数
@@ -39,7 +40,7 @@ public abstract class EntityAIWorkDeliverymanMixin implements AbstractAISkeleton
         // 仅在 prepareDelivery() 中调用时生效
         final int originalSkillLevel = invokeGetSecondarySkillLevel();
         final int buildingLevel = getBuilding().getBuildingLevel();
-        return  (2 * buildingLevel + (int)Math.sqrt(originalSkillLevel * 9));
+        return (2 * buildingLevel + (int) Math.sqrt(originalSkillLevel * 9));
     }
 
 

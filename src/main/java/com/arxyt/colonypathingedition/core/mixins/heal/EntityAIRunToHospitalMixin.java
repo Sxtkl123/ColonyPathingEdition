@@ -18,11 +18,17 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(EntityAICitizenAvoidEntity.class)
 public class EntityAIRunToHospitalMixin {
-    @Final @Shadow(remap = false) private EntityCitizen citizen;
-    @Final @Shadow(remap = false) private double nearSpeed;
-    @Shadow(remap = false) private PathResult moveAwayPath;
+    @Final
+    @Shadow(remap = false)
+    private EntityCitizen citizen;
+    @Final
+    @Shadow(remap = false)
+    private double nearSpeed;
+    @Shadow(remap = false)
+    private PathResult moveAwayPath;
 
-    @Unique private BlockPos nearestHospital;
+    @Unique
+    private BlockPos nearestHospital;
 
     @Inject(
             method = "performMoveAway",
@@ -30,14 +36,13 @@ public class EntityAIRunToHospitalMixin {
             cancellable = true,
             remap = false
     )
-    public void performMoveAwayWithHospitalCheck(CallbackInfoReturnable<Boolean> cir)
-    {
-        if(citizen.getCitizenData().getCitizenDiseaseHandler().isHurt() && WorldUtil.isDayTime(this.citizen.level())){
+    public void performMoveAwayWithHospitalCheck(CallbackInfoReturnable<Boolean> cir) {
+        if (citizen.getCitizenData().getCitizenDiseaseHandler().isHurt() && WorldUtil.isDayTime(this.citizen.level())) {
             final IColony colony = citizen.getCitizenData().getColony();
-            if (nearestHospital == null){
+            if (nearestHospital == null) {
                 nearestHospital = colony.getBuildingManager().getBestBuilding(citizen, BuildingHospital.class);
             }
-            if (nearestHospital != null && (this.moveAwayPath == null || !this.moveAwayPath.isInProgress()) && this.citizen.getNavigation().isDone()){
+            if (nearestHospital != null && (this.moveAwayPath == null || !this.moveAwayPath.isInProgress()) && this.citizen.getNavigation().isDone()) {
                 EntityNavigationUtils.walkToPos(citizen, nearestHospital, 3, true, nearSpeed);
                 moveAwayPath = citizen.getNavigation().getPathResult();
                 cir.setReturnValue(true);

@@ -23,43 +23,40 @@ import static com.minecolonies.api.entity.ai.statemachine.states.AIWorkerState.*
 import static com.minecolonies.api.research.util.ResearchConstants.FLEEING_SPEED;
 
 @Mixin(AbstractEntityAIGuard.class)
-public abstract class AbstractEntityAIGuardMixinForFleeAndRegen implements AbstractAISkeletonAccessor<AbstractJobGuard<?>>,AbstractEntityAIBasicAccessor<AbstractBuildingGuards> {
-    @Final @Shadow (remap = false) protected IGuardBuilding buildingGuards;
+public abstract class AbstractEntityAIGuardMixinForFleeAndRegen implements AbstractAISkeletonAccessor<AbstractJobGuard<?>>, AbstractEntityAIBasicAccessor<AbstractBuildingGuards> {
+    @Final
+    @Shadow(remap = false)
+    protected IGuardBuilding buildingGuards;
 
-    @Unique private BlockPos nearestHospital = null;
+    @Unique
+    private BlockPos nearestHospital = null;
 
     /**
      * @author ARxyt
      * @reason 修改逃跑的目标地点
      */
     @Overwrite(remap = false)
-    private IAIState flee()
-    {
-        if (!getWorker().hasEffect(MobEffects.MOVEMENT_SPEED))
-        {
+    private IAIState flee() {
+        if (!getWorker().hasEffect(MobEffects.MOVEMENT_SPEED)) {
             final double effect = Objects.requireNonNull(getWorker().getCitizenColonyHandler().getColonyOrRegister()).getResearchManager().getResearchEffects().getEffectStrength(FLEEING_SPEED);
-            if (effect > 0)
-            {
+            if (effect > 0) {
                 getWorker().addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SPEED, 200, (int) (0 + effect)));
             }
         }
         final IColony colony = getWorker().getCitizenData().getColony();
-        if (nearestHospital == null){
+        if (nearestHospital == null) {
             nearestHospital = colony.getBuildingManager().getBestBuilding(getWorker(), BuildingHospital.class);
         }
 
-        if (nearestHospital != null){
-            if( !(getWorker().getHealth() > getWorker().getMaxHealth() / 2) ) {
+        if (nearestHospital != null) {
+            if (!(getWorker().getHealth() > getWorker().getMaxHealth() / 2)) {
                 if (!EntityNavigationUtils.walkToPos(getWorker(), nearestHospital, 3, true)) {
                     return GUARD_FLEE;
                 }
-            }
-            else{
+            } else {
                 nearestHospital = null;
             }
-        }
-        else if (!invokeWalkToBuilding())
-        {
+        } else if (!invokeWalkToBuilding()) {
             return GUARD_FLEE;
         }
 
@@ -72,31 +69,27 @@ public abstract class AbstractEntityAIGuardMixinForFleeAndRegen implements Abstr
      * @reason 修改进入START_WORKING的条件和一系列生命回复条件
      */
     @Overwrite(remap = false)
-    private IAIState regen()
-    {
-        if (((EntityCitizen) getWorker()).getThreatTable().getTargetMob() != null && ((EntityCitizen) getWorker()).getThreatTable().getTargetMob().distanceTo(getWorker()) < 10)
-        {
+    private IAIState regen() {
+        if (((EntityCitizen) getWorker()).getThreatTable().getTargetMob() != null && ((EntityCitizen) getWorker()).getThreatTable().getTargetMob().distanceTo(getWorker()) < 10) {
             return CombatAIStates.ATTACKING;
         }
 
-        if (buildingGuards.shallRetrieveOnLowHealth())
-        {
-            if (!getWorker().hasEffect(MobEffects.REGENERATION))
-            {
+        if (buildingGuards.shallRetrieveOnLowHealth()) {
+            if (!getWorker().hasEffect(MobEffects.REGENERATION)) {
                 getWorker().addEffect(new MobEffectInstance(MobEffects.REGENERATION, 200));
             }
         }
 
         final IColony colony = getWorker().getCitizenData().getColony();
-        if( nearestHospital != null && colony.getBuildingManager().getBuilding(nearestHospital) instanceof BuildingHospital hospital){
+        if (nearestHospital != null && colony.getBuildingManager().getBuilding(nearestHospital) instanceof BuildingHospital hospital) {
             hospital.checkOrCreatePatientFile(getWorker().getCivilianID());
         }
 
-        if(getWorker().getHealth() < ((int) getWorker().getMaxHealth() * 0.75D)){
+        if (getWorker().getHealth() < ((int) getWorker().getMaxHealth() * 0.75D)) {
             return GUARD_REGEN;
         }
 
-        if(Objects.requireNonNull(getWorker().getCitizenColonyHandler().getColonyOrRegister()).getRaiderManager().isRaided()){
+        if (Objects.requireNonNull(getWorker().getCitizenColonyHandler().getColonyOrRegister()).getRaiderManager().isRaided()) {
             return CombatAIStates.ATTACKING;
         }
 
