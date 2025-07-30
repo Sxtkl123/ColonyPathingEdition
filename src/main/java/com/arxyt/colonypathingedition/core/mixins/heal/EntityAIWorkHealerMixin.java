@@ -1,5 +1,6 @@
 package com.arxyt.colonypathingedition.core.mixins.heal;
 
+import com.arxyt.colonypathingedition.core.api.BuildingHospitalExtra;
 import com.arxyt.colonypathingedition.core.api.PatientExtras;
 import com.arxyt.colonypathingedition.core.mixins.AbstractEntityAIBasicMixin;
 import com.arxyt.colonypathingedition.core.mixins.accessor.AbstractEntityAIBasicAccessor;
@@ -12,8 +13,10 @@ import com.minecolonies.api.colony.jobs.IJob;
 import com.minecolonies.api.colony.requestsystem.request.IRequest;
 import com.minecolonies.api.colony.requestsystem.requestable.Stack;
 import com.minecolonies.api.crafting.ItemStorage;
+import com.minecolonies.api.entity.ai.statemachine.states.CitizenAIState;
 import com.minecolonies.api.entity.ai.statemachine.states.IAIState;
 import com.minecolonies.api.entity.citizen.AbstractEntityCitizen;
+import com.minecolonies.api.entity.citizen.VisibleCitizenStatus;
 import com.minecolonies.api.util.BlockPosUtil;
 import com.minecolonies.api.util.InventoryUtils;
 import com.minecolonies.api.util.Tuple;
@@ -32,6 +35,7 @@ import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
+import net.minecraft.world.entity.Pose;
 import net.minecraft.world.entity.player.Player;
 import net.minecraftforge.common.capabilities.ForgeCapabilities;
 import net.minecraftforge.items.IItemHandler;
@@ -214,6 +218,11 @@ public abstract class EntityAIWorkHealerMixin extends AbstractEntityAIBasicMixin
             return DECIDE;
         }
 
+        if(!WorldUtil.isDayTime(getWorker().level())){
+            ((BuildingHospitalExtra)building).citizenShouldNotWork();
+            return DECIDE;
+        }
+
         final ICitizenData data = getBuilding().getColony().getCitizenManager().getRandomCitizen();
         if (data.getEntity().isPresent() && data.getCitizenDiseaseHandler().isHurt()
                 && BlockPosUtil.getDistance2D(data.getEntity().get().blockPosition(), getBuilding().getPosition()) < getBuilding().getBuildingLevel() * 40L)
@@ -221,6 +230,7 @@ public abstract class EntityAIWorkHealerMixin extends AbstractEntityAIBasicMixin
             remotePatient = data;
             return WANDER;
         }
+
         return DECIDE;
     }
 

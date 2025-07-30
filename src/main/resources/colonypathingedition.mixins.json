@@ -33,6 +33,7 @@
     "heal.CitizenDiseaseHandlerMixin",
     "heal.EntityAIRunToHospitalMixin",
     "heal.EntityAISickTaskMixin",
+    "heal.EntityAISleepHealerSpecialMixin",
     "heal.EntityAIWorkHealerMixin",
     "heal.EntityCitizenMoveAwayMixin",
     "heal.PatientMixin",
@@ -42,6 +43,7 @@
     "heuristic.PathJobPathwayMixin",
     "heuristic.PathJobRaiderPathingMixin",
     "minecraft.FurnaceBlockEntityMixin",
+    "workersetting.BuildingHospitalMixin",
     "workersetting.BuildingLumberjackMixin",
     "workersetting.BuildingModulesMixin"
   ],

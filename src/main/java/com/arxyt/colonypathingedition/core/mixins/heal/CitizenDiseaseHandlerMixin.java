@@ -6,7 +6,6 @@ import com.minecolonies.api.colony.ICitizenData;
 import com.minecolonies.api.entity.citizen.AbstractEntityCitizen;
 import com.minecolonies.core.datalistener.DiseasesListener;
 import com.minecolonies.core.datalistener.model.Disease;
-import com.minecolonies.core.entity.citizen.EntityCitizen;
 import com.minecolonies.core.entity.citizen.citizenhandlers.CitizenDiseaseHandler;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.Tag;

@@ -18,7 +18,6 @@ import com.minecolonies.core.colony.buildings.workerbuildings.BuildingCook;
 import com.minecolonies.core.colony.interactionhandling.StandardInteraction;
 import com.minecolonies.core.colony.jobs.JobCook;
 import com.minecolonies.core.entity.ai.workers.service.EntityAIWorkCook;
-import com.minecolonies.core.entity.citizen.EntityCitizen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -71,11 +70,13 @@ public abstract class EntityAIWorkCookMixin extends AbstractEntityAIBasicMixin<B
 
     /**
      * @author ARxyt
-     * @reason 所以修改监测内容的同时允许厨师单次服务多个村民
+     * @reason 修改监测内容的同时允许厨师单次服务多个村民
      */
     @Overwrite(remap = false)
     private IAIState serveFoodToCitizen(){
         getWorker().getCitizenData().setVisibleStatus(COOK);
+
+        //检查顾客格式，以请求提出顺序拿取村民所点的菜(目前为最优的单个菜系，后期可能进一步修改)
         if(checkCustomer) {
             final RestaurantMenuModule module = building.getModule(RESTAURANT_MENU);
             while (!initailCitizenToServe.isEmpty()) {
@@ -176,7 +177,7 @@ public abstract class EntityAIWorkCookMixin extends AbstractEntityAIBasicMixin<B
 
     /**
      * @author ARxyt
-     * @reason 由于餐厅方块增加记忆，所以修改监测内容
+     * @reason 餐厅方块增加记忆，修改对应监测内容；优先对玩家的服务；取消在此函数内对顾客点菜进行处理；修改警告条件。
      */
     @Inject(method = "checkForImportantJobs", at=@At("HEAD"), remap = false, cancellable = true)
     protected void checkForImportantJobs(CallbackInfoReturnable<IAIState> cir) {
@@ -188,6 +189,7 @@ public abstract class EntityAIWorkCookMixin extends AbstractEntityAIBasicMixin<B
 
         playerToServe.addAll(playerList);
 
+        //修改警告条件至餐厅菜单中菜品数量
         final RestaurantMenuModule module = building.getModule(RESTAURANT_MENU);
         int menuDiversity = 0;
         for (ItemStorage menuItem : module.getMenu())
@@ -202,16 +204,6 @@ public abstract class EntityAIWorkCookMixin extends AbstractEntityAIBasicMixin<B
         if (menuDiversity < building.getBuildingLevel())
         {
             getWorker().getCitizenData().triggerInteraction(new StandardInteraction(Component.translatable(POOR_MENU_INTERACTION), ChatPriority.BLOCKING));
-        }
-
-        if (initailCitizenToServe.isEmpty() && citizenToServe.isEmpty()) {
-            int canServeInRow = canServeInRow();
-            BuildingCookExtra cookExtra = (BuildingCookExtra) building;
-            int shouldServeInRow = cookExtra.checkSize() / building.getAllAssignedCitizen().size() + 1;
-            if (shouldServeInRow < canServeInRow) {
-                canServeInRow = shouldServeInRow;
-            }
-            initailCitizenToServe = new ArrayDeque<>(cookExtra.getCustomers(canServeInRow));
         }
 
         if (!playerToServe.isEmpty())
@@ -230,11 +222,28 @@ public abstract class EntityAIWorkCookMixin extends AbstractEntityAIBasicMixin<B
             return;
         }
 
+        final BuildingCookExtra cookExtra = (BuildingCookExtra) building;
+        final int customerSize = cookExtra.checkSize();
+        if (initailCitizenToServe.isEmpty() && citizenToServe.isEmpty() && customerSize > 0) {
+            final int canServeInRow = canServeInRow();
+            final int workerSize = building.getAllAssignedCitizen().size();
+            int shouldServeInRow = (customerSize - 1) / workerSize + 1;
+            // customerSize <= 3 的判断是防止有一个厨师因故未能上工影响分配效率，同时能够保证有断断续续的客流时有厨师能够有空余时间处理烧制任务，此方案相对检测上工厨师来说更低耗。
+            if (customerSize <= 3){
+                shouldServeInRow = Math.min( canServeInRow() , customerSize);
+            }
+            else if (canServeInRow < shouldServeInRow) {
+                shouldServeInRow = canServeInRow;
+            }
+            initailCitizenToServe = new ArrayDeque<>(cookExtra.getCustomers(shouldServeInRow));
+        }
+
         if (!initailCitizenToServe.isEmpty() || !citizenToServe.isEmpty())
         {
             cir.setReturnValue(COOK_SERVE_FOOD_TO_CITIZEN);
             return;
         }
+
         cir.setReturnValue(START_WORKING);
     }
 }

@@ -1,7 +1,9 @@
 package com.arxyt.colonypathingedition.core.mixins.heal;
 
+import com.arxyt.colonypathingedition.core.api.BuildingHospitalExtra;
 import com.minecolonies.api.entity.ai.statemachine.states.IState;
 import com.minecolonies.api.entity.ai.statemachine.states.CitizenAIState;
+import com.minecolonies.core.colony.buildings.workerbuildings.BuildingHospital;
 import com.minecolonies.core.colony.jobs.JobHealer;
 import com.minecolonies.core.entity.ai.workers.CitizenAI;
 import com.minecolonies.core.entity.citizen.EntityCitizen;
@@ -26,13 +28,13 @@ public class CitizenAIForHealerMixin {
     )
     private void redirectDoctorDuringRaid(CallbackInfoReturnable<IState> cir) {
         // 检查原始返回值是否是 SLEEP 且是因为殖民地被袭击
-        if (cir.getReturnValue() == CitizenAIState.SLEEP
-                && Objects.requireNonNull(citizen.getCitizenColonyHandler().getColonyOrRegister()).getRaiderManager().isRaided()
-                && citizen.getCitizenJobHandler().getColonyJob() instanceof JobHealer) {
-            if (citizen.getCitizenSleepHandler().isAsleep()){
-                citizen.getCitizenSleepHandler().onWakeUp();
+        if (cir.getReturnValue() == CitizenAIState.SLEEP && citizen.getCitizenData().getWorkBuilding() instanceof BuildingHospital hospital) {
+            if(Objects.requireNonNull(citizen.getCitizenColonyHandler().getColonyOrRegister()).getRaiderManager().isRaided() || ((BuildingHospitalExtra)hospital).checkCitizenOnDuty(citizen.getCivilianID())) {
+                if (citizen.getCitizenSleepHandler().isAsleep()){
+                    citizen.getCitizenSleepHandler().onWakeUp();
+                }
+                cir.setReturnValue(CitizenAIState.WORK);
             }
-            cir.setReturnValue(CitizenAIState.WORK);
         }
     }
 
