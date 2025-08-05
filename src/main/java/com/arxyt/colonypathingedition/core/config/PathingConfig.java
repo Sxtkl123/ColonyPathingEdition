@@ -26,19 +26,22 @@ public class PathingConfig {
     public static ForgeConfigSpec.DoubleValue ONROAD_PREFERENCE;
     public static ForgeConfigSpec.IntValue CALLBACK_TIMES_TOLERANCE;
 
-    public static ForgeConfigSpec.IntValue MAX_PATHING_DISTANCE;
-    public static ForgeConfigSpec.BooleanValue MAX_ANIMAL_MODIFIER;
-    public static ForgeConfigSpec.BooleanValue LUMBERJACK_WORK_WHEN_UNCONSTRUCTED;
-
     public static ForgeConfigSpec.DoubleValue RESTAURANT_WAITING_TIME;
 
     public static ForgeConfigSpec.DoubleValue MAX_PERCENTAGE_HP_FOR_CURE;
     public static ForgeConfigSpec.DoubleValue MAX_HP_FOR_CURE;
+    public static ForgeConfigSpec.IntValue HEAL_START;
+    public static ForgeConfigSpec.IntValue HEAL_DURATION;
+
+    public static ForgeConfigSpec.BooleanValue LUMBERJACK_WORK_WHEN_UNCONSTRUCTED;
 
     public static ForgeConfigSpec.EnumValue<BuilderModeEnum> BUILDER_MODE;
     public static ForgeConfigSpec.IntValue BUILDER_GIBBON_RANGE;
 
     public static ForgeConfigSpec.BooleanValue PICK_MATERIAL_AT_HUT;
+    public static ForgeConfigSpec.BooleanValue MAX_ANIMAL_MODIFIER;
+
+    public static ForgeConfigSpec.IntValue MAX_PATHING_DISTANCE;
 
     public static ForgeConfigSpec init(ForgeConfigSpec.Builder builder) {
         builder.push("Pathing Cost Modifier #寻路Cost相关设置#");
@@ -138,19 +141,18 @@ public class PathingConfig {
                         The absolute amount of HP at which your citizens will seek treatment. (default: 10.0, original: 6.0)
                         你的村民将在剩多少HP时去寻求医生治疗 (默认 : 10.0 殖民地原设置 : 6.0)""")
                 .defineInRange("cureHP", 10.0, 6.0, 40.0);
+        HEAL_START = builder
+                .comment("Citizen will start to heal themselves at that time. #市民开始自愈的时间(s)#")
+                .defineInRange("startHeal", 480, 0, 4095);
+        HEAL_DURATION = builder
+                .comment("Citizen will randomly cure during this time. #市民将在这个时间段内均匀自愈(s)#")
+                .defineInRange("healDuration", 2000, 0, 65535);
         builder.pop();
-        builder.push("Basic Logic Modifier #基础逻辑修改#");
-        MAX_PATHING_DISTANCE = builder
-                .comment("Max pathing distance (default: 1000, original:500) 市民最大寻路距离,(默认 : 1000 殖民地原设置 : 500)")
-                .defineInRange("pathingDistance", 1000, 500, 4095);
-        MAX_ANIMAL_MODIFIER = builder
-                .comment("Max animal modifier, would you like to modify the max animals to 2^(building level)? (default: false)\n 养殖场最大生物数是否改为 2^建筑等级 原为 2*建筑等级(动物数目过大会导致卡顿，所以不默认开启),(默认 : false)")
-                .define("increaceMaxAnimal",false);
+        builder.push("LumberJack Modifier #伐木工相关修改#");
         LUMBERJACK_WORK_WHEN_UNCONSTRUCTED = builder
                 .comment("Lumberjcak will start to work only if hut is placed.\n 伐木工会在放置工作方块后立即开始工作 (功能在后期有些超模，建议仅在前期开启以分担少量工作量)。")
                 .define("lumberjackWorkWhenUnconstructed",false);
         builder.pop();
-
         builder.push("Builder Mode Modifier #土木人修改#");
         BUILDER_MODE = builder
                 .comment("""
@@ -165,8 +167,16 @@ public class PathingConfig {
                         .defineInRange("builderGibbonRange", 20, 0, 128);
         builder.pop();
         builder.push("Common Citizens Modifier #通用市民修改#");
+        MAX_ANIMAL_MODIFIER = builder
+                .comment("Max animal modifier, would you like to modify the max animals to 2^(building level)? (default: false)\n 养殖场最大生物数是否改为 2^建筑等级 原为 2*建筑等级(动物数目过大会导致卡顿，所以不默认开启),(默认 : false)")
+                .define("increaceMaxAnimal",false);
         PICK_MATERIAL_AT_HUT = builder.comment("Should citizens pick material at their own hut. 你的非快递员市民是否应当在他们的小屋方块处取货。")
                         .define("pickMaterialAtHut", true);
+        builder.pop();
+        builder.push("Basic Logic Modifier #基础逻辑修改#");
+        MAX_PATHING_DISTANCE = builder
+                .comment("Max pathing distance (default: 1000, original:500) 市民最大寻路距离,(默认 : 1000 殖民地原设置 : 500)")
+                .defineInRange("pathingDistance", 1000, 500, 4095);
         builder.pop();
         return builder.build(); // 返回构建结果
     }

@@ -15,6 +15,7 @@ import org.spongepowered.asm.mixin.*;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import com.arxyt.colonypathingedition.core.config.PathingConfig;
 
 import static com.arxyt.colonypathingedition.core.costants.AdditionalContants.SICK_TIME;
 import static com.minecolonies.api.util.constant.CitizenConstants.*;
@@ -102,10 +103,10 @@ public abstract class CitizenDiseaseHandlerMixin implements ICitizenDiseaseHandl
             if(this.sickTime < 0){
                 this.sickTime = 0;
             }
-            int lastTime = this.sickTime - 480 * 20;
+            int lastTime = this.sickTime - PathingConfig.HEAL_START.get() * 20;
             this.sickTime += tickRate;
             if(citizenData.getEntity().isPresent()) {
-                if (lastTime >= 0 && citizenData.getEntity().get().getRandom().nextInt(2000 * 20 - lastTime) < tickRate) {
+                if (lastTime >= 0 && citizenData.getEntity().get().getRandom().nextInt( PathingConfig.HEAL_DURATION.get() * 20 - lastTime) < tickRate) {
                     cure();
                 }
             }
