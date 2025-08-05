@@ -16,7 +16,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-import static com.arxyt.colonypathingedition.core.mixins.costants.AdditionalContants.SICK_TIME;
+import static com.arxyt.colonypathingedition.core.costants.AdditionalContants.SICK_TIME;
 import static com.minecolonies.api.util.constant.CitizenConstants.*;
 
 @Mixin( CitizenDiseaseHandler.class)

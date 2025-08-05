@@ -1,4 +1,4 @@
-package com.arxyt.colonypathingedition.core.mixins.costants;
+package com.arxyt.colonypathingedition.core.costants;
 
 
 import com.minecolonies.core.colony.jobs.AbstractJobGuard;

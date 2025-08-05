@@ -36,26 +36,22 @@ public class CitizenFoodHandlerMixin {
             {
                 if (foodItem instanceof IMinecoloniesFoodItem)
                 {
-                    qualityFoodCounter += 1;
+                    qualityFoodCounter += 0.5;
                 }
-                else{
-                    FoodProperties foodProperties=foodItem.getFoodProperties(new ItemStack(foodItem),null);
-                    if(foodProperties != null){
-                        qualityFoodCounter += foodProperties.getSaturationModifier();
-                    }
+                FoodProperties foodProperties=foodItem.getFoodProperties(new ItemStack(foodItem),null);
+                if(foodProperties != null){
+                    qualityFoodCounter += foodProperties.getSaturationModifier();
                 }
                 uniqueFoods.add(foodItem);
             }
             for (final Item foodItem : uniqueFoods){
                 if (foodItem instanceof IMinecoloniesFoodItem)
                 {
-                    diversityFoodCounter += 1;
+                    diversityFoodCounter += 0.5;
                 }
-                else{
-                    FoodProperties foodProperties=foodItem.getFoodProperties(new ItemStack(foodItem),null);
-                    if(foodProperties != null){
-                        diversityFoodCounter += Math.max(foodProperties.getSaturationModifier() * 2.0f , 1.0f);
-                    }
+                FoodProperties foodProperties=foodItem.getFoodProperties(new ItemStack(foodItem),null);
+                if(foodProperties != null){
+                    diversityFoodCounter += Math.max(foodProperties.getSaturationModifier() * 2.0f , 1.0f);
                 }
             }
             foodStatCache = new ICitizenFoodHandler.CitizenFoodStats(Mth.ceil(qualityFoodCounter), Mth.ceil(diversityFoodCounter));

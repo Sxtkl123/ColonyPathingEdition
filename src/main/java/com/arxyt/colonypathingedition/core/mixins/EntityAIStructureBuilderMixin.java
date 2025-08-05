@@ -72,7 +72,7 @@ public abstract class EntityAIStructureBuilderMixin extends AbstractEntityAIStru
     private boolean sentry(final BlockPos ignored) {
         // 有时候土木工人因为垂直位移会导致没办法继续正常干活，需要重置一下寻路，原理别问，看不懂他本来的代码。
         BlockPos workerPos = worker.getLocation().getInDimensionLocation();
-        if (workFrom != null && workerPos.getX() == workFrom.getX() && workerPos.getZ() == workFrom.getZ() && workerPos.getY() != workFrom.getY()) {
+        if (workFrom != null && workerPos.getX() == workFrom.getX() && workerPos.getZ() == workFrom.getZ() && Math.abs(workerPos.getY() - workFrom.getY()) > 1) {
             workFrom = null;
         }
 

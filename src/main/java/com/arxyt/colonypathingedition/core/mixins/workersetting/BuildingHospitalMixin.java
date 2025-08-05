@@ -59,7 +59,7 @@ public abstract class BuildingHospitalMixin implements BuildingHospitalExtra {
         return shouldWork && citizenId == healerOnDuty;
     }
 
-    @Inject(method = "deserializeNBT(Lnet/minecraft/nbt/CompoundTag;)V",at=@At("TAIL"),remap = false)
+    @Inject(method = "deserializeNBT(Lnet/minecraft/nbt/CompoundTag;)V",at=@At("RETURN"),remap = false)
     private void deserializeNBTAddition (CompoundTag compound,CallbackInfo cir){
         if(compound.contains("on_duty_worker")){
             healerOnDuty = compound.getInt("on_duty_worker");

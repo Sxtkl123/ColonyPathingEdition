@@ -1,4 +1,4 @@
-package com.arxyt.colonypathingedition.core.mixins.heal;
+package com.arxyt.colonypathingedition.core.mixins.sleep;
 
 import com.arxyt.colonypathingedition.core.api.BuildingHospitalExtra;
 import com.minecolonies.api.entity.ai.statemachine.states.IState;
@@ -19,15 +19,13 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import static com.minecolonies.api.entity.ai.statemachine.states.AIWorkerState.START_WORKING;
 import static com.minecolonies.api.util.constant.HappinessConstants.SLEPTTONIGHT;
-import static com.minecolonies.core.entity.ai.minimal.EntityAISleep.SleepState.*;
+import static com.minecolonies.core.entity.ai.minimal.EntityAISleep.SleepState.SLEEPING;
+import static com.minecolonies.core.entity.ai.minimal.EntityAISleep.SleepState.WALKING_HOME;
 
 @Mixin(EntityAISleep.class)
 public class EntityAISleepHealerSpecialMixin {
     @Final @Shadow(remap = false) private EntityCitizen citizen;
-    @Final @Shadow(remap = false) private static int MAX_BED_TICKS;
 
-    @Shadow(remap = false) private BlockPos usedBed;
-    @Shadow(remap = false) private int bedTicks;
 
     private boolean onDuty = false;
     private BlockPos workPos = null;
@@ -54,35 +52,10 @@ public class EntityAISleepHealerSpecialMixin {
                 cir.setReturnValue(WALKING_HOME);
                 return;
             }
-            cir.setReturnValue(FIND_BED);
-        }
-    }
-
-    @Inject(method = "findBed", at=@At("HEAD"), remap = false, cancellable = true)
-    private void specialFindBedForHealer(CallbackInfoReturnable<Boolean> cir)
-    {
-        if (onDuty)
-        {
-            if(citizen.getCitizenData().getWorkBuilding() instanceof BuildingHospital hospital){
-                usedBed = hospital.getBedList().get(0);
-                if (EntityNavigationUtils.walkToPosInBuilding(citizen, usedBed, hospital, 12))
-                {
-                    citizen.getCitizenData().setVisibleStatus(VisibleCitizenStatus.SLEEP);
-                    bedTicks++;
-                    if (!citizen.getCitizenSleepHandler().trySleep(usedBed))
-                    {
-                        citizen.getCitizenData().setBedPos(BlockPos.ZERO);
-                        usedBed = null;
-                    }
-                    citizen.getCitizenData().getCitizenHappinessHandler().resetModifier(SLEPTTONIGHT);
-                    cir.setReturnValue(true);
-                }
-                else
-                {
-                    bedTicks = 0;
-                }
-            }
-            cir.setReturnValue(false);
+            citizen.getCitizenData().setVisibleStatus(VisibleCitizenStatus.SLEEP);
+            citizen.getCitizenData().getCitizenHappinessHandler().resetModifier(SLEPTTONIGHT);
+            citizen.setPose(Pose.SNIFFING);
+            cir.setReturnValue(SLEEPING);
         }
     }
 

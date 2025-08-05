@@ -2,29 +2,41 @@ package com.arxyt.colonypathingedition.core.mixins;
 
 import com.arxyt.colonypathingedition.core.mixins.accessor.AbstractAISkeletonAccessor;
 import com.arxyt.colonypathingedition.core.mixins.accessor.AbstractEntityAIBasicAccessor;
+import com.arxyt.colonypathingedition.core.mixins.accessor.AbstractEntityAIInteractAccessor;
+import com.minecolonies.api.entity.ai.statemachine.states.IAIState;
 import com.minecolonies.api.inventory.InventoryCitizen;
+import com.minecolonies.core.colony.buildings.AbstractBuilding;
 import com.minecolonies.core.colony.jobs.JobLumberjack;
 import com.minecolonies.core.entity.ai.workers.production.EntityAIWorkLumberjack;
 import com.minecolonies.core.entity.ai.workers.util.Tree;
+import net.minecraft.core.BlockPos;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.phys.AABB;
 import org.jetbrains.annotations.NotNull;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
+
+import static com.minecolonies.api.entity.ai.statemachine.states.AIWorkerState.LUMBERJACK_CHOP_TREE;
+import static com.minecolonies.api.entity.ai.statemachine.states.AIWorkerState.LUMBERJACK_GATHERING;
+import static com.minecolonies.core.entity.ai.workers.production.EntityAIWorkLumberjack.RANGE_HORIZONTAL_PICKUP;
+import static com.minecolonies.core.entity.ai.workers.production.EntityAIWorkLumberjack.RANGE_VERTICAL_PICKUP;
 
 @Mixin(EntityAIWorkLumberjack.class)
-public abstract class EntityAIWorkLumberjackMixin implements AbstractAISkeletonAccessor<JobLumberjack>,AbstractEntityAIBasicAccessor {
+public abstract class EntityAIWorkLumberjackMixin implements AbstractAISkeletonAccessor<JobLumberjack>,AbstractEntityAIBasicAccessor<AbstractBuilding>, AbstractEntityAIInteractAccessor {
+
+    @Unique BlockPos thisTree = null;
+    @Unique BlockPos lastTree = null;
+    @Unique int delayTimes = 0;
+
     /**
      * 在放置树苗前注入物品检查逻辑
      */
-    @Inject(
-            method = "placeSaplings",
-            at = @At("HEAD"),
-            cancellable = true,
-            remap = false
-    )
+    @Inject(method = "placeSaplings", at = @At("HEAD"), cancellable = true, remap = false)
     private void onPlaceSaplings(
             int saplingSlot,
             @NotNull ItemStack stack,
@@ -88,6 +100,45 @@ public abstract class EntityAIWorkLumberjackMixin implements AbstractAISkeletonA
             {
                 ci.cancel(); // 合并后仍然不足
             }
+        }
+    }
+
+    /**
+     * 存储当前树木位置
+     */
+    @Inject(method = "findTrees", at = @At("RETURN"), remap = false)
+    private void storeTrees(CallbackInfoReturnable<IAIState> cir){
+        if(cir.getReturnValue() == LUMBERJACK_CHOP_TREE && getJob().getTree() != null){
+            thisTree = getJob().getTree().getLocation();
+        }
+    }
+
+    /**
+     * 补充搜索上个树木附近的掉落物
+     */
+    @Inject(method = "gathering", at = @At("HEAD"), remap = false)
+    private void additionalGather(CallbackInfoReturnable<IAIState> cir){
+        if( delayTimes == 0){
+            if(lastTree != null){
+                InvokeSearchForItems(new AABB(lastTree)
+                        .expandTowards(RANGE_HORIZONTAL_PICKUP * 1.5, RANGE_VERTICAL_PICKUP * 8, RANGE_HORIZONTAL_PICKUP * 1.5)
+                        .expandTowards(-RANGE_HORIZONTAL_PICKUP * 1.5, -RANGE_VERTICAL_PICKUP, -RANGE_HORIZONTAL_PICKUP * 1.5));
+                delayTimes = 10;
+            }
+            if(thisTree != null){
+                InvokeSearchForItems(new AABB(thisTree)
+                        .expandTowards(RANGE_HORIZONTAL_PICKUP * 1.5, RANGE_VERTICAL_PICKUP * 8, RANGE_HORIZONTAL_PICKUP * 1.5)
+                        .expandTowards(-RANGE_HORIZONTAL_PICKUP * 1.5, -RANGE_VERTICAL_PICKUP, -RANGE_HORIZONTAL_PICKUP * 1.5));
+                delayTimes = 10;
+            }
+        }
+        delayTimes --;
+    }
+
+    @Inject(method = "gathering", at = @At("RETURN"), remap = false)
+    private void afterGather(CallbackInfoReturnable<IAIState> cir){
+        if(cir.getReturnValue() != LUMBERJACK_GATHERING ){
+            delayTimes = 0;
         }
     }
 }

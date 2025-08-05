@@ -1,10 +1,9 @@
-package com.arxyt.colonypathingedition.core.mixins.heal;
+package com.arxyt.colonypathingedition.core.mixins.sleep;
 
 import com.arxyt.colonypathingedition.core.api.BuildingHospitalExtra;
 import com.minecolonies.api.entity.ai.statemachine.states.IState;
 import com.minecolonies.api.entity.ai.statemachine.states.CitizenAIState;
 import com.minecolonies.core.colony.buildings.workerbuildings.BuildingHospital;
-import com.minecolonies.core.colony.jobs.JobHealer;
 import com.minecolonies.core.entity.ai.workers.CitizenAI;
 import com.minecolonies.core.entity.citizen.EntityCitizen;
 import org.spongepowered.asm.mixin.Final;

@@ -119,7 +119,7 @@ public abstract class EntityAIWorkHealerMixin extends AbstractEntityAIBasicMixin
             }
             if (patient.getState() == Patient.PatientState.NEW)
             {
-                if( disease == null && !notFullHealth(citizen) ){
+                if(disease != null){
                     this.currentPatient = patient;
                     return REQUEST_CURE;
                 }

@@ -12,8 +12,6 @@ import com.minecolonies.api.entity.citizen.citizenhandlers.ICitizenFoodHandler;
 import com.minecolonies.api.util.*;
 import com.minecolonies.core.colony.buildings.workerbuildings.BuildingCook;
 import com.minecolonies.core.colony.interactionhandling.StandardInteraction;
-import com.minecolonies.core.colony.jobs.AbstractJobGuard;
-import com.minecolonies.core.colony.jobs.JobChef;
 import com.minecolonies.core.colony.jobs.JobCook;
 import com.minecolonies.core.entity.ai.minimal.EntityAIEatTask;
 import com.minecolonies.core.entity.citizen.EntityCitizen;
@@ -26,14 +24,15 @@ import net.minecraft.world.effect.MobEffects;
 import org.spongepowered.asm.mixin.*;
 
 import java.util.Objects;
-import java.util.Set;
 
 import static com.minecolonies.api.util.constant.CitizenConstants.FULL_SATURATION;
+import static com.minecolonies.api.util.constant.CitizenConstants.NIGHT;
 import static com.minecolonies.api.util.constant.Constants.SECONDS_A_MINUTE;
 import static com.minecolonies.api.util.constant.Constants.TICKS_SECOND;
 import static com.minecolonies.api.util.constant.TranslationConstants.NO_RESTAURANT;
 import static com.minecolonies.core.colony.buildings.modules.BuildingModules.RESTAURANT_MENU;
 import static com.minecolonies.core.entity.ai.minimal.EntityAIEatTask.EatingState.*;
+import static com.arxyt.colonypathingedition.core.costants.AdditionalContants.JOBS_EAT_IMMEDIATELY;
 
 @Mixin(EntityAIEatTask.class)
 public abstract class EntityAIEatTaskMixin {
@@ -51,7 +50,6 @@ public abstract class EntityAIEatTaskMixin {
     @Unique public int STOP_EATING_SATURATION = 18;
 
     @Unique private final double WAITING_MINUTES = PathingConfig.RESTAURANT_WAITING_TIME.get();
-    @Unique private static final Set<Class<?>> JOBS_EAT_IMMEDIATELY = Set.of(JobChef.class, JobCook.class);
 
     /**
      * @author ARxyt
@@ -241,8 +239,7 @@ public abstract class EntityAIEatTaskMixin {
     {
         IJob<?> jobCitizen = citizen.getCitizenData().getJob();
         BuildingCookExtra restaurantExtra = ((BuildingCookExtra)restaurant);
-        if((jobCitizen != null && JOBS_EAT_IMMEDIATELY.contains(jobCitizen.getClass())) || eatPos == null || !restaurantExtra.checkCustomerRegistry(citizen.getCivilianID()) || (jobCitizen instanceof AbstractJobGuard<?> && !WorldUtil.isDayTime(citizen.level())))
-        {
+        if(!restaurantExtra.checkCustomerRegistry(citizen.getCivilianID()) || !WorldUtil.isPastTime(citizen.level(), NIGHT - 2100) || (jobCitizen != null && JOBS_EAT_IMMEDIATELY.contains(jobCitizen.getClass())) || eatPos == null){
             restaurantExtra.deleteCustomer(citizen.getCivilianID());
             return GET_FOOD_YOURSELF;
         }
