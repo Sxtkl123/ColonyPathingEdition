@@ -5,5 +5,6 @@ public interface BuildingHospitalExtra {
     void setCitizenInactive();
     void citizenShouldWork();
     void citizenShouldNotWork();
+    boolean IsThisOnDutyCitizenID(int citizenId);
     boolean checkCitizenOnDuty(int citizenId);
 }

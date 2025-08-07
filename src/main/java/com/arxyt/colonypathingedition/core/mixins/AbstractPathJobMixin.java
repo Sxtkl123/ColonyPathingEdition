@@ -215,7 +215,6 @@ public abstract class AbstractPathJobMixin implements AbstractAISkeletonAccessor
     private void onSearchHead(CallbackInfoReturnable<Path> cir)
     {
         this.actualMaxNodes = this.maxNodes;
-        // 如果需要记录到日志，可在此加入 Log.info(...)
     }
 
 
@@ -239,10 +238,9 @@ public abstract class AbstractPathJobMixin implements AbstractAISkeletonAccessor
         // 1) 先执行原来的 recalcHeuristic(bestNode)
         recalcHeuristic(bestNode);
 
-        // 2) 现在 bestNode.getHeuristic() 已是新的值，你可以在这里做任何基于 bestNode 的计算：
-        //    例如，按 bestNode 的 heuristic 调整 maxNodes：
+        // 2) 按 bestNode 的 heuristic 调整 maxNodes：
         double h = bestNode.getHeuristic();
-        int extra = (int) Math.ceil(Math.sqrt(h) * 10);  // 举例：heuristic*10 向上取整
+        int extra = (int) Math.ceil(Math.sqrt(h) * 10);
         maxNodes = Math.max(Math.min(actualMaxNodes + extra , MAX_NODES),maxNodes);
     }
 
@@ -265,7 +263,7 @@ public abstract class AbstractPathJobMixin implements AbstractAISkeletonAccessor
         recalcHeuristic(bestNode);
 
         double h = bestNode.getHeuristic();
-        int extra = (int) Math.ceil(Math.sqrt(h) * 10);  // 举例：heuristic*10 向上取整
+        int extra = (int) Math.ceil(Math.sqrt(h) * 10);
         maxNodes = Math.max(Math.min(actualMaxNodes + extra , MAX_NODES),maxNodes);
     }
 
@@ -278,8 +276,7 @@ public abstract class AbstractPathJobMixin implements AbstractAISkeletonAccessor
     public abstract int invokeGetGroundHeight(final MNode node, final int x, final int y, final int z);
 
     @Invoker(value="createNode",remap = false)
-    public abstract MNode invokeCreateNode(
-            final MNode parent, final int x, final int y, final int z, final int nodeKey, final double heuristic, final double cost);
+    public abstract MNode invokeCreateNode(final MNode parent, final int x, final int y, final int z, final int nodeKey, final double heuristic, final double cost);
 
     @Invoker(value="calculateSwimming",remap = false)
     public abstract boolean invokeCalculateSwimming(final BlockState below, final BlockState state, final BlockState above, @Nullable final MNode node);
@@ -441,8 +438,7 @@ public abstract class AbstractPathJobMixin implements AbstractAISkeletonAccessor
         }
 
         final boolean isSwimming = invokeCalculateSwimming(belowState, state, aboveState, nextNode);
-        if (isSwimming && !pathingOptions.canSwim())
-        {
+        if (isSwimming && !pathingOptions.canSwim()) {
             return;
         }
 
