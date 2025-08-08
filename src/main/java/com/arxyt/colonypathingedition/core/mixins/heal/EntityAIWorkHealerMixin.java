@@ -41,6 +41,7 @@ import org.spongepowered.asm.mixin.*;
 import java.util.Objects;
 
 import static com.minecolonies.api.entity.ai.statemachine.states.AIWorkerState.*;
+import static com.minecolonies.api.util.constant.CitizenConstants.NOON;
 import static com.minecolonies.api.util.constant.TranslationConstants.PATIENT_FULL_INVENTORY;
 
 @Mixin( EntityAIWorkHealer.class)
@@ -77,6 +78,13 @@ public abstract class EntityAIWorkHealerMixin extends AbstractEntityAIBasicMixin
             return DECIDE;
         }
 
+        BuildingHospital hospital = this.building;
+        BuildingHospitalExtra hospitalExtra = (BuildingHospitalExtra) hospital;
+
+        if(WorldUtil.isPastTime(getWorker().level(),NOON)){
+            hospitalExtra.setCitizenInactive();
+        }
+
         for (final Player player : WorldUtil.getEntitiesWithinBuilding(getWorld(),
                 Player.class,
                 getBuilding(),
@@ -85,8 +93,6 @@ public abstract class EntityAIWorkHealerMixin extends AbstractEntityAIBasicMixin
             playerToHeal = player;
             return CURE_PLAYER;
         }
-
-        BuildingHospital hospital = this.building;
 
         for (Patient patient : hospital.getPatients())
         {

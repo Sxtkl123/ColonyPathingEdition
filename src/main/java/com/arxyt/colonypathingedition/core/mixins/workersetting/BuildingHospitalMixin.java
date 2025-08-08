@@ -69,12 +69,16 @@ public abstract class BuildingHospitalMixin implements BuildingHospitalExtra {
         if(compound.contains("on_duty_worker")){
             healerOnDuty = compound.getInt("on_duty_worker");
         }
+        if(compound.contains("duty_can_change")){
+            workerActive = compound.getBoolean("duty_can_change");
+        }
     }
 
     @Inject(method = "serializeNBT()Lnet/minecraft/nbt/CompoundTag;",at=@At("RETURN"),remap = false,cancellable = true)
     private void serializeNBTAddition (CallbackInfoReturnable<CompoundTag> cir){
         CompoundTag tag = cir.getReturnValue();
         tag.putInt("on_duty_worker", healerOnDuty);
+        tag.putBoolean("duty_can_change", workerActive);
         cir.setReturnValue(tag);
     }
 }

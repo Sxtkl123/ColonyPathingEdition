@@ -1,4 +1,4 @@
-package com.arxyt.colonypathingedition.core.mixins.food;
+package com.arxyt.colonypathingedition.core.mixins.workersetting;
 
 import com.arxyt.colonypathingedition.core.api.BuildingCookExtra;
 import com.minecolonies.core.colony.buildings.workerbuildings.BuildingCook;

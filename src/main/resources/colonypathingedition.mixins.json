@@ -25,7 +25,7 @@
     "accessor.AbstractEntityAIInteractAccessor",
     "accessor.AbstractPathJobAccessor",
     "accessor.MinecoloniesAdvancedPathNavigateAccessor",
-    "food.BuildingCookForCustomerMixin",
+    "workersetting.BuildingCookForCustomerMixin",
     "food.CitizenFoodHandlerMixin",
     "food.EntityAIEatTaskMixin",
     "food.EntityAIWorkCookMixin",

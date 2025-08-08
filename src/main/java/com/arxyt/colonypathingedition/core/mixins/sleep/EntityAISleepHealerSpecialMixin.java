@@ -56,6 +56,7 @@ public class EntityAISleepHealerSpecialMixin {
         }
     }
 
+
     @Inject(method = "sleep", at=@At("HEAD"), remap = false, cancellable = true)
     private void specialSleepForHealer(CallbackInfoReturnable<IState> cir)
     {
@@ -63,7 +64,6 @@ public class EntityAISleepHealerSpecialMixin {
             if(onDuty){
                 if(!hospital.getPatients().isEmpty()){
                     citizen.getCitizenSleepHandler().onWakeUp();
-                    ((BuildingHospitalExtra)hospital).setCitizenInactive();
                     ((BuildingHospitalExtra)hospital).citizenShouldWork();
                     cir.setReturnValue(START_WORKING);
                 }

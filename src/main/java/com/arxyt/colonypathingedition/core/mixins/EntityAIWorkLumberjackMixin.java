@@ -1,11 +1,12 @@
 package com.arxyt.colonypathingedition.core.mixins;
 
+import com.arxyt.colonypathingedition.core.api.BuildingLumberjackExtra;
 import com.arxyt.colonypathingedition.core.mixins.accessor.AbstractAISkeletonAccessor;
 import com.arxyt.colonypathingedition.core.mixins.accessor.AbstractEntityAIBasicAccessor;
 import com.arxyt.colonypathingedition.core.mixins.accessor.AbstractEntityAIInteractAccessor;
 import com.minecolonies.api.entity.ai.statemachine.states.IAIState;
 import com.minecolonies.api.inventory.InventoryCitizen;
-import com.minecolonies.core.colony.buildings.AbstractBuilding;
+import com.minecolonies.core.colony.buildings.workerbuildings.BuildingLumberjack;
 import com.minecolonies.core.colony.jobs.JobLumberjack;
 import com.minecolonies.core.entity.ai.workers.production.EntityAIWorkLumberjack;
 import com.minecolonies.core.entity.ai.workers.util.Tree;
@@ -21,13 +22,12 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-import static com.minecolonies.api.entity.ai.statemachine.states.AIWorkerState.LUMBERJACK_CHOP_TREE;
-import static com.minecolonies.api.entity.ai.statemachine.states.AIWorkerState.LUMBERJACK_GATHERING;
+import static com.minecolonies.api.entity.ai.statemachine.states.AIWorkerState.*;
 import static com.minecolonies.core.entity.ai.workers.production.EntityAIWorkLumberjack.RANGE_HORIZONTAL_PICKUP;
 import static com.minecolonies.core.entity.ai.workers.production.EntityAIWorkLumberjack.RANGE_VERTICAL_PICKUP;
 
 @Mixin(EntityAIWorkLumberjack.class)
-public abstract class EntityAIWorkLumberjackMixin implements AbstractAISkeletonAccessor<JobLumberjack>,AbstractEntityAIBasicAccessor<AbstractBuilding>, AbstractEntityAIInteractAccessor {
+public abstract class EntityAIWorkLumberjackMixin implements AbstractAISkeletonAccessor<JobLumberjack>,AbstractEntityAIBasicAccessor<BuildingLumberjack>, AbstractEntityAIInteractAccessor {
 
     @Unique BlockPos thisTree = null;
     @Unique BlockPos lastTree = null;
@@ -109,7 +109,8 @@ public abstract class EntityAIWorkLumberjackMixin implements AbstractAISkeletonA
     @Inject(method = "findTrees", at = @At("RETURN"), remap = false)
     private void storeTrees(CallbackInfoReturnable<IAIState> cir){
         if(cir.getReturnValue() == LUMBERJACK_CHOP_TREE && getJob().getTree() != null){
-            thisTree = getJob().getTree().getLocation();
+            ((BuildingLumberjackExtra)getBuilding()).thisTreeToLast();
+            ((BuildingLumberjackExtra)getBuilding()).setThisTree(getJob().getTree().getLocation());
         }
     }
 
@@ -119,17 +120,19 @@ public abstract class EntityAIWorkLumberjackMixin implements AbstractAISkeletonA
     @Inject(method = "gathering", at = @At("HEAD"), remap = false)
     private void additionalGather(CallbackInfoReturnable<IAIState> cir){
         if( delayTimes == 0){
+            lastTree = ((BuildingLumberjackExtra)getBuilding()).getLastTree();
+            thisTree = ((BuildingLumberjackExtra)getBuilding()).getThisTree();
             if(lastTree != null){
-                InvokeSearchForItems(new AABB(lastTree)
+                invokeSearchForItems(new AABB(lastTree)
                         .expandTowards(RANGE_HORIZONTAL_PICKUP * 1.5, RANGE_VERTICAL_PICKUP * 8, RANGE_HORIZONTAL_PICKUP * 1.5)
                         .expandTowards(-RANGE_HORIZONTAL_PICKUP * 1.5, -RANGE_VERTICAL_PICKUP, -RANGE_HORIZONTAL_PICKUP * 1.5));
-                delayTimes = 10;
+                delayTimes = 5;
             }
-            if(thisTree != null){
-                InvokeSearchForItems(new AABB(thisTree)
+            if(invokeGetItemsForPickUp() == null && thisTree != null){
+                invokeSearchForItems(new AABB(thisTree)
                         .expandTowards(RANGE_HORIZONTAL_PICKUP * 1.5, RANGE_VERTICAL_PICKUP * 8, RANGE_HORIZONTAL_PICKUP * 1.5)
                         .expandTowards(-RANGE_HORIZONTAL_PICKUP * 1.5, -RANGE_VERTICAL_PICKUP, -RANGE_HORIZONTAL_PICKUP * 1.5));
-                delayTimes = 10;
+                delayTimes = 5;
             }
         }
         delayTimes --;
@@ -141,4 +144,13 @@ public abstract class EntityAIWorkLumberjackMixin implements AbstractAISkeletonA
             delayTimes = 0;
         }
     }
+
+    @Inject(method = "prepareForWoodcutting", at = @At("RETURN"), remap = false, cancellable = true)
+    private void remasterPrepareOrderForWoodcutting(CallbackInfoReturnable<IAIState> cir){
+        if(cir.getReturnValue() == LUMBERJACK_SEARCHING_TREE ){
+            cir.setReturnValue(LUMBERJACK_GATHERING);
+        }
+    }
+
+
 }

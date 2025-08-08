@@ -1,11 +1,15 @@
 package com.arxyt.colonypathingedition.core.mixins.accessor;
 
 import com.minecolonies.core.entity.ai.workers.AbstractEntityAIInteract;
+import net.minecraft.core.BlockPos;
 import net.minecraft.world.phys.AABB;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.gen.Invoker;
 
+import java.util.List;
+
 @Mixin(AbstractEntityAIInteract.class)
 public interface AbstractEntityAIInteractAccessor {
-    @Invoker(value = "searchForItems",remap = false) void InvokeSearchForItems(final AABB boundingBox);
+    @Invoker(value = "searchForItems",remap = false) void invokeSearchForItems(final AABB boundingBox);
+    @Invoker(value = "getItemsForPickUp",remap = false) List<BlockPos> invokeGetItemsForPickUp();
 }
