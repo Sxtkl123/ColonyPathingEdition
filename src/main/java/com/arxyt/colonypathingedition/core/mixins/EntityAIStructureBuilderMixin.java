@@ -1,6 +1,7 @@
 package com.arxyt.colonypathingedition.core.mixins;
 
 import com.arxyt.colonypathingedition.core.config.PathingConfig;
+import com.minecolonies.api.entity.ai.statemachine.states.IAIState;
 import com.minecolonies.api.util.MathUtils;
 import com.minecolonies.core.colony.buildings.workerbuildings.BuildingBuilder;
 import com.minecolonies.core.colony.jobs.JobBuilder;
@@ -20,6 +21,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.ModifyConstant;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
+import static com.minecolonies.api.entity.ai.statemachine.states.AIWorkerState.LOAD_STRUCTURE;
 import static com.minecolonies.api.util.constant.CitizenConstants.MIN_WORKING_RANGE;
 import static com.minecolonies.api.util.constant.CitizenConstants.STANDARD_WORKING_RANGE;
 
@@ -146,6 +148,20 @@ public abstract class EntityAIStructureBuilderMixin extends AbstractEntityAIStru
             case GOD: cir.setReturnValue(god(currentBlock)); break;
             case GIBBON: cir.setReturnValue(gibbon(currentBlock)); break;
         }
+    }
+
+    /**
+     * 注入修改，修改建筑工人的接单位置，让建筑工人可以随时随地接单。
+     * @param cir 注入返回值，当配置开启时设置为可以随时随地接单。
+     * @author sxtkl
+     * @since 2025/8/8
+     */
+    @Inject(at = @At("HEAD"), method = "startWorkingAtOwnBuilding", cancellable = true, remap = false)
+    private void injectStartWorkingAtOwnBuilding(CallbackInfoReturnable<IAIState> cir) {
+        if (!PathingConfig.BUILDER_TAKE_ORDERS_EVERYWHERE.get()) {
+            return;
+        }
+        cir.setReturnValue(LOAD_STRUCTURE);
     }
 
 }
