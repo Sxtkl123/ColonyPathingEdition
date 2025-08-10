@@ -22,46 +22,70 @@ public abstract class BuildingHospitalMixin implements BuildingHospitalExtra {
     }
 
     @Unique private int healerOnDuty = -1;
-
     @Unique private boolean workerActive = false;
-
     @Unique private boolean shouldWork = false;
-
-    @Unique
-    public int getOnDutyCitizen(int citizenId){
-        final BuildingHospital hospital = asHospital();
-        if (!workerActive) {
-            Set<ICitizenData> citizens = hospital.getAllAssignedCitizen();
-            if(citizens.contains(hospital.getColony().getCitizenManager().getCivilian(citizenId))){
-                healerOnDuty = citizenId;
-                workerActive = true;
-            }
-        }
-        return healerOnDuty;
-    }
+    @Unique private int healerCuringPlayer = -1;
+    @Unique int healerWandering = -1;
 
     @Unique public void setCitizenInactive(){
         workerActive = false;
     }
-
-    @Unique
-    public void citizenShouldWork() {
+    @Unique public void citizenShouldWork() {
         shouldWork = true;
     }
-
-    @Unique
-    public void citizenShouldNotWork() {
+    @Unique public void citizenShouldNotWork() {
         shouldWork = false;
     }
-
-    @Unique
-    public boolean checkCitizenOnDuty(int citizenId) {
+    @Unique public boolean checkCitizenOnDuty(int citizenId) {
         return shouldWork && citizenId == healerOnDuty;
+    }
+    @Unique public boolean IsThisOnDutyCitizenID(int citizenId) {
+        return citizenId == healerOnDuty;
+    }
+    @Unique public void resetHealerCuringPlayer(){
+        healerCuringPlayer = -1;
+    }
+    @Unique public void resetHealerWandering(){
+        healerWandering = -1;
     }
 
     @Unique
-    public boolean IsThisOnDutyCitizenID(int citizenId) {
-        return citizenId == healerOnDuty;
+    public boolean noHealerCuringPlayer(int workerID){
+        if(healerCuringPlayer != -1 && healerCuringPlayer != workerID){
+            for(ICitizenData worker : asHospital().getAllAssignedCitizen()){
+                if (worker.getId() == healerCuringPlayer){
+                    return false;
+                }
+            }
+        }
+        healerCuringPlayer = workerID;
+        return true;
+    }
+
+    @Unique
+    public boolean noHealerWandering(int workerID){
+        if(healerWandering != -1 && healerWandering != workerID){
+            for(ICitizenData worker : asHospital().getAllAssignedCitizen()){
+                if (worker.getId() == healerWandering){
+                    return false;
+                }
+            }
+        }
+        healerWandering = workerID;
+        return true;
+    }
+
+    @Unique
+    public int getOnDutyCitizen(int workerID){
+        final BuildingHospital hospital = asHospital();
+        if (!workerActive) {
+            Set<ICitizenData> citizens = hospital.getAllAssignedCitizen();
+            if(citizens.contains(hospital.getColony().getCitizenManager().getCivilian(workerID))){
+                healerOnDuty = workerID;
+                workerActive = true;
+            }
+        }
+        return healerOnDuty;
     }
 
     @Inject(method = "deserializeNBT(Lnet/minecraft/nbt/CompoundTag;)V",at=@At("RETURN"),remap = false)

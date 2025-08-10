@@ -1,7 +1,10 @@
 package com.arxyt.colonypathingedition.core.mixins;
 
 import com.arxyt.colonypathingedition.core.config.PathingConfig;
+import com.minecolonies.api.crafting.ItemStorage;
 import com.minecolonies.api.entity.ai.statemachine.states.IAIState;
+import com.minecolonies.api.util.FoodUtils;
+import com.minecolonies.api.util.InventoryUtils;
 import com.minecolonies.api.util.MathUtils;
 import com.minecolonies.core.colony.buildings.workerbuildings.BuildingBuilder;
 import com.minecolonies.core.colony.jobs.JobBuilder;
@@ -22,8 +25,7 @@ import org.spongepowered.asm.mixin.injection.ModifyConstant;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import static com.minecolonies.api.entity.ai.statemachine.states.AIWorkerState.LOAD_STRUCTURE;
-import static com.minecolonies.api.util.constant.CitizenConstants.MIN_WORKING_RANGE;
-import static com.minecolonies.api.util.constant.CitizenConstants.STANDARD_WORKING_RANGE;
+import static com.minecolonies.api.util.constant.CitizenConstants.*;
 
 @Mixin(EntityAIStructureBuilder.class)
 public abstract class EntityAIStructureBuilderMixin extends AbstractEntityAIStructureWithWorkOrder<JobBuilder, BuildingBuilder> {
@@ -143,10 +145,23 @@ public abstract class EntityAIStructureBuilderMixin extends AbstractEntityAIStru
     @Inject(at = @At("HEAD"), method = "walkToConstructionSite", cancellable = true, remap = false)
     private void injectWalkToConstructionSite(BlockPos currentBlock, CallbackInfoReturnable<Boolean> cir) {
         switch (PathingConfig.BUILDER_MODE.get()) {
-            case FORMALIST: cir.setReturnValue(formalist(currentBlock)); break;
-            case SENTRY: cir.setReturnValue(sentry(currentBlock)); break;
-            case GOD: cir.setReturnValue(god(currentBlock)); break;
-            case GIBBON: cir.setReturnValue(gibbon(currentBlock)); break;
+            case FORMALIST -> cir.setReturnValue(formalist(currentBlock));
+            case SENTRY -> cir.setReturnValue(sentry(currentBlock));
+            case GOD -> cir.setReturnValue(god(currentBlock));
+            case GIBBON -> cir.setReturnValue(gibbon(currentBlock));
+        }
+    }
+
+    @Inject(at = @At("RETURN"), method = "checkForWorkOrder", remap = false)
+    private void takeFoodAfterCheckForWorkOrder(CallbackInfoReturnable<Boolean> cir){
+        if(cir.getReturnValue()){
+            if(!hasFood()){
+                final ItemStorage storageToGet = FoodUtils.checkForFoodInBuilding(worker.getCitizenData(), null, building);
+                if (storageToGet != null)
+                {
+                    InventoryUtils.transferItemStackIntoNextBestSlotInItemHandler(building, storageToGet, 5, worker.getInventoryCitizen());
+                }
+            }
         }
     }
 
@@ -164,4 +179,9 @@ public abstract class EntityAIStructureBuilderMixin extends AbstractEntityAIStru
         cir.setReturnValue(LOAD_STRUCTURE);
     }
 
+    @Unique
+    private boolean hasFood()
+    {
+        return FoodUtils.getBestFoodForCitizen(worker.getInventoryCitizen(), worker.getCitizenData(), null) != -1;
+    }
 }

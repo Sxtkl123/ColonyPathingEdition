@@ -85,14 +85,18 @@ public abstract class EntityAIWorkHealerMixin extends AbstractEntityAIBasicMixin
             hospitalExtra.setCitizenInactive();
         }
 
+
         for (final Player player : WorldUtil.getEntitiesWithinBuilding(getWorld(),
                 Player.class,
                 getBuilding(),
                 player -> player.getHealth() < player.getMaxHealth() - 10 ))
         {
             playerToHeal = player;
-            return CURE_PLAYER;
+            if(hospitalExtra.noHealerCuringPlayer(getWorker().getId())){
+                return CURE_PLAYER;
+            }
         }
+
 
         for (Patient patient : hospital.getPatients())
         {
@@ -226,12 +230,14 @@ public abstract class EntityAIWorkHealerMixin extends AbstractEntityAIBasicMixin
             return DECIDE;
         }
 
-        final ICitizenData data = getBuilding().getColony().getCitizenManager().getRandomCitizen();
-        if (data.getEntity().isPresent() && data.getCitizenDiseaseHandler().isHurt()
-                && BlockPosUtil.getDistance2D(data.getEntity().get().blockPosition(), getBuilding().getPosition()) < getBuilding().getBuildingLevel() * 40L)
-        {
-            remotePatient = data;
-            return WANDER;
+        if(hospitalExtra.noHealerCuringPlayer(getWorker().getId())) {
+            final ICitizenData data = getBuilding().getColony().getCitizenManager().getRandomCitizen();
+            if (data.getEntity().isPresent() && data.getCitizenDiseaseHandler().isHurt()
+                    && BlockPosUtil.getDistance2D(data.getEntity().get().blockPosition(), getBuilding().getPosition()) < getBuilding().getBuildingLevel() * 40L)
+            {
+                remotePatient = data;
+                return WANDER;
+            }
         }
 
         return DECIDE;
@@ -387,6 +393,7 @@ public abstract class EntityAIWorkHealerMixin extends AbstractEntityAIBasicMixin
     {
         if (playerToHeal == null)
         {
+            ((BuildingHospitalExtra)building).resetHealerCuringPlayer();
             return DECIDE;
         }
 
@@ -399,7 +406,7 @@ public abstract class EntityAIWorkHealerMixin extends AbstractEntityAIBasicMixin
         playerToHeal.addEffect(new MobEffectInstance(MobEffects.REGENERATION,20 + invokeGetSecondarySkillLevel() * 2,getBuilding().getBuildingLevel()));
         playerToHeal.addEffect(new MobEffectInstance(MobEffects.DAMAGE_RESISTANCE,20 + invokeGetSecondarySkillLevel() * 2,2));
         getWorker().getCitizenExperienceHandler().addExperience(1);
-
+        ((BuildingHospitalExtra)building).resetHealerCuringPlayer();
         return DECIDE;
     }
 
@@ -412,11 +419,13 @@ public abstract class EntityAIWorkHealerMixin extends AbstractEntityAIBasicMixin
     {
         if (remotePatient == null || remotePatient.getEntity().isEmpty())
         {
+            ((BuildingHospitalExtra)building).resetHealerWandering();
             return DECIDE;
         }
 
         final EntityCitizen citizen = (EntityCitizen) remotePatient.getEntity().get();
         if(citizen.getMaxHealth() <= citizen.getHealth()){
+            ((BuildingHospitalExtra)building).resetHealerWandering();
             return START_WORKING;
         }
         BlockPos nowPlace = remotePatient.getEntity().get().blockPosition();
@@ -436,7 +445,7 @@ public abstract class EntityAIWorkHealerMixin extends AbstractEntityAIBasicMixin
         getWorker().getCitizenExperienceHandler().addExperience(1);
 
         remotePatient = null;
-
+        ((BuildingHospitalExtra)building).resetHealerWandering();
         return START_WORKING;
     }
 }

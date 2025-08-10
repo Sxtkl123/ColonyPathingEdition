@@ -1,6 +1,7 @@
 package com.arxyt.colonypathingedition.core.mixins;
 
 import com.arxyt.colonypathingedition.core.api.BuildingLumberjackExtra;
+import com.arxyt.colonypathingedition.core.config.PathingConfig;
 import com.arxyt.colonypathingedition.core.mixins.accessor.AbstractAISkeletonAccessor;
 import com.arxyt.colonypathingedition.core.mixins.accessor.AbstractEntityAIBasicAccessor;
 import com.arxyt.colonypathingedition.core.mixins.accessor.AbstractEntityAIInteractAccessor;
@@ -12,6 +13,7 @@ import com.minecolonies.core.entity.ai.workers.production.EntityAIWorkLumberjack
 import com.minecolonies.core.entity.ai.workers.util.Tree;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.phys.AABB;
 import org.jetbrains.annotations.NotNull;
@@ -69,8 +71,20 @@ public abstract class EntityAIWorkLumberjackMixin implements AbstractAISkeletonA
         // 没有找到任何树苗槽位，取消补种
         if (mainSaplingSlot == -1)
         {
-            ci.cancel();
-            return;
+            if(PathingConfig.LUMBERJACK_PLANT_WITHOUT_SAPLINGS.get() && getWorker().getInventoryCitizen().hasSpace()){
+                ItemStack sapling = new ItemStack(targetSapling.getItem(), required);
+                for (int i = 0; i < inventory.getSlots(); i++) {
+                    ItemStack slotStack = inventory.getStackInSlot(i);
+                    if (slotStack.isEmpty()) {
+                        inventory.insertItem(i, sapling, false);
+                        break;
+                    }
+                }
+            }
+            else{
+                ci.cancel();
+                return;
+            }
         }
 
         // 计算总需求并尝试合并
@@ -81,7 +95,7 @@ public abstract class EntityAIWorkLumberjackMixin implements AbstractAISkeletonA
         if (needed > 0)
         {
             // 遍历其他槽位转移树苗到主槽位
-            for (int i = mainSaplingSlot+1; i < inventory.getSlots(); i++)
+            for (int i = mainSaplingSlot + 1; i < inventory.getSlots(); i++)
             {
                 ItemStack stackInSlot = inventory.getStackInSlot(i);
                 if (ItemStack.isSameItemSameTags(stackInSlot, targetSapling))
@@ -98,6 +112,9 @@ public abstract class EntityAIWorkLumberjackMixin implements AbstractAISkeletonA
             // 最终检查数量是否足够
             if (mainStack.getCount() < required)
             {
+                if(PathingConfig.LUMBERJACK_PLANT_WITHOUT_SAPLINGS.get()){
+                    inventory.getStackInSlot(mainSaplingSlot).setCount(required);
+                }
                 ci.cancel(); // 合并后仍然不足
             }
         }
@@ -124,14 +141,14 @@ public abstract class EntityAIWorkLumberjackMixin implements AbstractAISkeletonA
             thisTree = ((BuildingLumberjackExtra)getBuilding()).getThisTree();
             if(lastTree != null){
                 invokeSearchForItems(new AABB(lastTree)
-                        .expandTowards(RANGE_HORIZONTAL_PICKUP * 1.5, RANGE_VERTICAL_PICKUP * 8, RANGE_HORIZONTAL_PICKUP * 1.5)
-                        .expandTowards(-RANGE_HORIZONTAL_PICKUP * 1.5, -RANGE_VERTICAL_PICKUP, -RANGE_HORIZONTAL_PICKUP * 1.5));
+                        .expandTowards(RANGE_HORIZONTAL_PICKUP * 2, RANGE_VERTICAL_PICKUP * 2, RANGE_HORIZONTAL_PICKUP * 2)
+                        .expandTowards(-RANGE_HORIZONTAL_PICKUP * 2, -RANGE_VERTICAL_PICKUP, -RANGE_HORIZONTAL_PICKUP * 2));
                 delayTimes = 5;
             }
-            if(invokeGetItemsForPickUp() == null && thisTree != null){
+            if((invokeGetItemsForPickUp() == null || invokeGetItemsForPickUp().isEmpty()) && thisTree != null){
                 invokeSearchForItems(new AABB(thisTree)
-                        .expandTowards(RANGE_HORIZONTAL_PICKUP * 1.5, RANGE_VERTICAL_PICKUP * 8, RANGE_HORIZONTAL_PICKUP * 1.5)
-                        .expandTowards(-RANGE_HORIZONTAL_PICKUP * 1.5, -RANGE_VERTICAL_PICKUP, -RANGE_HORIZONTAL_PICKUP * 1.5));
+                        .expandTowards(RANGE_HORIZONTAL_PICKUP * 2, RANGE_VERTICAL_PICKUP * 2, RANGE_HORIZONTAL_PICKUP * 2)
+                        .expandTowards(-RANGE_HORIZONTAL_PICKUP * 2, -RANGE_VERTICAL_PICKUP, -RANGE_HORIZONTAL_PICKUP * 2));
                 delayTimes = 5;
             }
         }

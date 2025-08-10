@@ -34,6 +34,7 @@ public class PathingConfig {
     public static ForgeConfigSpec.IntValue HEAL_DURATION;
 
     public static ForgeConfigSpec.BooleanValue LUMBERJACK_WORK_WHEN_UNCONSTRUCTED;
+    public static ForgeConfigSpec.BooleanValue LUMBERJACK_PLANT_WITHOUT_SAPLINGS;
 
     public static ForgeConfigSpec.EnumValue<BuilderModeEnum> BUILDER_MODE;
     public static ForgeConfigSpec.IntValue BUILDER_GIBBON_RANGE;
@@ -153,6 +154,9 @@ public class PathingConfig {
         LUMBERJACK_WORK_WHEN_UNCONSTRUCTED = builder
                 .comment("Lumberjcak will start to work only if hut is placed.\n 伐木工会在放置工作方块后立即开始工作 (功能在后期有些超模，建议仅在前期开启以分担少量工作量)。")
                 .define("lumberjackWorkWhenUnconstructed",false);
+        LUMBERJACK_PLANT_WITHOUT_SAPLINGS = builder
+                .comment("Lumberjcak will replant without saplings, still consume saplings when have.\n 伐木工在树苗不足时也会正常补种，但是有树苗时依旧会消耗树苗。")
+                .define("lumberjackPlantWithoutSaplings",false);
         builder.pop();
         builder.push("Builder Mode Modifier #土木人修改#");
         BUILDER_MODE = builder
