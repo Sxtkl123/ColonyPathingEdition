@@ -35,6 +35,24 @@ public abstract class EntityAIWorkLumberjackMixin implements AbstractAISkeletonA
     @Unique BlockPos lastTree = null;
     @Unique int delayTimes = 0;
 
+    @Inject(method = "findSaplingSlot", at = @At("RETURN"), cancellable = true, remap = false)
+    private void findSaplingSlotAlwaysTrue(CallbackInfoReturnable<Integer> cir){
+        if(PathingConfig.LUMBERJACK_PLANT_WITHOUT_SAPLINGS.get() && cir.getReturnValue() == -1){
+            Tree tree = getJob().getTree();
+            InventoryCitizen inventory = invokeGetInventory();
+            assert tree != null;
+            ItemStack targetSapling = tree.getSapling();
+            for (int i = 0; i < inventory.getSlots(); i++) {
+                ItemStack slotStack = inventory.getStackInSlot(i);
+                if (slotStack.isEmpty()) {
+                    inventory.insertItem(i, targetSapling, false);
+                    cir.setReturnValue(i);
+                    return;
+                }
+            }
+        }
+    }
+
     /**
      * 在放置树苗前注入物品检查逻辑
      */
@@ -58,6 +76,7 @@ public abstract class EntityAIWorkLumberjackMixin implements AbstractAISkeletonA
 
         // 寻找第一个存放目标树苗的槽位作为主槽位
         int mainSaplingSlot = -1;
+
         for (int i = 0; i < inventory.getSlots(); i++)
         {
             ItemStack stackInSlot = inventory.getStackInSlot(i);
