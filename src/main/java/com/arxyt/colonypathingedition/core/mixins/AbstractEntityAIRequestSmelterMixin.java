@@ -109,7 +109,7 @@ public abstract class AbstractEntityAIRequestSmelterMixin<AI extends AbstractEnt
         final BlockPos pos = module.getFurnaces().get(randomFurnace);
         if (WorldUtil.isBlockLoaded(world, pos)) {
             final BlockEntity entity = world.getBlockEntity(pos);
-            if (entity instanceof final FurnaceBlockEntity furnace) {
+            if (entity instanceof final FurnaceBlockEntity furnace && furnace.getBlockState().getValue(BlockStateProperties.LIT)) {
                 FurnaceBlockEntityExtras extrasFurnace = (FurnaceBlockEntityExtras) furnace;
                 if (!(furnace.getItem(SMELTABLE_SLOT).isEmpty())) {
                     int addProgress = getWorker().getCitizenData().getCitizenSkillHandler().getLevel(invokeGetModuleForJob().getPrimarySkill()) / 2;
@@ -201,13 +201,13 @@ public abstract class AbstractEntityAIRequestSmelterMixin<AI extends AbstractEnt
             if (WorldUtil.isBlockLoaded(world, pos))
             {
                 final BlockEntity entity = world.getBlockEntity(pos);
-                if (entity instanceof final FurnaceBlockEntity furnace)
+                if (entity instanceof final FurnaceBlockEntity furnace && furnace.getBlockState().getValue(BlockStateProperties.LIT))
                 {
                     if(!isFurnaceOccupiedBy(furnace,getWorker().getCivilianID())){
                         continue;
                     }
                     FurnaceBlockEntityExtras extrasFurnace = (FurnaceBlockEntityExtras) furnace;
-                    extrasFurnace.addLitTime((int)Math.ceil(Math.sqrt(getWorker().getCitizenData().getCitizenSkillHandler().getLevel(invokeGetModuleForJob().getSecondarySkill())) * 1.8));
+                    extrasFurnace.addLitTime((int)Math.ceil(Math.sqrt(getWorker().getCitizenData().getCitizenSkillHandler().getLevel(invokeGetModuleForJob().getSecondarySkill())) * 1.71));
                     if (!(furnace.getItem(SMELTABLE_SLOT).isEmpty()))
                     {
                         int addProgress = (int) (getWorker().getCitizenData().getCitizenSkillHandler().getLevel(invokeGetModuleForJob().getPrimarySkill()) * 1.8);
@@ -402,8 +402,6 @@ public abstract class AbstractEntityAIRequestSmelterMixin<AI extends AbstractEnt
             return START_WORKING;
         }
 
-        boolean success = false;
-
         final int burningCount = countOfBurningFurnaces();
         final BlockEntity entity = getWorld().getBlockEntity(walkTo);
         if (entity instanceof final FurnaceBlockEntity furnace && getCurrentRecipeStorage() != null)
@@ -477,7 +475,6 @@ public abstract class AbstractEntityAIRequestSmelterMixin<AI extends AbstractEnt
                                 toTransfer,
                                 new InvWrapper(furnace),
                                 SMELTABLE_SLOT);
-                        success = true;
                         if(!furnace.getItem(RESULT_SLOT).isEmpty()){
                             extractFromFurnaceSlot(furnace, RESULT_SLOT);
                         }
