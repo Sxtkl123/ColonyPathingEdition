@@ -5,6 +5,8 @@ import com.arxyt.colonypathingedition.core.mixins.accessor.AbstractEntityAIBasic
 import com.minecolonies.api.colony.jobs.IJob;
 import com.minecolonies.api.util.InventoryUtils;
 import com.minecolonies.core.colony.buildings.AbstractBuilding;
+import com.minecolonies.core.colony.buildings.workerbuildings.BuildingDeliveryman;
+import com.minecolonies.core.colony.jobs.JobDeliveryman;
 import com.minecolonies.core.entity.ai.workers.service.EntityAIWorkDeliveryman;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Overwrite;
@@ -13,7 +15,7 @@ import org.spongepowered.asm.mixin.injection.Redirect;
 
 
 @Mixin(EntityAIWorkDeliveryman.class)
-public abstract class EntityAIWorkDeliverymanMixin implements AbstractAISkeletonAccessor<IJob<?>>, AbstractEntityAIBasicAccessor<AbstractBuilding> {
+public abstract class EntityAIWorkDeliverymanMixin implements AbstractAISkeletonAccessor<JobDeliveryman>, AbstractEntityAIBasicAccessor<BuildingDeliveryman> {
     // 提升单次运输容量
     /**
      * @author ARxyt
@@ -21,8 +23,11 @@ public abstract class EntityAIWorkDeliverymanMixin implements AbstractAISkeleton
      */
     @Overwrite(remap = false)
     private boolean cannotHoldMoreItems() {
+        if(getBuilding().getBuildingLevel() == getBuilding().getMaxBuildingLevel()){
+            return true;
+        }
         final int maxStacks = 2 + 5 * getBuilding().getBuildingLevel();
-        return InventoryUtils.getAmountOfStacksInItemHandler(getWorker().getInventoryCitizen()) >= maxStacks;
+        return InventoryUtils.getAmountOfStacksInItemHandler(getWorker().getInventoryCitizen()) > maxStacks;
     }
 
     // 增强并发任务处理能力
