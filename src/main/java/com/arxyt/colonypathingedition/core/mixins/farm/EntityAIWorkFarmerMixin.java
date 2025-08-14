@@ -1,4 +1,4 @@
-package com.arxyt.colonypathingedition.core.mixins;
+package com.arxyt.colonypathingedition.core.mixins.farm;
 
 import com.arxyt.colonypathingedition.core.mixins.accessor.AbstractEntityAIBasicAccessor;
 import com.minecolonies.api.util.InventoryUtils;

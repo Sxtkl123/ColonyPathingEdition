@@ -1,6 +1,6 @@
 package com.arxyt.colonypathingedition.core.mixins.sleep;
 
-import com.arxyt.colonypathingedition.core.api.BuildingHospitalExtra;
+import com.arxyt.colonypathingedition.api.workersetting.BuildingHospitalExtra;
 import com.minecolonies.api.entity.ai.statemachine.states.IState;
 import com.minecolonies.api.entity.citizen.VisibleCitizenStatus;
 import com.minecolonies.core.colony.buildings.workerbuildings.BuildingHospital;

@@ -1,4 +1,4 @@
-package com.arxyt.colonypathingedition.core.api;
+package com.arxyt.colonypathingedition.api;
 
 
 public interface PatientExtras {

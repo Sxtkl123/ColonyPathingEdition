@@ -1,4 +1,4 @@
-package com.arxyt.colonypathingedition.core.api;
+package com.arxyt.colonypathingedition.api;
 
 import com.minecolonies.api.entity.citizen.citizenhandlers.ICitizenDiseaseHandler;
 

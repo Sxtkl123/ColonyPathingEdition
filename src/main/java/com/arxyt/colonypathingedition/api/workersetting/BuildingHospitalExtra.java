@@ -1,4 +1,4 @@
-package com.arxyt.colonypathingedition.core.api;
+package com.arxyt.colonypathingedition.api.workersetting;
 
 public interface BuildingHospitalExtra {
     int getOnDutyCitizen(int citizenId);

@@ -1,6 +1,6 @@
-package com.arxyt.colonypathingedition.core.mixins;
+package com.arxyt.colonypathingedition.core.mixins.lumberjack;
 
-import com.arxyt.colonypathingedition.core.api.BuildingLumberjackExtra;
+import com.arxyt.colonypathingedition.api.workersetting.BuildingLumberjackExtra;
 import com.arxyt.colonypathingedition.core.config.PathingConfig;
 import com.arxyt.colonypathingedition.core.mixins.accessor.AbstractAISkeletonAccessor;
 import com.arxyt.colonypathingedition.core.mixins.accessor.AbstractEntityAIBasicAccessor;
@@ -13,7 +13,6 @@ import com.minecolonies.core.entity.ai.workers.production.EntityAIWorkLumberjack
 import com.minecolonies.core.entity.ai.workers.util.Tree;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.phys.AABB;
 import org.jetbrains.annotations.NotNull;

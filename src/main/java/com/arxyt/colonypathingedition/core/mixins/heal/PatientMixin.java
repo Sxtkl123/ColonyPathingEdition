@@ -1,6 +1,6 @@
 package com.arxyt.colonypathingedition.core.mixins.heal;
 
-import com.arxyt.colonypathingedition.core.api.PatientExtras;
+import com.arxyt.colonypathingedition.api.PatientExtras;
 import com.minecolonies.core.entity.ai.workers.util.Patient;
 import org.spongepowered.asm.mixin.Implements;
 import org.spongepowered.asm.mixin.Interface;

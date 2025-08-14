@@ -1,7 +1,7 @@
 package com.arxyt.colonypathingedition.core.mixins.heal;
 
-import com.arxyt.colonypathingedition.core.api.BuildingHospitalExtra;
-import com.arxyt.colonypathingedition.core.api.PatientExtras;
+import com.arxyt.colonypathingedition.api.workersetting.BuildingHospitalExtra;
+import com.arxyt.colonypathingedition.api.PatientExtras;
 import com.arxyt.colonypathingedition.core.mixins.AbstractEntityAIBasicMixin;
 import com.arxyt.colonypathingedition.core.mixins.accessor.AbstractEntityAIBasicAccessor;
 import com.arxyt.colonypathingedition.core.util.DistanceUtils;

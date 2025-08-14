@@ -1,4 +1,4 @@
-package com.arxyt.colonypathingedition.core.mixins.heuristic;
+package com.arxyt.colonypathingedition.core.mixins.pathfinding.heuristic;
 
 import com.arxyt.colonypathingedition.core.util.DistanceUtils;
 import com.minecolonies.core.entity.pathfinding.pathjobs.PathJobMoveToLocation;

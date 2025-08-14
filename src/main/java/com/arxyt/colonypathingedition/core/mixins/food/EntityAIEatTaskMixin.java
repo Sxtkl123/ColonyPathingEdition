@@ -1,6 +1,6 @@
 package com.arxyt.colonypathingedition.core.mixins.food;
 
-import com.arxyt.colonypathingedition.core.api.BuildingCookExtra;
+import com.arxyt.colonypathingedition.api.workersetting.BuildingCookExtra;
 import com.arxyt.colonypathingedition.core.config.PathingConfig;
 import com.minecolonies.api.colony.ICitizenData;
 import com.minecolonies.api.colony.IColony;

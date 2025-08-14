@@ -1,11 +1,10 @@
-package com.arxyt.colonypathingedition.core.mixins.heuristic;
+package com.arxyt.colonypathingedition.core.mixins.pathfinding.heuristic;
 
 import com.arxyt.colonypathingedition.core.mixins.accessor.AbstractPathJobAccessor;
 import com.arxyt.colonypathingedition.core.util.DistanceUtils;
 import com.minecolonies.core.entity.pathfinding.MNode;
 import com.minecolonies.core.entity.pathfinding.pathjobs.PathJobMoveTowards;
 import net.minecraft.core.BlockPos;
-import net.minecraft.util.Mth;
 import org.jetbrains.annotations.NotNull;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;

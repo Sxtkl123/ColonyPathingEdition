@@ -1,6 +1,6 @@
 package com.arxyt.colonypathingedition.core.mixins.workersetting;
 
-import com.arxyt.colonypathingedition.core.api.BuildingHospitalExtra;
+import com.arxyt.colonypathingedition.api.workersetting.BuildingHospitalExtra;
 import com.minecolonies.api.colony.ICitizenData;
 import com.minecolonies.core.colony.buildings.workerbuildings.BuildingHospital;
 import net.minecraft.nbt.CompoundTag;

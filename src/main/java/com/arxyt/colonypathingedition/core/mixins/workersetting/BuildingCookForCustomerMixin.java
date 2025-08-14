@@ -1,6 +1,6 @@
 package com.arxyt.colonypathingedition.core.mixins.workersetting;
 
-import com.arxyt.colonypathingedition.core.api.BuildingCookExtra;
+import com.arxyt.colonypathingedition.api.workersetting.BuildingCookExtra;
 import com.minecolonies.core.colony.buildings.workerbuildings.BuildingCook;
 import org.spongepowered.asm.mixin.Mixin;
 

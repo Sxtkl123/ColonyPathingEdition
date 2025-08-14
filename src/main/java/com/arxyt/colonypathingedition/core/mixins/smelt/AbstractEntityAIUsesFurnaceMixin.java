@@ -1,6 +1,6 @@
-package com.arxyt.colonypathingedition.core.mixins;
+package com.arxyt.colonypathingedition.core.mixins.smelt;
 
-import com.arxyt.colonypathingedition.core.api.FurnaceBlockEntityExtras;
+import com.arxyt.colonypathingedition.api.FurnaceBlockEntityExtras;
 import com.arxyt.colonypathingedition.core.mixins.accessor.AbstractAISkeletonAccessor;
 import com.arxyt.colonypathingedition.core.mixins.accessor.AbstractEntityAIBasicAccessor;
 import com.minecolonies.api.colony.jobs.IJob;

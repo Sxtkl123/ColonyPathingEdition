@@ -1,6 +1,6 @@
 package com.arxyt.colonypathingedition.core.mixins.heal;
 
-import com.arxyt.colonypathingedition.core.api.ICitizenDiseaseHandlerExtra;
+import com.arxyt.colonypathingedition.api.ICitizenDiseaseHandlerExtra;
 import com.arxyt.colonypathingedition.core.config.PathingConfig;
 import com.minecolonies.api.colony.ICitizenData;
 import com.minecolonies.api.entity.citizen.AbstractEntityCitizen;
@@ -15,7 +15,6 @@ import org.spongepowered.asm.mixin.*;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-import com.arxyt.colonypathingedition.core.config.PathingConfig;
 
 import static com.arxyt.colonypathingedition.core.costants.AdditionalContants.SICK_TIME;
 import static com.minecolonies.api.util.constant.CitizenConstants.*;

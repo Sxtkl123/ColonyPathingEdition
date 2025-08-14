@@ -1,4 +1,4 @@
-package com.arxyt.colonypathingedition.core.api;
+package com.arxyt.colonypathingedition.api.workersetting;
 
 import net.minecraft.core.BlockPos;
 

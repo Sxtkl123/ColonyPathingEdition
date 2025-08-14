@@ -1,6 +1,6 @@
-package com.arxyt.colonypathingedition.core.mixins;
+package com.arxyt.colonypathingedition.core.mixins.pathfinding;
 
-import com.arxyt.colonypathingedition.core.api.IMNodeExtras;
+import com.arxyt.colonypathingedition.api.IMNodeExtras;
 import com.arxyt.colonypathingedition.core.config.PathingConfig;
 import com.arxyt.colonypathingedition.core.mixins.accessor.AbstractAISkeletonAccessor;
 import com.ldtteam.domumornamentum.block.decorative.*;

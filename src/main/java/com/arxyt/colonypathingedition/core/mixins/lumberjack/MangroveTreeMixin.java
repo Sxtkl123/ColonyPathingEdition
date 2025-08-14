@@ -1,4 +1,4 @@
-package com.arxyt.colonypathingedition.core.mixins;
+package com.arxyt.colonypathingedition.core.mixins.lumberjack;
 
 import com.minecolonies.api.colony.IColony;
 import com.minecolonies.core.entity.ai.workers.util.Tree;

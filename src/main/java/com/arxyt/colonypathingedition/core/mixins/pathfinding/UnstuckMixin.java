@@ -1,4 +1,4 @@
-package com.arxyt.colonypathingedition.core.mixins;
+package com.arxyt.colonypathingedition.core.mixins.pathfinding;
 
 import com.arxyt.colonypathingedition.core.mixins.accessor.MinecoloniesAdvancedPathNavigateAccessor;
 import com.arxyt.colonypathingedition.core.util.DistanceUtils;

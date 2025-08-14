@@ -1,6 +1,6 @@
 package com.arxyt.colonypathingedition.core.mixins.minecraft;
 
-import com.arxyt.colonypathingedition.core.api.FurnaceBlockEntityExtras;
+import com.arxyt.colonypathingedition.api.FurnaceBlockEntityExtras;
 import com.minecolonies.api.util.constant.Constants;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
