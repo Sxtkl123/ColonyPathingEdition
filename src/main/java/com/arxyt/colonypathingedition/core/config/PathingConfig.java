@@ -43,6 +43,9 @@ public class PathingConfig {
 
     public static ForgeConfigSpec.BooleanValue PICK_MATERIAL_AT_HUT;
     public static ForgeConfigSpec.BooleanValue MAX_ANIMAL_MODIFIER;
+    public static ForgeConfigSpec.BooleanValue EARLY_ENCHANT;
+    public static ForgeConfigSpec.IntValue ENCHANT_LEVEL_SCALE;
+    public static ForgeConfigSpec.IntValue MAX_ADDITIONAL_LEVEL_ENCHANT;
 
     public static ForgeConfigSpec.IntValue MAX_PATHING_DISTANCE;
 
@@ -183,6 +186,12 @@ public class PathingConfig {
                 .define("increaceMaxAnimal",false);
         PICK_MATERIAL_AT_HUT = builder.comment("Should citizens pick material at their own hut. 你的非快递员市民是否应当在他们的小屋方块处取货。")
                         .define("pickMaterialAtHut", true);
+        EARLY_ENCHANT = builder.comment("Allows workers to use enchanted tools at their current level. 允许工人在工具允许等级时就启用一部分低级附魔工具。")
+                .define("earlyEnchant", true);
+        ENCHANT_LEVEL_SCALE = builder.comment("Controls how many enchantment levels require 1 worker's hut level upgrade. 每升一级可以允许额外附魔等级几级。")
+                .defineInRange("enchantLevelScale", 2, 1, 6);
+        MAX_ADDITIONAL_LEVEL_ENCHANT = builder.comment("Sets the maximum addtional worker's hut level enchantment tools . 设置附魔工具最多需求小屋增加几级可用。")
+                .defineInRange("maxAdditionalLevelForEnchantTools", 2, 1, 5);
         builder.pop();
         builder.push("Basic Logic Modifier #基础逻辑修改#");
         MAX_PATHING_DISTANCE = builder

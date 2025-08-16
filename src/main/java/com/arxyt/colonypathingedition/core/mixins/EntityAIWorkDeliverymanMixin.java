@@ -24,7 +24,7 @@ public abstract class EntityAIWorkDeliverymanMixin implements AbstractAISkeleton
     @Overwrite(remap = false)
     private boolean cannotHoldMoreItems() {
         if(getBuilding().getBuildingLevel() == getBuilding().getMaxBuildingLevel()){
-            return true;
+            return false;
         }
         final int maxStacks = 2 + 5 * getBuilding().getBuildingLevel();
         return InventoryUtils.getAmountOfStacksInItemHandler(getWorker().getInventoryCitizen()) > maxStacks;

@@ -17,7 +17,6 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.block.AirBlock;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.phys.AABB;
 import org.jetbrains.annotations.NotNull;
@@ -231,6 +230,7 @@ public abstract class EntityAIWorkLumberjackMixin extends AbstractEntityAICrafti
             if(!BlockPosList.isEmpty()){
                 if(mineIfEqualsBlockTag(BlockPosList, BlockTags.LEAVES)){
                     resetStillTick();
+                    return;
                 }
             }
         }

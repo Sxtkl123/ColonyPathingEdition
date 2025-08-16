@@ -34,6 +34,7 @@ import org.spongepowered.asm.mixin.gen.Invoker;
 import org.spongepowered.asm.mixin.injection.*;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
+import org.spongepowered.asm.mixin.injection.callback.LocalCapture;
 
 import java.util.List;
 import java.util.Map;
@@ -181,7 +182,7 @@ public abstract class AbstractPathJobMixin implements AbstractAISkeletonAccessor
             cost += leafCost;
         }
 
-        if (state.getBlock() instanceof SweetBerryBushBlock)
+        if (state.getBlock() instanceof SweetBerryBushBlock || state.getBlock() instanceof WebBlock)
         {
             cost += sweetBerryCost;
         }
@@ -298,7 +299,8 @@ public abstract class AbstractPathJobMixin implements AbstractAISkeletonAccessor
     private int recheckGroundHeight(int x, int y, int z){
         //final BlockState state = cachedBlockLookup.getBlockState(x, y , z);
         final BlockState belowState = cachedBlockLookup.getBlockState(x, y - 1, z);
-        if(!PathfindingUtils.isWater(cachedBlockLookup, null, belowState, null) && (ShapeUtil.getEndY(belowState.getCollisionShape(world, tempWorldPos.set(x, y - 1, z)), 0) < 0.125) )
+        boolean belowIsWater = PathfindingUtils.isWater(cachedBlockLookup, null, belowState, null);
+        if(!belowIsWater && (ShapeUtil.getEndY(belowState.getCollisionShape(world, tempWorldPos.set(x, y - 1, z)), 0) < 0.125) )
         {
             return y - 1;
         }
@@ -352,11 +354,33 @@ public abstract class AbstractPathJobMixin implements AbstractAISkeletonAccessor
         }
         return true;
     }
+
+    @Inject(
+            method = "checkDrop",
+            at = @At(
+                    value = "INVOKE",
+                    target = "Lnet/minecraft/world/level/block/state/BlockState;isAir()Z",
+                    shift = At.Shift.AFTER
+            ),
+            locals = LocalCapture.CAPTURE_FAILHARD,
+            cancellable = true,
+            remap = false
+    )
+    private void afterIsAir(
+            @Nullable final MNode parent, int x, int y, int z, boolean isSwimming, CallbackInfoReturnable<Integer> cir,  boolean canDrop, int i,  BlockState below) {
+        if (!below.isAir()) {
+            if (PathfindingUtils.isLadder(below,pathingOptions)) {
+                cir.setReturnValue(y - i + 1);
+            } else {
+                cir.setReturnValue(Integer.MIN_VALUE);
+            }
+        }
+    }
+
     /**
      * @author ARxyt
      * @reason 重构代码，取消corner链接，使用统一规则缩减代码量，同时de奇怪的bug
      */
-
     @Overwrite( remap = false)
     protected final void exploreInDirection(final MNode node, int dX, int dY, int dZ) {
         int nextX = node.x + dX;
@@ -591,7 +615,7 @@ public abstract class AbstractPathJobMixin implements AbstractAISkeletonAccessor
             if (extrasNext.isCallbackNode() && nextNode.getHeuristic() <= heuristic){
                 return;
             }
-            if (nextNode.parent != null && Math.abs(nextNode.parent.y-nextNode.y) > 1){
+            if (nextNode.parent != null && Math.abs(nextNode.parent.y - nextNode.y) > 1){
                 return;
             }
         }
