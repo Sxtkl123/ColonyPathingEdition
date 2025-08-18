@@ -199,13 +199,13 @@ public abstract class EntityAIEatTaskMixin {
                     return GO_TO_HUT;
                 }
             }
-
             if (citizen.getCitizenData().getJob() instanceof JobCook jobCook && jobCook.getBuildingPos().equals(restaurantPos) && MathUtils.RANDOM.nextInt(TICKS_SECOND) <= 0)
             {
                 reset();
                 return DONE;
             }
         }
+        ((BuildingCookExtra)cookBuilding).tryRegisterCustomer(citizen.getCivilianID());
         return WAIT_FOR_FOOD;
     }
 

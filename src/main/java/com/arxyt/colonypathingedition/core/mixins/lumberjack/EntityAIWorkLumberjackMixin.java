@@ -247,16 +247,23 @@ public abstract class EntityAIWorkLumberjackMixin extends AbstractEntityAICrafti
         }
     }
 
-    @Inject(method = "gathering", at = @At("RETURN"), remap = false)
+    private boolean turnToCutTree = false;
+
+    @Inject(method = "gathering", at = @At("RETURN"), remap = false, cancellable = true)
     private void afterGather(CallbackInfoReturnable<IAIState> cir){
         if(cir.getReturnValue() != LUMBERJACK_GATHERING ){
             gatherState = 0;
+            if(turnToCutTree){
+                turnToCutTree = false;
+                cir.setReturnValue(LUMBERJACK_SEARCHING_TREE);
+            }
         }
     }
 
     @Inject(method = "prepareForWoodcutting", at = @At("RETURN"), remap = false, cancellable = true)
     private void remasterPrepareOrderForWoodcutting(CallbackInfoReturnable<IAIState> cir){
         if(cir.getReturnValue() == LUMBERJACK_SEARCHING_TREE ){
+            turnToCutTree = true;
             cir.setReturnValue(LUMBERJACK_GATHERING);
         }
     }
