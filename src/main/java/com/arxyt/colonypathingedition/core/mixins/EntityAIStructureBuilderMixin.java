@@ -32,7 +32,7 @@ import static com.minecolonies.api.util.constant.CitizenConstants.*;
 @Mixin(EntityAIStructureBuilder.class)
 public abstract class EntityAIStructureBuilderMixin extends AbstractEntityAIStructureWithWorkOrder<JobBuilder, BuildingBuilder> {
 
-    @Shadow(remap = false) PathResult gotoPath;
+    @Shadow(remap = false) PathResult<?> gotoPath;
 
     @Unique private int repathCounter = 0;
 
