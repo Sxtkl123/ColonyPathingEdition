@@ -7,6 +7,7 @@ import com.arxyt.colonypathingedition.core.mixins.accessor.AbstractEntityAIInter
 import com.minecolonies.api.entity.ai.statemachine.states.IAIState;
 import com.minecolonies.api.inventory.InventoryCitizen;
 import com.minecolonies.api.items.ModTags;
+import com.minecolonies.api.util.BlockPosUtil;
 import com.minecolonies.core.colony.buildings.workerbuildings.BuildingLumberjack;
 import com.minecolonies.core.colony.jobs.JobLumberjack;
 import com.minecolonies.core.entity.ai.workers.crafting.AbstractEntityAICrafting;
@@ -16,13 +17,12 @@ import com.minecolonies.core.entity.pathfinding.navigation.EntityNavigationUtils
 import net.minecraft.core.BlockPos;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.tags.TagKey;
+import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.phys.AABB;
 import org.jetbrains.annotations.NotNull;
-import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Shadow;
-import org.spongepowered.asm.mixin.Unique;
+import org.spongepowered.asm.mixin.*;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
@@ -30,11 +30,14 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static com.minecolonies.api.entity.ai.statemachine.states.AIWorkerState.*;
 
 @Mixin(EntityAIWorkLumberjack.class)
 public abstract class EntityAIWorkLumberjackMixin extends AbstractEntityAICrafting<JobLumberjack, BuildingLumberjack> implements AbstractEntityAIInteractAccessor, AbstractEntityAIInteractExtra {
+
+    @Final @Shadow(remap = false) public static float RANGE_HORIZONTAL_PICKUP;
 
     @Shadow(remap = false) protected abstract boolean mineIfEqualsBlockTag(List<BlockPos> blockPositions, TagKey<Block> tag);
 
@@ -162,15 +165,17 @@ public abstract class EntityAIWorkLumberjackMixin extends AbstractEntityAICrafti
         }
     }
 
+
     /**
-     * 补充搜索上个树木附近的掉落物
+     * @author ARxyt
+     * @reason 因为状态转移设计有问题只能重写
      */
-    @Inject(method = "gathering", at = @At("HEAD"), remap = false)
-    private void additionalGather(CallbackInfoReturnable<IAIState> cir){
+    @Overwrite(remap = false)
+    private IAIState gathering(){
         switch (gatherState){
             case 0: {
                 lastTree = ((BuildingLumberjackExtra) building).getLastTree();
-                if ((getItemsForPickUp() == null || getItemsForPickUp().isEmpty()) && lastTree != null) {
+                if (getItemsForPickUp() == null && lastTree != null) {
                     searchForItems(new AABB(lastTree)
                             .expandTowards(RANGE_HORIZONTAL_PICKUP * 2, RANGE_VERTICAL_PICKUP * 4, RANGE_HORIZONTAL_PICKUP * 2)
                             .expandTowards(-RANGE_HORIZONTAL_PICKUP * 2, -RANGE_VERTICAL_PICKUP, -RANGE_HORIZONTAL_PICKUP * 2));
@@ -178,30 +183,120 @@ public abstract class EntityAIWorkLumberjackMixin extends AbstractEntityAICrafti
                 }
             }
             case 1: {
-                if(getItemsForPickUp() != null && !getItemsForPickUp().isEmpty()){
+                if(getItemsForPickUp() != null){
                     break;
                 }
             }
             case 2: {
                 thisTree = ((BuildingLumberjackExtra) building).getThisTree();
-                if((getItemsForPickUp() == null || getItemsForPickUp().isEmpty()) && thisTree != null) {
+                if(getItemsForPickUp() == null && thisTree != null) {
                     searchForItems(new AABB(thisTree)
-                            .expandTowards(RANGE_HORIZONTAL_PICKUP * 2, RANGE_VERTICAL_PICKUP * 2, RANGE_HORIZONTAL_PICKUP * 2)
+                            .expandTowards(RANGE_HORIZONTAL_PICKUP * 2, RANGE_VERTICAL_PICKUP * 4, RANGE_HORIZONTAL_PICKUP * 2)
                             .expandTowards(-RANGE_HORIZONTAL_PICKUP * 2, -RANGE_VERTICAL_PICKUP, -RANGE_HORIZONTAL_PICKUP * 2));
                     gatherState = 3;
                 }
             }
+            case 3: {
+                if(getItemsForPickUp() != null){
+                    break;
+                }
+            }
+            case 4: {
+                if(getItemsForPickUp() == null && thisTree != null) {
+                    searchForItems(worker.getBoundingBox()
+                            .expandTowards(RANGE_HORIZONTAL_PICKUP * 4, RANGE_VERTICAL_PICKUP, RANGE_HORIZONTAL_PICKUP * 4)
+                            .expandTowards(-RANGE_HORIZONTAL_PICKUP * 4, -RANGE_VERTICAL_PICKUP, -RANGE_HORIZONTAL_PICKUP * 4));
+                    gatherState = 5;
+                }
+            }
             default: break;
         }
+        if (getItemsForPickUp() != null)
+        {
+            gatherItems();
+            return getState();
+        }
+        gatherState = 0;
+        return LUMBERJACK_SEARCHING_TREE;
+    }
 
+    /**
+     * 直接把物品传送到脚下，便捷且拾取率高
+    */
+    @Unique
+    public void finalizeGatherIstantly(){
+        List<ItemEntity> farItems = world.getEntitiesOfClass(ItemEntity.class, new AABB(itemPos)
+                        .expandTowards(1, 1, 1)
+                        .expandTowards(-1, -1, -1))
+                .stream()
+                .filter(item -> item != null && item.isAlive() &&
+                        (!item.getPersistentData().contains("PreventRemoteMovement") || !item.getPersistentData().getBoolean("PreventRemoteMovement")) &&
+                        isItemWorthPickingUp(item.getItem()))
+                .collect(Collectors.toList());
+        for (ItemEntity item: farItems) {
+            item.absMoveTo(worker.getBlockX() + 0.5d,worker.getBlockY(),worker.getBlockZ() + 0.5d);
+        }
+    }
+
+    /**
+     * 看起来更像在收集的样子，而不是愣住
+     */
+    @Unique
+    public boolean finalizeGatherByBreakingLeaves(){
+        List<ItemEntity> farItems = world.getEntitiesOfClass(ItemEntity.class, new AABB(itemPos)
+                        .expandTowards(1, 1, 1)
+                        .expandTowards(-1, -1, -1))
+                .stream()
+                .filter(item -> item != null && item.isAlive() &&
+                        (!item.getPersistentData().contains("PreventRemoteMovement") || !item.getPersistentData().getBoolean("PreventRemoteMovement")) &&
+                        isItemWorthPickingUp(item.getItem()))
+                .collect(Collectors.toList());
+        if(farItems.isEmpty()){
+            return false;
+        }
+        for (ItemEntity item: farItems) {
+            item.absMoveTo(itemPos.getX() + 0.5d, itemPos.getY(), itemPos.getZ() + 0.5d);
+        }
+        //break leaves below.
+        List<BlockPos> BlockPosList = new ArrayList<>();
+        BlockPos nowPos = itemPos;
+        for (int y = nowPos.getY(); y >= worker.getBlockY(); y--) {
+            if (world.getBlockState(nowPos).is(BlockTags.LEAVES)) {
+                BlockPosList.add(nowPos);
+            }
+            else if (!world.getBlockState(nowPos).isAir()){
+                return false;
+            }
+            nowPos = nowPos.below();
+        }
+        if (!BlockPosList.isEmpty()) {
+            if (mineIfEqualsBlockTag(BlockPosList, BlockTags.LEAVES)) {
+                resetStillTick();
+                return true;
+            }
+        }
+        return false;
     }
 
     @Override
     public void gatherItems()
     {
         worker.setCanPickUpLoot(true);
-        if (worker.getNavigation().isDone() || worker.getNavigation().getPath() == null)
-        {
+        if (worker.getNavigation().isDone() || worker.getNavigation().getPath() == null) {
+            if(itemPos != null) {
+                if (PathingConfig.LUMBERJACK_BREAK_LEAVES_TO_GATHER.get()) {
+                    if(finalizeGatherByBreakingLeaves()) {
+                        return;
+                    }
+                }
+                else{
+                    finalizeGatherIstantly();
+                }
+            }
+            if (checkPuckUpItems()) {
+                resetPickUpItems();
+                return;
+            }
             final BlockPos pos = invokeGetAndRemoveClosestItemPosition();
             itemPos = pos;
             EntityNavigationUtils.walkToPos(worker, pos, 2, false);
@@ -213,26 +308,6 @@ public abstract class EntityAIWorkLumberjackMixin extends AbstractEntityAICrafti
         if (tryMoveForward(currentIndex))
         {
             return;
-        }
-
-        //break leaves below, as few as we can.
-        if(itemPos != null) {
-            List<BlockPos> BlockPosList = new ArrayList<>();
-            BlockPos nowPos = itemPos;
-            for(int y = nowPos.getY(); y >= worker.getBlockY(); y--){
-                if(world.getBlockState(nowPos).is(BlockTags.LEAVES)){
-                    BlockPosList.add(nowPos);
-                    BlockPosList.add(nowPos.below());
-                    break;
-                }
-                nowPos = nowPos.below();
-            }
-            if(!BlockPosList.isEmpty()){
-                if(mineIfEqualsBlockTag(BlockPosList, BlockTags.LEAVES)){
-                    resetStillTick();
-                    return;
-                }
-            }
         }
 
         //Stuck for too long
@@ -247,26 +322,10 @@ public abstract class EntityAIWorkLumberjackMixin extends AbstractEntityAICrafti
         }
     }
 
-    private boolean turnToCutTree = false;
-
-    @Inject(method = "gathering", at = @At("RETURN"), remap = false, cancellable = true)
-    private void afterGather(CallbackInfoReturnable<IAIState> cir){
-        if(cir.getReturnValue() != LUMBERJACK_GATHERING ){
-            gatherState = 0;
-            if(turnToCutTree){
-                turnToCutTree = false;
-                cir.setReturnValue(LUMBERJACK_SEARCHING_TREE);
-            }
-        }
-    }
-
     @Inject(method = "prepareForWoodcutting", at = @At("RETURN"), remap = false, cancellable = true)
     private void remasterPrepareOrderForWoodcutting(CallbackInfoReturnable<IAIState> cir){
         if(cir.getReturnValue() == LUMBERJACK_SEARCHING_TREE ){
-            turnToCutTree = true;
             cir.setReturnValue(LUMBERJACK_GATHERING);
         }
     }
-
-
 }

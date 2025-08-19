@@ -2,8 +2,6 @@ package com.arxyt.colonypathingedition.core.mixins.pathfinding;
 
 import com.arxyt.colonypathingedition.core.config.PathingConfig;
 import com.minecolonies.core.entity.pathfinding.navigation.MinecoloniesAdvancedPathNavigate;
-import net.minecraft.client.Minecraft;
-import net.minecraft.network.chat.Component;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.Constant;
 import org.spongepowered.asm.mixin.injection.ModifyConstant;

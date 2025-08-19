@@ -35,7 +35,9 @@ public class PathingConfig {
 
     public static ForgeConfigSpec.BooleanValue LUMBERJACK_WORK_WHEN_UNCONSTRUCTED;
     public static ForgeConfigSpec.BooleanValue LUMBERJACK_PLANT_WITHOUT_SAPLINGS;
+    public static ForgeConfigSpec.BooleanValue LUMBERJACK_BREAK_LEAVES_TO_GATHER;
     public static ForgeConfigSpec.IntValue LUMBERJACK_GATHER_WAITING_TIME;
+
 
     public static ForgeConfigSpec.EnumValue<BuilderModeEnum> BUILDER_MODE;
     public static ForgeConfigSpec.IntValue BUILDER_GIBBON_RANGE;
@@ -161,6 +163,9 @@ public class PathingConfig {
         LUMBERJACK_PLANT_WITHOUT_SAPLINGS = builder
                 .comment("Lumberjcak will replant without saplings, still consume saplings when have.\n 伐木工在树苗不足时也会正常补种，但是有树苗时依旧会消耗树苗。")
                 .define("lumberjackPlantWithoutSaplings",false);
+        LUMBERJACK_BREAK_LEAVES_TO_GATHER = builder
+                .comment("一个让伐木工收集树上掉落物看起来更合理一些，效率相对比较低下，关闭后捡不到的物品会直接传送到伐木工脚下")
+                .define("lumberjackBreakLeavesToGather" ,true);
         LUMBERJACK_GATHER_WAITING_TIME = builder
                 .comment("伐木工等待收集的时间，期间会破坏物品下方树叶，不过因为目前检测问题不建议时间过长")
                 .defineInRange("lumberjackGatherWaitingTime",5,2,10);

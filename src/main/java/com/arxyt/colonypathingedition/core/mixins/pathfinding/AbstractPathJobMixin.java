@@ -93,6 +93,7 @@ public abstract class AbstractPathJobMixin implements AbstractAISkeletonAccessor
             }
             return cost ;
         }
+
         if (railsExit && !extras.isStation())
         {
             cost += pathingOptions.railsExitCost;

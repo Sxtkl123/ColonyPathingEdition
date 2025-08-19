@@ -3,6 +3,7 @@ package com.arxyt.colonypathingedition.core.mixins;
 import com.arxyt.colonypathingedition.core.config.PathingConfig;
 import com.minecolonies.api.crafting.ItemStorage;
 import com.minecolonies.api.entity.ai.statemachine.states.IAIState;
+import com.minecolonies.api.util.BlockPosUtil;
 import com.minecolonies.api.util.FoodUtils;
 import com.minecolonies.api.util.InventoryUtils;
 import com.minecolonies.api.util.MathUtils;
@@ -10,6 +11,7 @@ import com.minecolonies.core.colony.buildings.workerbuildings.BuildingBuilder;
 import com.minecolonies.core.colony.jobs.JobBuilder;
 import com.minecolonies.core.entity.ai.workers.AbstractEntityAIStructureWithWorkOrder;
 import com.minecolonies.core.entity.ai.workers.builder.EntityAIStructureBuilder;
+import com.minecolonies.core.entity.pathfinding.SurfaceType;
 import com.minecolonies.core.entity.pathfinding.navigation.MinecoloniesAdvancedPathNavigate;
 import com.minecolonies.core.entity.pathfinding.pathjobs.PathJobMoveCloseToXNearY;
 import com.minecolonies.core.entity.pathfinding.pathresults.PathResult;
@@ -30,8 +32,9 @@ import static com.minecolonies.api.util.constant.CitizenConstants.*;
 @Mixin(EntityAIStructureBuilder.class)
 public abstract class EntityAIStructureBuilderMixin extends AbstractEntityAIStructureWithWorkOrder<JobBuilder, BuildingBuilder> {
 
-    @Shadow(remap = false)
-    PathResult<?> gotoPath;
+    @Shadow(remap = false) PathResult gotoPath;
+
+    @Unique private int repathCounter = 0;
 
     /**
      * 这是为了通过 abstract 语法才创建的实例化方法，实际上任何情况下这个类都不应该被实例化。
@@ -44,13 +47,10 @@ public abstract class EntityAIStructureBuilderMixin extends AbstractEntityAIStru
         throw new RuntimeException("EntityAIStructureBuilderMixin 类不应被实例化！");
     }
 
-    @ModifyConstant(
-            method = "walkToConstructionSite(Lnet/minecraft/core/BlockPos;)Z",
-            constant = @Constant(doubleValue = 200.0),
-            remap = false
-    )
-    private double modifyDropCost(double original) {
-        return 1.5d;
+    @Unique
+    private boolean hasFood()
+    {
+        return FoodUtils.getBestFoodForCitizen(worker.getInventoryCitizen(), worker.getCitizenData(), null) != -1;
     }
 
     /**
@@ -69,44 +69,43 @@ public abstract class EntityAIStructureBuilderMixin extends AbstractEntityAIStru
     /**
      * 像哨兵一样站在工地的某个位置开始工作。
      * @return 是否走到了工作地点
-     * @author sxtkl
-     * @since 2025/7/22
+     * @author sxtkl ARxyt
+     * @since 2025/8/19
      */
     @Unique
-    private boolean sentry(final BlockPos ignored) {
-        // 有时候土木工人因为垂直位移会导致没办法继续正常干活，需要重置一下寻路，原理别问，看不懂他本来的代码。
-        BlockPos workerPos = worker.getLocation().getInDimensionLocation();
-        if (workFrom != null && workerPos.getX() == workFrom.getX() && workerPos.getZ() == workFrom.getZ() && workFrom.getY() >= workerPos.getY()) {
-            workFrom = null;
-        }
-
-        if (workFrom == null) {
-            BlockPos orderLocation = job.getWorkOrder().getLocation();
-            if (gotoPath == null || gotoPath.isCancelled()) {
+    private boolean sentry() {
+        BlockPos workPos = job.getWorkOrder().getLocation();
+        if (workFrom == null)
+        {
+            if (gotoPath == null || gotoPath.isCancelled())
+            {
                 final PathJobMoveCloseToXNearY pathJob = new PathJobMoveCloseToXNearY(world,
-                        orderLocation,
-                        orderLocation,
+                        workPos,
+                        workPos,
                         4,
                         worker);
-                gotoPath = ((MinecoloniesAdvancedPathNavigate) worker.getNavigation()).setPathJob(pathJob, orderLocation, 1.0, false);
-                pathJob.getPathingOptions().dropCost = 1.5d;
+                gotoPath = ((MinecoloniesAdvancedPathNavigate) worker.getNavigation()).setPathJob(pathJob, workPos, 1.0, false);
+                pathJob.getPathingOptions().dropCost = 1.5;
                 pathJob.extraNodes = 0;
-            } else if (gotoPath.isDone()) {
-                if (gotoPath.getPath() != null) {
+            }
+            else if (gotoPath.isDone())
+            {
+                if (gotoPath.getPath() != null)
+                {
                     workFrom = gotoPath.getPath().getTarget();
                 }
                 gotoPath = null;
             }
-            return false;
+            return repathCounter >= 3;
         }
-
-        if (!walkToSafePos(workFrom)) {
-            if (worker.getNavigation() instanceof MinecoloniesAdvancedPathNavigate pathNavigate && pathNavigate.getStuckHandler().getStuckLevel() > 0) {
-                workFrom = null;
-            }
-            return false;
+        BlockPos workerPos = worker.blockPosition();
+        if (!walkToSafePos(workFrom) && BlockPosUtil.getDistance2D(workerPos, workFrom) >= 10 ){
+            return repathCounter >= 3;
         }
-
+        if(BlockPosUtil.getDistance2D(workPos, workFrom) >= 10){
+            workFrom = null;
+            return ++repathCounter >= 3;
+        }
         return true;
     }
 
@@ -117,7 +116,7 @@ public abstract class EntityAIStructureBuilderMixin extends AbstractEntityAIStru
      * @since 2025/7/22
      */
     @Unique
-    private boolean god(final BlockPos ignored) {
+    private boolean god() {
         return true;
     }
 
@@ -146,10 +145,46 @@ public abstract class EntityAIStructureBuilderMixin extends AbstractEntityAIStru
     private void injectWalkToConstructionSite(BlockPos currentBlock, CallbackInfoReturnable<Boolean> cir) {
         switch (PathingConfig.BUILDER_MODE.get()) {
             case FORMALIST -> cir.setReturnValue(formalist(currentBlock));
-            case SENTRY -> cir.setReturnValue(sentry(currentBlock));
-            case GOD -> cir.setReturnValue(god(currentBlock));
+            case SENTRY -> cir.setReturnValue(sentry());
+            case GOD -> cir.setReturnValue(god());
             case GIBBON -> cir.setReturnValue(gibbon(currentBlock));
         }
+    }
+
+
+    /**
+     * 只是重置一下重新寻路次数
+     * @return 原本的返回值
+     */
+    @Override
+    protected IAIState structureStep(){
+        IAIState returnState = super.structureStep();
+        if (returnState != getState()){
+            repathCounter = 0;
+        }
+        return returnState;
+    }
+
+    /**
+     * 只是重置一下重新寻路次数
+     * @return 原本的返回值
+     */
+    @Override
+    public IAIState doMining(){
+        IAIState returnState = super.doMining();
+        if (returnState != getState()){
+            repathCounter = 0;
+        }
+        return returnState;
+    }
+
+    @ModifyConstant(
+            method = "walkToConstructionSite(Lnet/minecraft/core/BlockPos;)Z",
+            constant = @Constant(doubleValue = 200.0),
+            remap = false
+    )
+    private double modifyDropCost(double original) {
+        return 1.5d;
     }
 
     @Inject(at = @At("RETURN"), method = "checkForWorkOrder", remap = false)
@@ -177,11 +212,5 @@ public abstract class EntityAIStructureBuilderMixin extends AbstractEntityAIStru
             return;
         }
         cir.setReturnValue(LOAD_STRUCTURE);
-    }
-
-    @Unique
-    private boolean hasFood()
-    {
-        return FoodUtils.getBestFoodForCitizen(worker.getInventoryCitizen(), worker.getCitizenData(), null) != -1;
     }
 }

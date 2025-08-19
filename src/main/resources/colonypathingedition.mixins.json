@@ -17,6 +17,7 @@
     "accessor.AbstractEntityAIInteractAccessor",
     "accessor.AbstractPathJobAccessor",
     "accessor.MinecoloniesAdvancedPathNavigateAccessor",
+    "entity.MinecoloniesMinecartMixin",
     "farm.EntityAIWorkFarmerMixin",
     "food.CitizenFoodHandlerMixin",
     "food.EntityAIEatTaskMixin",

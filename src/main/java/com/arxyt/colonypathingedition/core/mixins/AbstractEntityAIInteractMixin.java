@@ -37,6 +37,6 @@ public abstract class AbstractEntityAIInteractMixin implements AbstractEntityAII
     }
 
     public void  resetPickUpItems(){
-        items.remove(0);
+        items = null;
     }
 }
