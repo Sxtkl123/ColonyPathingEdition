@@ -1,0 +1,13 @@
+{
+  "homepage": "https://arxyt.github.io/ColonyPathingEdition/",
+  "promos": {
+    "1.20.1-latest": "1.0.3-BETA-3.1",
+    "1.20.1-recommended": "1.0.3-BETA-3.1"
+  },
+  "1.20.1": {
+    "1.0.3-BETA-3.1": {
+      "changelog": "修复市民在铁轨上引起崩溃的问题，市民移动加速科技现在也可以作用到市民铁轨移动加速上",
+      "displayURL": "https://arxyt.github.io/ColonyPathingEdition/updates/changelog.md"
+    }
+  }
+}

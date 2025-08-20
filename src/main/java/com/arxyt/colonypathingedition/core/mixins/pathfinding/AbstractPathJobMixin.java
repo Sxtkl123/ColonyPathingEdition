@@ -534,11 +534,10 @@ public abstract class AbstractPathJobMixin implements AbstractAISkeletonAccessor
                 extras.setCallbackNode();
             }
         }
-        // 取出 nextNode 正下方的方块
+
         BlockState below = cachedBlockLookup.getBlockState(nextNode.x, nextNode.y - 1, nextNode.z);
         BlockState state = cachedBlockLookup.getBlockState(nextNode.x, nextNode.y, nextNode.z);
 
-        // 根据方块类型初始化你的字段
         if (below.getBlock() instanceof FarmBlock)
         {
             extras.setOnFarmland();
