@@ -16,6 +16,8 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
+import java.util.Optional;
+
 import static com.arxyt.colonypathingedition.core.costants.AdditionalContants.SICK_TIME;
 import static com.minecolonies.api.util.constant.CitizenConstants.*;
 
@@ -119,8 +121,9 @@ public abstract class CitizenDiseaseHandlerMixin implements ICitizenDiseaseHandl
     @Overwrite(remap = false)
     public boolean isHurt()
     {
-        AbstractEntityCitizen citizen = citizenData.getEntity().get();
-        return citizenData.getEntity().isPresent() &&
-                        citizen.getHealth() < Math.min(Math.max(PathingConfig.MAX_PERCENTAGE_HP_FOR_CURE.get() * citizen.getMaxHealth(), PathingConfig.MAX_HP_FOR_CURE.get()),Math.min(100,citizen.getMaxHealth()));
+        Optional<AbstractEntityCitizen> e = citizenData.getEntity();
+        if (e.isEmpty()) return false;
+        AbstractEntityCitizen citizen = e.get();
+        return citizen.getHealth() < Math.min(Math.max(PathingConfig.MAX_PERCENTAGE_HP_FOR_CURE.get() * citizen.getMaxHealth(), PathingConfig.MAX_HP_FOR_CURE.get()),Math.min(100,citizen.getMaxHealth()));
     }
 }
