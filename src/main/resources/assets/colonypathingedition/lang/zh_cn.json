@@ -1,0 +1,6 @@
+{
+  "com.arxyt.colonypathingedition.core.update.latest": "殖民地寻路大修已更新最新版本 %s!",
+  "com.arxyt.colonypathingedition.core.update.stable": "殖民地寻路大修已测试得到一个稳定版本 %s. 建议更新到最新的稳定版本!",
+  "com.arxyt.colonypathingedition.core.update.unstable": "注意，这并不是一个稳定版本! 如果不想体验最新修改请不要更新!",
+  "com.arxyt.colonypathingedition.core.update.out_of_date": "你目前的殖民地寻路大修版本太低了! 建议更新到最新的稳定版本是 %s!"
+}

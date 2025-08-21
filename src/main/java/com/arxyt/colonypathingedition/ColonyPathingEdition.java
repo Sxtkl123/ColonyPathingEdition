@@ -1,5 +1,4 @@
-package com.arxyt.colonypathingedition.core;
-
+package com.arxyt.colonypathingedition;
 
 import com.arxyt.colonypathingedition.core.config.PathingConfig;
 import com.mojang.logging.LogUtils;
@@ -20,5 +19,6 @@ public class ColonyPathingEdition {
                 ModConfig.Type.COMMON,
                 PathingConfig.init(new ForgeConfigSpec.Builder())
         );
+        LOGGER.info("Colony Pathing Edition mod loaded");
     }
 }

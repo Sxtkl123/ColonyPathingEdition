@@ -1,6 +1,7 @@
 package com.arxyt.colonypathingedition.core.mixins;
 
 import com.arxyt.colonypathingedition.core.config.PathingConfig;
+import com.arxyt.colonypathingedition.core.util.DistanceUtils;
 import com.minecolonies.api.crafting.ItemStorage;
 import com.minecolonies.api.entity.ai.statemachine.states.IAIState;
 import com.minecolonies.api.util.BlockPosUtil;
@@ -99,10 +100,10 @@ public abstract class EntityAIStructureBuilderMixin extends AbstractEntityAIStru
             return repathCounter >= 3;
         }
         BlockPos workerPos = worker.blockPosition();
-        if (!walkToSafePos(workFrom) && BlockPosUtil.getDistance2D(workerPos, workFrom) >= 10 ){
+        if (!walkToSafePos(workFrom) && DistanceUtils.dist(workerPos, workFrom) >= 10 ){
             return repathCounter >= 3;
         }
-        if(BlockPosUtil.getDistance2D(workPos, workFrom) >= 10){
+        if(DistanceUtils.dist(workPos, workFrom) >= 10){
             workFrom = null;
             return ++repathCounter >= 3;
         }
