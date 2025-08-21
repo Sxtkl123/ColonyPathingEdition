@@ -102,7 +102,7 @@ public class UpdateManager {
 
         String latestStableVersion = responseJson.get("latest_stable_version").getAsString();
         if (currentVersion.equals(latestStableVersion)) {
-            sendClientUnsafeUpdateMessage(player, UNSAFE_UPDATE, UNSAFE_UPDATE, latestVersion);
+            sendClientUnsafeUpdateMessage(player, UPDATE_MESSAGE, UNSAFE_UPDATE, latestVersion);
             return;
         }
 
