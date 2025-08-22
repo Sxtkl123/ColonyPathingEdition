@@ -29,7 +29,7 @@ import static com.arxyt.colonypathingedition.core.costants.AdditionalContants.*;
 public class UpdateManager {
     private static final String UPDATE_URL = "https://arxyt.github.io/ColonyPathingEdition/latest.json";
     private static final int HTTP_TIMEOUT_MS = 5000;
-    private static final String FALLBACK_LANGUAGE = "en_us.json";
+    private static final String FALLBACK_LANGUAGE = "en_us";
 
     @SubscribeEvent
     public static void onPlayerLoggedIn(PlayerEvent.PlayerLoggedInEvent event) {
@@ -110,6 +110,7 @@ public class UpdateManager {
                 .map(JsonElement::getAsString)
                 .collect(Collectors.toList());
         if(stableVersions.contains(currentVersion)){
+            if(!responseJson.has("latest_stable_changelog")) return;
             JsonObject content = responseJson.getAsJsonObject("latest_stable_changelog");
             String message = getLocalizedMessage(content);
             if (message == null) return;
@@ -121,20 +122,21 @@ public class UpdateManager {
                 .map(JsonElement::getAsString)
                 .collect(Collectors.toList());
         if(unstableVersions.contains(currentVersion)){
+            if(!responseJson.has("latest_changelog")) return;
             JsonObject content = responseJson.getAsJsonObject("latest_changelog");
             String message = getLocalizedMessage(content);
             if (message == null) return;
             sendClientMessage(player, UPDATE_MESSAGE, message, latestVersion);
             return;
         }
-
+        if(!responseJson.has("latest_stable_changelog")) return;
         JsonObject content = responseJson.getAsJsonObject("latest_stable_changelog");
         String message = getLocalizedMessage(content);
         sendClientMessage(player, OUT_OF_DATE_MESSAGE, message, latestStableVersion);
     }
 
     private static boolean isValidResponse(JsonObject json) {
-        if (!json.has("version") || !json.has("content")) {
+        if (!json.has("latest_version") || !json.has("latest_stable_version") || !json.has("history_stable_version") ||!json.has("history_unstable_version")) {
             ColonyPathingEdition.LOGGER.error("[Update Check] Missing required JSON fields");
             return false;
         }
@@ -176,6 +178,8 @@ public class UpdateManager {
             if (player.isAlive()) {
                 Component updateMessage = Component.translatable(pKey, version).withStyle(ChatFormatting.GREEN);
                 player.sendSystemMessage(updateMessage);
+                Component changelogMessage = Component.translatable(CHANGELOG, version).withStyle(ChatFormatting.WHITE);
+                player.sendSystemMessage(changelogMessage);
                 Component updateContent = Component.literal(message).withStyle(ChatFormatting.WHITE);
                 player.sendSystemMessage(updateContent);
             }

@@ -2,5 +2,6 @@
   "com.arxyt.colonypathingedition.core.update.latest": "Pathfinding Edition for Minecolonies updated latest version %s!",
   "com.arxyt.colonypathingedition.core.update.stable": "Pathfinding Edition for MineColonies has tested a stable version %s. It’s safe to update!",
   "com.arxyt.colonypathingedition.core.update.unstable": "This is not a safe version! Please decide carefully whether to update.",
-  "com.arxyt.colonypathingedition.core.update.out_of_date": "Your Pathfinding Edition for Minecolonies version is out of date! The lateset stable version is %s!"
+  "com.arxyt.colonypathingedition.core.update.out_of_date": "Your Pathfinding Edition for Minecolonies version is out of date! The lateset stable version is %s!",
+  "com.arxyt.colonypathingedition.core.update.changelog": "Here is the changelog："
 }

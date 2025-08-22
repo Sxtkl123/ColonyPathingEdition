@@ -18,4 +18,5 @@ public final class AdditionalContants {
     public static final String SAFE_UPDATE = "com.arxyt.colonypathingedition.core.update.stable";
     public static final String UPDATE_MESSAGE = "com.arxyt.colonypathingedition.core.update.latest";
     public static final String OUT_OF_DATE_MESSAGE = "com.arxyt.colonypathingedition.core.update.out_of_date";
+    public static final String CHANGELOG = "com.arxyt.colonypathingedition.core.update.changelog";
 }

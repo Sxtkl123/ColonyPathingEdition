@@ -8,12 +8,12 @@
 
   ],
   "latest_changelog": {
-    "zh_cn": "修复市民在铁轨上引起崩溃的问题，市民移动加速科技现在也可以作用到市民铁轨移动加速上",
-    "en_us": "Fixed a crash caused by citizens on rails. The citizen movement speed research now also applies to rail movement speed."
+    "zh_cn": "1.修复市民在铁轨上引起崩溃的问题，市民移动加速科技现在也可以作用到市民铁轨移动加速上。\n2.修复了市民受伤判定可能引起崩溃的问题。",
+    "en_us": "Fixed a crash caused by citizens on rails. The citizen movement speed research now also applies to rail movement speed.\n2.Fixed an issue where citizen injury checks could cause a crash."
   },
   "latest_stable_changelog": {
-    "zh_cn": "修复市民在铁轨上引起崩溃的问题，市民移动加速科技现在也可以作用到市民铁轨移动加速上",
-    "en_us": "Fixed a crash caused by citizens on rails. The citizen movement speed research now also applies to rail movement speed."
+    "zh_cn": "修复市民在铁轨上引起崩溃的问题，市民移动加速科技现在也可以作用到市民铁轨移动加速上。\n2.修复了市民受伤判定可能引起崩溃的问题。",
+    "en_us": "Fixed a crash caused by citizens on rails. The citizen movement speed research now also applies to rail movement speed.\n2.Fixed an issue where citizen injury checks could cause a crash."
   },
   "displayURL": "https://arxyt.github.io/ColonyPathingEdition/updates/changelog.md"
 }
