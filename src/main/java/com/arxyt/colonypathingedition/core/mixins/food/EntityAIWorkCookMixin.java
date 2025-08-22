@@ -167,7 +167,7 @@ public abstract class EntityAIWorkCookMixin extends AbstractEntityAIBasicMixin<B
         int qty = (int) (Math.max(1.0, (FULL_SATURATION - citizen.getCitizenData().getSaturation()) / FoodUtils.getFoodValue(getWorker().getInventoryCitizen().getStackInSlot(foodSlot), citizen)));
         if (InventoryUtils.transferXOfItemStackIntoNextFreeSlotInItemHandler(getWorker().getInventoryCitizen(), foodSlot, qty, citizenData.getInventory())) {
             Objects.requireNonNull(getWorker().getCitizenColonyHandler().getColonyOrRegister()).getStatisticsManager().incrementBy(FOOD_SERVED, qty, getWorker().getCitizenColonyHandler().getColonyOrRegister().getDay());
-            StatsUtil.trackStat(building, FOOD_SERVED_DETAIL, foodName, qty);
+            StatsUtil.trackStatByName(building, FOOD_SERVED_DETAIL, foodName, qty);
             getWorker().getCitizenExperienceHandler().addExperience(BASE_XP_GAIN);
             getWorker().decreaseSaturationForAction();
         }

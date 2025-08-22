@@ -1,15 +1,16 @@
 {
-  "latest_version": "1.0.3-BETA-3.1",
+  "latest_version": "1.0.3",
   "latest_stable_version": "1.0.3-BETA-3.1",
   "history_stable_version": [
+    "1.0.3",
     "1.0.3-BETA-3.1"
   ],
   "history_unstable_version": [
 
   ],
   "latest_changelog": {
-    "zh_cn": "1.修复市民在铁轨上引起崩溃的问题，市民移动加速科技现在也可以作用到市民铁轨移动加速上。\n2.修复了市民受伤判定可能引起崩溃的问题。",
-    "en_us": "Fixed a crash caused by citizens on rails. The citizen movement speed research now also applies to rail movement speed.\n2.Fixed an issue where citizen injury checks could cause a crash."
+    "zh_cn": "测试修改了更新日志，如无必要可以不更新，这其实就是 1.0.3-BETA-3.1 测试结果相对稳定后发布的 release 版本",
+    "en_us": "Test modification of the update reminder; version is not necessary, just update a stable release version of 1.0.3-BETA-3.1."
   },
   "latest_stable_changelog": {
     "zh_cn": "修复市民在铁轨上引起崩溃的问题，市民移动加速科技现在也可以作用到市民铁轨移动加速上。\n2.修复了市民受伤判定可能引起崩溃的问题。",

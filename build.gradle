@@ -100,15 +100,15 @@ dependencies {
 
     // Required
     implementation fg.deobf("com.ldtteam:minecolonies:${minecolonies_version}")
-    implementation fg.deobf("com.ldtteam:structurize:${structurize_version}")
+    implementation fg.deobf("com.ldtteam:structurize:${structurize_version}") {
+        exclude group: "com.ldtteam", module: "blockui"
+        exclude group: "com.ldtteam", module: "domum_ornamentum"
+    }
     implementation fg.deobf("com.ldtteam:multipiston:${multipiston_version}")
     implementation fg.deobf("com.ldtteam:domum_ornamentum:${domumornamentum_version}:universal")
     implementation fg.deobf("com.ldtteam:blockui:${blockui_version}")
 
-
-
     annotationProcessor 'org.spongepowered:mixin:0.8.5:processor'
-
 }
 
 tasks.named('processResources', ProcessResources).configure {
