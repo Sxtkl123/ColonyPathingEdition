@@ -1,20 +1,20 @@
 {
-  "latest_version": "1.0.3",
-  "latest_stable_version": "1.0.3-BETA-3.1",
+  "latest_version": "1.0.4-ALPHA-1",
+  "latest_stable_version": "1.0.3",
   "history_stable_version": [
     "1.0.3",
     "1.0.3-BETA-3.1"
   ],
   "history_unstable_version": [
-
+    "1.0.4-ALPHA-1"
   ],
   "latest_changelog": {
-    "zh_cn": "测试修改了更新日志，如无必要可以不更新，这其实就是 1.0.3-BETA-3.1 测试结果相对稳定后发布的 release 版本",
-    "en_us": "Test modification of the update reminder; version is not necessary, just update a stable release version of 1.0.3-BETA-3.1."
+    "zh_cn": "- **提升依赖版本至1.1.1010**\n- **修复市民坐矿车脱轨的bug**\n- **修改minecolonies矿车下车逻辑，现在只要铁路路径终止，市民就会立即下车并传送到路径中的“下铁轨格”，不再随机选择下车地点或因路径提前终止而拒绝下车**\n- **增加双向检测，阻止医生出医院治疗生病市民，市民挂号时如果不在医院会重新尝试寻路到医院**\n- 牧民行动逻辑更新：这是一个实验性更新，详细内容见mod更新日志",
+    "en_us": "- **Bump dependency version to 1.1.1010**\n- **Fixed a bug where citizens could derail when riding minecarts**\n- **Reworked Minecolonies minecart dismount logic: citizens now immediately dismount and teleport to the designated “rail exit block” once the rail path ends, instead of randomly choosing a dismount spot or refusing to dismount due to premature path termination**\n- **Added bidirectional checks to prevent doctors from leaving the hospital to treat sick citizens; citizens will now retry pathing to the hospital if they are not inside when registering**\n- Shepherd AI logic update: this is an experimental change, see the mod changelog for details"
   },
   "latest_stable_changelog": {
-    "zh_cn": "修复市民在铁轨上引起崩溃的问题，市民移动加速科技现在也可以作用到市民铁轨移动加速上。\n2.修复了市民受伤判定可能引起崩溃的问题。",
-    "en_us": "Fixed a crash caused by citizens on rails. The citizen movement speed research now also applies to rail movement speed.\n2.Fixed an issue where citizen injury checks could cause a crash."
+    "zh_cn": "测试修改了更新日志，如无必要可以不更新，这其实就是 1.0.3-BETA-3.1 测试结果相对稳定后发布的 release 版本",
+    "en_us": "Test modification of the update reminder; version is not necessary, just update a stable release version of 1.0.3-BETA-3.1."
   },
   "displayURL": "https://arxyt.github.io/ColonyPathingEdition/updates/changelog.md"
 }

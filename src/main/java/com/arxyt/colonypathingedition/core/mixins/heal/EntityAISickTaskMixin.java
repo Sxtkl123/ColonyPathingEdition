@@ -15,6 +15,7 @@ import com.minecolonies.core.datalistener.model.Disease;
 import com.minecolonies.core.entity.ai.minimal.EntityAISickTask;
 import com.minecolonies.core.entity.ai.workers.util.Patient;
 import com.minecolonies.core.entity.citizen.EntityCitizen;
+import com.minecolonies.core.entity.pathfinding.navigation.EntityNavigationUtils;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import org.spongepowered.asm.mixin.*;
@@ -149,9 +150,6 @@ abstract public class EntityAISickTaskMixin {
     @Overwrite(remap = false)
     private IState waitForCure()
     {
-        final IColony colony = citizenData.getColony();
-        bestHospital = colony.getBuildingManager().getBestBuilding(citizen, BuildingHospital.class);
-
         if (bestHospital == null)
         {
             return SEARCH_HOSPITAL;
@@ -173,19 +171,22 @@ abstract public class EntityAISickTaskMixin {
             return CitizenAIState.IDLE;
         }
 
+        final IColony colony = citizenData.getColony();
         IBuilding building = colony.getBuildingManager().getBuilding(bestHospital);
-        if(!(building instanceof BuildingHospital hospital)){
+        if(!(building instanceof BuildingHospital hospital) ){
             return SEARCH_HOSPITAL;
         }
-        boolean inBuilding = false;
+        if(!hospital.isInBuilding(citizen.blockPosition())){
+            EntityNavigationUtils.walkToPos(citizen, bestHospital, 3, true);
+        }
+        boolean isPatient = false;
         for (Patient patient : hospital.getPatients()){
             if (patient.getId() == citizen.getCivilianID()){
-                inBuilding = true;
+                isPatient = true;
                 break;
             }
         }
-
-        if(!inBuilding){
+        if(!isPatient){
             hospital.checkOrCreatePatientFile(citizen.getCivilianID());
         }
 
@@ -199,7 +200,7 @@ abstract public class EntityAISickTaskMixin {
                     asleep = false;
                 }
             }
-            else if(inBuilding)
+            else if(isPatient)
             {
                 return FIND_EMPTY_BED;
             }

@@ -204,8 +204,8 @@ public abstract class EntityAIWorkLumberjackMixin extends AbstractEntityAICrafti
             case 4: {
                 if(getItemsForPickUp() == null && thisTree != null) {
                     searchForItems(worker.getBoundingBox()
-                            .expandTowards(RANGE_HORIZONTAL_PICKUP * 4, RANGE_VERTICAL_PICKUP, RANGE_HORIZONTAL_PICKUP * 4)
-                            .expandTowards(-RANGE_HORIZONTAL_PICKUP * 4, -RANGE_VERTICAL_PICKUP, -RANGE_HORIZONTAL_PICKUP * 4));
+                            .expandTowards(RANGE_HORIZONTAL_PICKUP * 2, RANGE_VERTICAL_PICKUP, RANGE_HORIZONTAL_PICKUP * 2)
+                            .expandTowards(-RANGE_HORIZONTAL_PICKUP * 2, -RANGE_VERTICAL_PICKUP, -RANGE_HORIZONTAL_PICKUP * 2));
                     gatherState = 5;
                 }
             }

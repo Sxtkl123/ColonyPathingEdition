@@ -1,7 +1,7 @@
 {
-  "homepage": "https://modrinth.com/mod/colony-pathing-edition",
+  "homepage": "https://arxyt.github.io/ColonyPathingEdition/updates/changelog.md",
   "promos": {
-    "1.20.1-latest": "1.0.3-BETA-3.1",
-    "1.20.1-recommended": "1.0.3-BETA-3.1"
+    "1.20.1-latest": "1.0.4-ALPHA-1",
+    "1.20.1-recommended": "1.0.3"
   }
 }

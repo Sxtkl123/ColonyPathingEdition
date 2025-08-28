@@ -112,6 +112,9 @@ public abstract class EntityAIWorkHealerMixin extends AbstractEntityAIBasicMixin
                 hospital.removePatientFile(patient);
                 continue;
             }
+            else if (!building.isInBuilding(citizen.blockPosition())){
+                continue;
+            }
 
             PatientExtras patientExtras = (PatientExtras)patient;
             int doctorID = patientExtras.getEmployed();
