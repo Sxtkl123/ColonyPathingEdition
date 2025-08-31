@@ -54,8 +54,6 @@ public abstract class MinecoloniesAdvancedPathNavigateMixin extends AbstractAdva
         return PathingConfig.MAX_PATHING_DISTANCE.get() * PathingConfig.MAX_PATHING_DISTANCE.get();
     }
 
-    int counter = 0;
-
     @Inject(method = "handleRails",at = @At("RETURN"),remap = false)
     private void getOffRailsAndTpToNextNode(CallbackInfoReturnable<Boolean> cir) {
         if (ourEntity.getVehicle() != null) {
@@ -107,7 +105,6 @@ public abstract class MinecoloniesAdvancedPathNavigateMixin extends AbstractAdva
                             mob.startRiding(minecart, true);
                         }
                     }
-
                 }
             }
         }

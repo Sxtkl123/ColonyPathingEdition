@@ -54,7 +54,7 @@ public class CitizenFoodHandlerMixin {
                     diversityFoodCounter += Math.max(foodProperties.getSaturationModifier() * 2.0f , 1.0f);
                 }
             }
-            foodStatCache = new ICitizenFoodHandler.CitizenFoodStats(Mth.ceil(qualityFoodCounter), Mth.ceil(diversityFoodCounter));
+            foodStatCache = new ICitizenFoodHandler.CitizenFoodStats(Mth.ceil(diversityFoodCounter), Mth.ceil(qualityFoodCounter));
         }
         cir.setReturnValue(foodStatCache);
     }

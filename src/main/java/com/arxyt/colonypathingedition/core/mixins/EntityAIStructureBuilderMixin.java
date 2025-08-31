@@ -2,6 +2,7 @@ package com.arxyt.colonypathingedition.core.mixins;
 
 import com.arxyt.colonypathingedition.core.config.PathingConfig;
 import com.arxyt.colonypathingedition.core.util.DistanceUtils;
+import com.minecolonies.api.colony.workorders.IWorkOrder;
 import com.minecolonies.api.crafting.ItemStorage;
 import com.minecolonies.api.entity.ai.statemachine.states.IAIState;
 import com.minecolonies.api.util.BlockPosUtil;
@@ -25,10 +26,13 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Constant;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.ModifyConstant;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
+import static com.minecolonies.api.colony.requestsystem.requestable.deliveryman.AbstractDeliverymanRequestable.getMaxBuildingPriority;
 import static com.minecolonies.api.entity.ai.statemachine.states.AIWorkerState.LOAD_STRUCTURE;
 import static com.minecolonies.api.util.constant.CitizenConstants.*;
+import static com.minecolonies.api.util.constant.Constants.STACKSIZE;
 
 @Mixin(EntityAIStructureBuilder.class)
 public abstract class EntityAIStructureBuilderMixin extends AbstractEntityAIStructureWithWorkOrder<JobBuilder, BuildingBuilder> {
@@ -179,6 +183,9 @@ public abstract class EntityAIStructureBuilderMixin extends AbstractEntityAIStru
         return returnState;
     }
 
+    /**
+     * 寻路不需要这么大的 drop cost
+     */
     @ModifyConstant(
             method = "walkToConstructionSite(Lnet/minecraft/core/BlockPos;)Z",
             constant = @Constant(doubleValue = 200.0),
@@ -188,16 +195,28 @@ public abstract class EntityAIStructureBuilderMixin extends AbstractEntityAIStru
         return 1.5d;
     }
 
+    /**
+     * 如果工作方块内有食物，在临走前拿取一点食物
+     */
     @Inject(at = @At("RETURN"), method = "checkForWorkOrder", remap = false)
-    private void takeFoodAfterCheckForWorkOrder(CallbackInfoReturnable<Boolean> cir){
-        if(cir.getReturnValue()){
-            if(!hasFood()){
+    private void takeFoodAfterCheckForWorkOrder(CallbackInfoReturnable<Boolean> cir) {
+        if(cir.getReturnValue()) {
+            if(!hasFood()) {
                 final ItemStorage storageToGet = FoodUtils.checkForFoodInBuilding(worker.getCitizenData(), null, building);
-                if (storageToGet != null)
-                {
+                if (storageToGet != null) {
                     InventoryUtils.transferItemStackIntoNextBestSlotInItemHandler(building, storageToGet, 5, worker.getInventoryCitizen());
                 }
             }
+        }
+    }
+
+    /**
+     * 每次建筑完成时，请求仓库取走物资
+     */
+    @Inject(at = @At("RETURN"),method = "sendCompletionMessage", remap = false)
+    protected void pickUpAfterSendCompletionMessage(CallbackInfo ci) {
+        if (building.getPickUpPriority() > 0) {
+            building.createPickupRequest(building.getPickUpPriority());
         }
     }
 

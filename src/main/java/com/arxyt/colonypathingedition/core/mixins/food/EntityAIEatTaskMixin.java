@@ -77,7 +77,7 @@ public abstract class EntityAIEatTaskMixin {
                 final ICitizenFoodHandler.CitizenFoodStats foodStats = foodHandler.getFoodHappinessStats();
                 final int diversityRequirement = FoodUtils.getMinFoodDiversityRequirement(citizenData.getHomeBuilding() == null ? 0 : citizenData.getHomeBuilding().getBuildingLevel());
                 final int qualityRequirement = FoodUtils.getMinFoodQualityRequirement(citizenData.getHomeBuilding() == null ? 0 : citizenData.getHomeBuilding().getBuildingLevel());
-                if( foodStats.diversity() >= diversityRequirement && foodStats.quality() >= qualityRequirement || forceEatAtHut )
+                if( foodStats.diversity() > diversityRequirement && foodStats.quality() >= qualityRequirement || forceEatAtHut )
                 {
                     final ItemStorage storageToGet = FoodUtils.checkForFoodInBuilding(citizen.getCitizenData(), null, buildingWorker);
                     if (storageToGet != null)
