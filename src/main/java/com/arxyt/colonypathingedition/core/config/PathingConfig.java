@@ -50,6 +50,9 @@ public class PathingConfig {
     public static ForgeConfigSpec.BooleanValue EARLY_ENCHANT;
     public static ForgeConfigSpec.IntValue ENCHANT_LEVEL_SCALE;
     public static ForgeConfigSpec.IntValue MAX_ADDITIONAL_LEVEL_ENCHANT;
+    public static ForgeConfigSpec.DoubleValue FOOD_PUNISHER;
+    public static ForgeConfigSpec.DoubleValue FOOD_BONUS_NORMAL;
+    public static ForgeConfigSpec.DoubleValue FOOD_BONUS_MINECOLONIES;
 
     public static ForgeConfigSpec.IntValue MAX_PATHING_DISTANCE;
 
@@ -129,7 +132,7 @@ public class PathingConfig {
                         是一个全局的启发值减免，表现为村民在远离目标点处寻路时对道路方块的信任程度，数值越小越信任(默认 : 0.92)""")
                 .defineInRange("onRoadPreference", 0.92, 0.5, 2.0);
         CALLBACK_TIMES_TOLERANCE = builder
-                .comment("Tolerates how many times callback nodes can be expanded during each pathfinding process. (default: 2) #能容忍每次寻路中回扣节点被扩展几次，数值过大可能会造成扩展的无用节点增加 (默认 : 2)#")
+                .comment("Tolerates how many times callback nodes can be expanded during each pathfinding process. (default: 2)\n 能容忍每次寻路中回扣节点被扩展几次，数值过大可能会造成扩展的无用节点增加 (默认 : 2)")
                 .defineInRange("callbackTimesTolerance", 2, 1, 25);
         builder.pop();
         builder.pop();
@@ -152,10 +155,10 @@ public class PathingConfig {
                         你的村民将在剩多少HP时去寻求医生治疗 (默认 : 10.0 殖民地原设置 : 6.0)""")
                 .defineInRange("cureHP", 10.0, 6.0, 40.0);
         HEAL_START = builder
-                .comment("Citizen will start to heal themselves at that time. #市民开始自愈的时间(s)#")
+                .comment("Citizen will start to heal themselves at that time.\n 市民开始自愈的时间(s)")
                 .defineInRange("startHeal", 480, 0, 4095);
         HEAL_DURATION = builder
-                .comment("Citizen will randomly cure during this time. #市民将在这个时间段内均匀自愈(s)#")
+                .comment("Citizen will randomly cure during this time.\n 市民将在这个时间段内均匀自愈(s)")
                 .defineInRange("healDuration", 2000, 0, 65535);
         builder.pop();
         builder.push("LumberJack Modifier #伐木工相关修改#");
@@ -166,10 +169,15 @@ public class PathingConfig {
                 .comment("Lumberjcak will replant without saplings, still consume saplings when have.\n 伐木工在树苗不足时也会正常补种，但是有树苗时依旧会消耗树苗。")
                 .define("lumberjackPlantWithoutSaplings",false);
         LUMBERJACK_BREAK_LEAVES_TO_GATHER = builder
-                .comment("一个让伐木工收集树上掉落物看起来更合理一些，效率相对比较低下，关闭后捡不到的物品会直接传送到伐木工脚下")
+                .comment("""
+                        A toggle for lumberjacks to collect dropped items on trees in a more realistic but less efficient way (break leaves).
+                        When disabled, uncollected items will instead be teleported directly to the lumberjack’s feet.
+                        让伐木工收集树上的掉落物看起来更合理一些(破坏树叶)，效率相对比较低下，关闭后捡不到的物品会直接传送到伐木工脚下""")
                 .define("lumberjackBreakLeavesToGather" ,true);
         LUMBERJACK_GATHER_WAITING_TIME = builder
-                .comment("伐木工等待收集的时间，期间会破坏物品下方树叶，不过因为目前检测问题不建议时间过长")
+                .comment("""
+                        Time lumberjacks spend gathering a single item. Not recommended to set too long.
+                        伐木工等待收集的时间，不过因为目前检测问题不建议时间过长""")
                 .defineInRange("lumberjackGatherWaitingTime",5,2,10);
         builder.pop();
         builder.push("Builder Mode Modifier #土木人修改#");
@@ -196,18 +204,33 @@ public class PathingConfig {
                 .define("butcherInstantKill",true);
         builder.pop();
         builder.push("Common Citizens Modifier #通用市民修改#");
-        PICK_MATERIAL_AT_HUT = builder.comment("Should citizens pick material at their own hut. 你的非快递员市民是否应当在他们的小屋方块处取货。")
+        PICK_MATERIAL_AT_HUT = builder.comment("Should citizens pick material at their own hut.\n 你的非快递员市民是否应当在他们的小屋方块处取货。")
                         .define("pickMaterialAtHut", true);
-        EARLY_ENCHANT = builder.comment("Allows workers to use enchanted tools at their current level. 允许工人在工具允许等级时就启用一部分低级附魔工具。")
+        EARLY_ENCHANT = builder.comment("Allows workers to use enchanted tools at their current level.\n 允许工人在工具允许等级时就启用一部分低级附魔工具。")
                 .define("earlyEnchant", true);
-        ENCHANT_LEVEL_SCALE = builder.comment("Controls how many enchantment levels require 1 worker's hut level upgrade. 每升一级可以允许额外附魔等级几级。")
+        ENCHANT_LEVEL_SCALE = builder.comment("Controls how many enchantment levels require 1 worker's hut level upgrade.\n 每升一级可以允许额外附魔等级几级。")
                 .defineInRange("enchantLevelScale", 2, 1, 6);
-        MAX_ADDITIONAL_LEVEL_ENCHANT = builder.comment("Sets the maximum addtional worker's hut level enchantment tools . 设置附魔工具最多需求小屋增加几级可用。")
+        MAX_ADDITIONAL_LEVEL_ENCHANT = builder.comment("Sets the maximum addtional worker's hut level enchantment tools.\n 设置附魔工具最多需求小屋增加几级可用。")
                 .defineInRange("maxAdditionalLevelForEnchantTools", 2, 1, 5);
+        FOOD_PUNISHER = builder
+                .comment("""
+                        Punishment of normal food nutrition for citizens (It's a multiplier) (default: 1, original:0.25)
+                        普通食物惩罚乘数 (默认 : 1， 殖民地原设置 : 0.25)""")
+                .defineInRange("foodPunisher", 1.0, 0.0, 1.0);
+        FOOD_BONUS_NORMAL = builder
+                .comment("""
+                        Bonus of normal food nutrition for citizens (It's a multiplier on saturation) (default: 0.2)
+                        普通食物奖励乘数(取决于食物饱和) (默认 : 0.2)""")
+                .defineInRange("normalFoodBonus", 0.2, 0.0, 1.0);
+        FOOD_BONUS_MINECOLONIES = builder
+                .comment("""
+                        Bonus of minecolonies' food nutrition for citizens (It's a multiplier on saturation) (default: 0.5)
+                        殖民地食物奖励乘数(取决于食物饱和) (默认 : 0.5)""")
+                .defineInRange("minecoloniesFoodBonus", 0.5, 0.0, 1.0);
         builder.pop();
         builder.push("Basic Logic Modifier #基础逻辑修改#");
         MAX_PATHING_DISTANCE = builder
-                .comment("Max pathing distance (default: 1000, original:500) 市民最大寻路距离,(默认 : 1000 殖民地原设置 : 500)")
+                .comment("Max pathing distance (default: 1000, original:500)\n 民最大寻路距离,(默认 : 1000 殖民地原设置 : 500)")
                 .defineInRange("pathingDistance", 1000, 500, 4095);
         builder.pop();
         return builder.build(); // 返回构建结果

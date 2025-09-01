@@ -1,16 +1,17 @@
 {
-  "latest_version": "1.0.4-ALPHA-1",
+  "latest_version": "1.0.4-ALPHA-2",
   "latest_stable_version": "1.0.3",
   "history_stable_version": [
     "1.0.3",
     "1.0.3-BETA-3.1"
   ],
   "history_unstable_version": [
+    "1.0.4-ALPHA-2",
     "1.0.4-ALPHA-1"
   ],
   "latest_changelog": {
-    "zh_cn": "- **提升依赖版本至1.1.1010**\n- **修复市民坐矿车脱轨的bug**\n- **修改minecolonies矿车下车逻辑，现在只要铁路路径终止，市民就会立即下车并传送到路径中的“下铁轨格”，不再随机选择下车地点或因路径提前终止而拒绝下车**\n- **增加双向检测，阻止医生出医院治疗生病市民，市民挂号时如果不在医院会重新尝试寻路到医院**\n- 牧民行动逻辑更新：这是一个实验性更新，详细内容见mod更新日志",
-    "en_us": "- **Bump dependency version to 1.1.1010**\n- **Fixed a bug where citizens could derail when riding minecarts**\n- **Reworked Minecolonies minecart dismount logic: citizens now immediately dismount and teleport to the designated “rail exit block” once the rail path ends, instead of randomly choosing a dismount spot or refusing to dismount due to premature path termination**\n- **Added bidirectional checks to prevent doctors from leaving the hospital to treat sick citizens; citizens will now retry pathing to the hospital if they are not inside when registering**\n- Shepherd AI logic update: this is an experimental change, see the mod changelog for details"
+    "zh_cn": "- 建筑工现在在建完建筑后会尝试清理仓库，冷却时间由取货优先级决定\n- 矿工现在在离开岗位时会尝试先回到工作方块处\n- 食物惩罚点数/食物奖励点数现在可以在设置中调整",
+    "en_us": "- Builders now attempt to clear the warehouse after finishing a building, cooldown depends on pickup priority  \n- Miners now try to return to their work block before leaving the job  \n- Food penalty/reward points are now configurable in settings"
   },
   "latest_stable_changelog": {
     "zh_cn": "测试修改了更新日志，如无必要可以不更新，这其实就是 1.0.3-BETA-3.1 测试结果相对稳定后发布的 release 版本",

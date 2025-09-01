@@ -32,7 +32,7 @@ import static com.minecolonies.api.util.constant.Constants.TICKS_SECOND;
 import static com.minecolonies.api.util.constant.TranslationConstants.NO_RESTAURANT;
 import static com.minecolonies.core.colony.buildings.modules.BuildingModules.RESTAURANT_MENU;
 import static com.minecolonies.core.entity.ai.minimal.EntityAIEatTask.EatingState.*;
-import static com.arxyt.colonypathingedition.core.costants.AdditionalContants.JOBS_EAT_IMMEDIATELY;
+import static com.arxyt.colonypathingedition.core.costants.AdditionalContants.*;
 
 @Mixin(EntityAIEatTask.class)
 public abstract class EntityAIEatTaskMixin {
@@ -70,7 +70,7 @@ public abstract class EntityAIEatTaskMixin {
         final BlockPos buildingPos = buildingWorker.getPosition();
         // 对不在小屋附近工作的村民来说，就近吃饭可能更方便，顺便也防止触发村民在工作地点和厨房来回跑的bug,这里跳过chef,因为chef一般来说可以在自己小屋吃饭
         // 在餐厅一段时间后如果发现餐厅没有食物，会再次触发"Force Eat At Hut"状态，此时市民会无视丰富度和质量要求尝试在自己的工作岗位尝试食用一次食物，然后聚集回餐厅，并触发警告(警告暂时没做)
-        if ( forceEatAtHut || bestRestaurantPos == null || BlockPosUtil.dist(citizenPos,buildingPos) < BlockPosUtil.dist(citizenPos,bestRestaurantPos) || (citizenData.getJob() != null && JOBS_EAT_IMMEDIATELY.contains(citizenData.getJob().getClass()))){
+        if ( forceEatAtHut || bestRestaurantPos == null || BlockPosUtil.dist(citizenPos,buildingPos) < BlockPosUtil.dist(citizenPos,bestRestaurantPos) || (citizenData.getJob() != null && JOBS_FORCE_EAT_AT_HUT.contains(citizenData.getJob().getClass()))){
             if (EntityNavigationUtils.walkToBuilding(citizen, buildingWorker))
             {
                 final ICitizenFoodHandler foodHandler = citizenData.getCitizenFoodHandler();

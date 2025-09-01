@@ -1,9 +1,11 @@
 package com.arxyt.colonypathingedition.core.mixins.sleep;
 
 import com.arxyt.colonypathingedition.api.workersetting.BuildingHospitalExtra;
+import com.minecolonies.api.entity.ai.statemachine.states.CitizenAIState;
 import com.minecolonies.api.entity.ai.statemachine.states.IState;
 import com.minecolonies.api.entity.citizen.VisibleCitizenStatus;
 import com.minecolonies.core.colony.buildings.workerbuildings.BuildingHospital;
+import com.minecolonies.core.colony.buildings.workerbuildings.BuildingMiner;
 import com.minecolonies.core.entity.ai.minimal.EntityAISleep;
 import com.minecolonies.core.entity.citizen.EntityCitizen;
 import com.minecolonies.core.entity.pathfinding.navigation.EntityNavigationUtils;
@@ -27,8 +29,8 @@ public class EntityAISleepHealerSpecialMixin {
     private boolean onDuty = false;
     private BlockPos workPos = null;
 
-    @Inject(method = "checkSleep", at=@At("HEAD"), remap = false)
-    private void specialCheckSleepForHealer(CallbackInfoReturnable<IState> cir)
+    @Inject(method = "checkSleep", at=@At("HEAD"), remap = false, cancellable = true)
+    private void specialCheckSleep(CallbackInfoReturnable<IState> cir)
     {
         if(citizen.getCitizenData().getWorkBuilding() instanceof BuildingHospital hospital){
             if(((BuildingHospitalExtra)hospital).getOnDutyCitizen(citizen.getCivilianID()) == citizen.getCivilianID()){
@@ -37,6 +39,11 @@ public class EntityAISleepHealerSpecialMixin {
             }
             else{
                 onDuty = false;
+            }
+        }
+        else if(citizen.getCitizenData().getWorkBuilding() instanceof BuildingMiner miner){
+            if(!EntityNavigationUtils.walkToBuilding(citizen, miner)){
+                cir.setReturnValue(CitizenAIState.SLEEP);
             }
         }
     }

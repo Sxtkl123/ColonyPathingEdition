@@ -11,6 +11,7 @@ import com.minecolonies.api.util.InventoryUtils;
 import com.minecolonies.api.util.constant.CitizenConstants;
 import com.minecolonies.core.colony.buildings.workerbuildings.BuildingHospital;
 import com.minecolonies.core.colony.interactionhandling.StandardInteraction;
+import com.minecolonies.core.colony.jobs.JobMiner;
 import com.minecolonies.core.datalistener.model.Disease;
 import com.minecolonies.core.entity.ai.minimal.EntityAISickTask;
 import com.minecolonies.core.entity.ai.workers.util.Patient;
@@ -52,6 +53,9 @@ abstract public class EntityAISickTaskMixin {
             if(citizen.getHealth() >= Math.min(citizen.getMaxHealth(),100)){
                 reset();
                 return CitizenAIState.IDLE;
+            }
+            if(citizenData.getJob() instanceof JobMiner){
+                return GO_TO_HUT;
             }
             return SEARCH_HOSPITAL;
         }
