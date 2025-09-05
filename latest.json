@@ -1,17 +1,18 @@
 {
-  "latest_version": "1.0.4-ALPHA-2",
+  "latest_version": "1.0.4-ALPHA-2.1",
   "latest_stable_version": "1.0.3",
   "history_stable_version": [
     "1.0.3",
     "1.0.3-BETA-3.1"
   ],
   "history_unstable_version": [
+    "1.0.4-ALPHA-2.1",
     "1.0.4-ALPHA-2",
     "1.0.4-ALPHA-1"
   ],
   "latest_changelog": {
-    "zh_cn": "- 建筑工现在在建完建筑后会尝试清理仓库，冷却时间由取货优先级决定\n- 矿工现在在离开岗位时会尝试先回到工作方块处\n- 食物惩罚点数/食物奖励点数现在可以在设置中调整",
-    "en_us": "- Builders now attempt to clear the warehouse after finishing a building, cooldown depends on pickup priority  \n- Miners now try to return to their work block before leaving the job  \n- Food penalty/reward points are now configurable in settings"
+    "zh_cn": "- 修复了牧民不能繁殖动物的bug\n- 略微调大林务员区域模式y轴范围\n- 下界矿工的休息时长计算方式改动，此功能还在测试中",
+    "en_us": "- Fixed a bug where herders could not breed animals\n- Slightly increased the Y-axis range for lumberjack’s area mode\n- Changed the way nether worker rest duration is calculated (still experimental)"
   },
   "latest_stable_changelog": {
     "zh_cn": "测试修改了更新日志，如无必要可以不更新，这其实就是 1.0.3-BETA-3.1 测试结果相对稳定后发布的 release 版本",

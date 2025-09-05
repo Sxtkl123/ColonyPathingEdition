@@ -21,7 +21,7 @@ public class FoodUtilsMixin {
     @Inject(remap = false,method = "getFoodValue(Lnet/minecraft/world/item/ItemStack;Lnet/minecraft/world/food/FoodProperties;D)D",at = @At("RETURN"), cancellable = true)
     private static void resetFoodBonus(ItemStack foodStack, FoodProperties itemFood, double researchBonus, CallbackInfoReturnable<Double> cir){
         double noPunish = foodStack.getItem() instanceof IMinecoloniesFoodItem ? 1 : 4 * foodPunisher;
-        double bonus = foodStack.getItem() instanceof IMinecoloniesFoodItem ? itemFood.getSaturationModifier() * itemFood.getNutrition() * foodBonusMinecolonies : itemFood.getSaturationModifier() * itemFood.getNutrition() * foodBonusNormal;
+        double bonus = itemFood.getSaturationModifier() * itemFood.getNutrition() * (foodStack.getItem() instanceof IMinecoloniesFoodItem ? foodBonusMinecolonies : foodBonusNormal);
         cir.setReturnValue(cir.getReturnValueD() * noPunish + bonus);
     }
 }

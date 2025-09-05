@@ -153,6 +153,7 @@ public abstract class AbstractEntityAIHerderMixin<J extends AbstractJob<?, J>, B
                         }
                         if (numOfBreedableAnimals >= NUM_OF_ANIMALS_TO_BREED) {
                             checkState = CHECK_BABY;
+                            return HERDER_BREED;
                         }
                     }
                 }

@@ -39,6 +39,7 @@
     "pathfinding.MinecoloniesAdvancedPathNavigateMixin",
     "pathfinding.MNodeMixin",
     "pathfinding.PathingOptionsMixin",
+    "pathfinding.PathJobFindTreeMixin",
     "pathfinding.UnstuckMixin",
     "pathfinding.heuristic.PathJobMoveCloseToXNearYMixin",
     "pathfinding.heuristic.PathJobMoveToLocationMixin",
@@ -53,7 +54,8 @@
     "workersetting.BuildingCookForCustomerMixin",
     "workersetting.BuildingHospitalMixin",
     "workersetting.BuildingLumberjackMixin",
-    "workersetting.BuildingModulesMixin"
+    "workersetting.BuildingModulesMixin",
+    "workersetting.BuildingNetherWorkerMixin"
   ],
   "client": [],
   "server": [],
