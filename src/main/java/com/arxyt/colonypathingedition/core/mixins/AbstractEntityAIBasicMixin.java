@@ -1,5 +1,6 @@
 package com.arxyt.colonypathingedition.core.mixins;
 
+import com.arxyt.colonypathingedition.api.AbstractEntityAIBasicExtra;
 import com.arxyt.colonypathingedition.core.config.PathingConfig;
 import com.arxyt.colonypathingedition.core.mixins.accessor.AbstractAISkeletonAccessor;
 import com.google.common.collect.ImmutableList;
@@ -35,7 +36,7 @@ import java.util.*;
 import java.util.function.Predicate;
 
 @Mixin(value = AbstractEntityAIBasic.class, remap = false)
-public abstract class AbstractEntityAIBasicMixin<B extends AbstractBuilding,J extends IJob<?>> implements AbstractAISkeletonAccessor<J> {
+public abstract class AbstractEntityAIBasicMixin<B extends AbstractBuilding,J extends IJob<?>> implements AbstractAISkeletonAccessor<J>, AbstractEntityAIBasicExtra {
     @Final @Shadow(remap = false) public B building;
     @Shadow(remap = false) protected Tuple<Predicate<ItemStack>, Integer> needsCurrently;
     @Shadow(remap = false) protected BlockPos walkTo;
@@ -50,7 +51,7 @@ public abstract class AbstractEntityAIBasicMixin<B extends AbstractBuilding,J ex
     @Unique Player nearestPlayer = null;
 
     @Unique
-    private ImmutableList<IRequest<?>> getRequestCannotBeDone() {
+    public ImmutableList<IRequest<?>> getRequestCannotBeDone() {
         final ArrayList<IRequest<?>> requests = Lists.newArrayList();
         final IRequestManager requestManager = getWorker().getCitizenData().getColony().getRequestManager();
         final IPlayerRequestResolver resolver = requestManager.getPlayerResolver();

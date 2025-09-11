@@ -6,13 +6,14 @@
     "1.0.3-BETA-3.1"
   ],
   "history_unstable_version": [
+    "1.0.4-ALPHA-2.2",
     "1.0.4-ALPHA-2.1",
     "1.0.4-ALPHA-2",
     "1.0.4-ALPHA-1"
   ],
   "latest_changelog": {
-    "zh_cn": "- 修复了牧民不能繁殖动物的bug\n- 略微调大林务员区域模式y轴范围\n- 下界矿工的休息时长计算方式改动，此功能还在测试中",
-    "en_us": "- Fixed a bug where herders could not breed animals\n- Slightly increased the Y-axis range for lumberjack’s area mode\n- Changed the way nether worker rest duration is calculated (still experimental)"
+    "zh_cn": "- 多处bug修复(详见日志)\n- 进一步平滑矿车使用动作\n- 下界矿工会为了活命额外等待一会盔甲合成(实验性内容，可能不稳定)",
+    "en_us": "- Various bug fixes (For more details, check the changelog)\n- Further smoothed minecart usage actions\n- Nether miner now waits longer for armor crafting to survive (experimental, may be unstable)"
   },
   "latest_stable_changelog": {
     "zh_cn": "测试修改了更新日志，如无必要可以不更新，这其实就是 1.0.3-BETA-3.1 测试结果相对稳定后发布的 release 版本",

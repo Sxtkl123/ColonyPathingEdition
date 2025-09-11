@@ -1,4 +1,4 @@
-package com.arxyt.colonypathingedition.core.mixins;
+package com.arxyt.colonypathingedition.core.mixins.herder;
 
 import com.arxyt.colonypathingedition.core.config.PathingConfig;
 import com.arxyt.colonypathingedition.core.costants.states.HerderCheckState;
@@ -143,6 +143,15 @@ public abstract class AbstractEntityAIHerderMixin<J extends AbstractJob<?, J>, B
                     stack -> ItemStackUtils.compareItemStorageListIgnoreStackSize(module.getBreedingItems(), stack)) > 1;
 
             switch (checkState){
+                case CHECK_PICKUP : {
+                    if ( pickupTimeOut <= 0 ){
+                        pickupTimeOut = 500;
+                        if (!searchForItemsInArea().isEmpty()){
+                            checkState = CHECK_BREED;
+                            return HERDER_PICKUP;
+                        }
+                    }
+                }
                 case CHECK_BREED : {
                     if (canBreedChildren() && hasBreedingItem && breedTimeOut <= 0) {
                         int numOfBreedableAnimals = 0;
@@ -174,14 +183,8 @@ public abstract class AbstractEntityAIHerderMixin<J extends AbstractJob<?, J>, B
                         return HERDER_BUTCHER;
                     }
                 }
-                case CHECK_PICKUP : {
-                    checkState = CHECK_BREED;
-                    if ( pickupTimeOut <= 0 ){
-                        pickupTimeOut = 500;
-                        if (!searchForItemsInArea().isEmpty()){
-                            return HERDER_PICKUP;
-                        }
-                    }
+                default : {
+                    checkState = CHECK_PICKUP;
                 }
             }
         }
