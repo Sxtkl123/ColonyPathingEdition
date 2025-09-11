@@ -16,6 +16,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.BaseRailBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.RailShape;
+import net.minecraft.world.level.pathfinder.Node;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
 import org.spongepowered.asm.mixin.Final;
@@ -56,57 +57,66 @@ public abstract class MinecoloniesAdvancedPathNavigateMixin extends AbstractAdva
 
     @Inject(method = "handleRails",at = @At("RETURN"),remap = false)
     private void getOffRailsAndTpToNextNode(CallbackInfoReturnable<Boolean> cir) {
-        if (ourEntity.getVehicle() != null) {
-            final Entity entity = ourEntity.getVehicle();
-            if ( this.path == null || this.path.isDone() ){
-                ourEntity.stopRiding();
-                entity.remove(Entity.RemovalReason.DISCARDED);
+        if (ourEntity.getVehicle() == null) {
+            return;
+        }
+
+        final Entity entity = ourEntity.getVehicle();
+        if ( this.path == null || this.path.isDone() ){
+            ourEntity.stopRiding();
+            entity.remove(Entity.RemovalReason.DISCARDED);
+            return;
+        }
+
+        if (asNavigator().isDone()) {
+            return;
+        }
+        //路径修正，市民下车后一定会tp到下一个路径点处，阻止因下车随机性导致路径重算
+        int nodeIndex = Objects.requireNonNull(this.getPath()).getNextNodeIndex();
+        @NotNull final PathPointExtended pEx = (PathPointExtended) (this.getPath().getNode(nodeIndex));
+        if (!pEx.isOnRails()) {
+            ourEntity.stopRiding();
+            entity.remove(Entity.RemovalReason.DISCARDED);
+            ourEntity.teleportTo(pEx.x + 0.5, pEx.y, pEx.z + 0.5);
+            return;
+        }
+        //增加脱轨补偿，一旦拐弯处脱轨将会tp到更远的位置，取决于当前车速
+        if(entity instanceof MinecoloniesMinecart minecoloniesMinecart && !minecoloniesMinecart.isOnRails()) {
+            Vec3 movement = minecoloniesMinecart.getDeltaMovement();
+            double speed = movement.length();
+            ourEntity.stopRiding();
+            entity.remove(Entity.RemovalReason.DISCARDED);
+            nodeIndex = Math.min(this.getPath().getNodeCount(), nodeIndex + (int)Math.floor(speed / 0.4F));
+            @NotNull final PathPointExtended tpPlace = (PathPointExtended) (Objects.requireNonNull(this.getPath())).getNode(nodeIndex);
+            if(!tpPlace.isOnRails()){
+                ourEntity.teleportTo(tpPlace.x + 0.5, tpPlace.y, tpPlace.z + 0.5);
+                return;
             }
-            else if (!asNavigator().isDone()) {
-                @NotNull final PathPointExtended pEx = (PathPointExtended) Objects.requireNonNull(this.getPath()).getNode(this.getPath().getNextNodeIndex());
-                if (!pEx.isOnRails()) {
-                    ourEntity.stopRiding();
-                    entity.remove(Entity.RemovalReason.DISCARDED);
-                    ourEntity.teleportTo(pEx.x + 0.5, pEx.y, pEx.z + 0.5);
-                }
-                else{
-                    if(entity instanceof MinecoloniesMinecart minecoloniesMinecart) {
-                        int k = Mth.floor(minecoloniesMinecart.getX());
-                        int i = Mth.floor(minecoloniesMinecart.getY());
-                        int j = Mth.floor(minecoloniesMinecart.getZ());
-                        if (minecoloniesMinecart.level().getBlockState(new BlockPos(k, i - 1, j)).is(BlockTags.RAILS)) {
-                            --i;
-                        }
-                        BlockPos blockpos = new BlockPos(k, i, j);
-                        BlockState blockstate = minecoloniesMinecart.level().getBlockState(blockpos);
-                        if(!BaseRailBlock.isRail(blockstate)) {
-                            ourEntity.stopRiding();
-                            entity.remove(Entity.RemovalReason.DISCARDED);
-                            double yOffset = 0.0D;
-                            RailShape railshape = blockstate.getBlock() instanceof BaseRailBlock
-                                    ? ((BaseRailBlock) blockstate.getBlock()).getRailDirection(blockstate, level, blockpos, null)
-                                    : RailShape.NORTH_SOUTH;
-                            if (railshape.isAscending())
-                            {
-                                yOffset = 0.5D;
-                            }
-                            MinecoloniesMinecart minecart = ModEntities.MINECART.create(level);
-                            final double x = pEx.x + 0.5D;
-                            final double y = pEx.y + 0.625D + yOffset;
-                            final double z = pEx.z + 0.5D;
-                            assert minecart != null;
-                            minecart.setPos(x, y, z);
-                            minecart.setDeltaMovement(Vec3.ZERO);
-                            minecart.xo = x;
-                            minecart.yo = y;
-                            minecart.zo = z;
-                            level.addFreshEntity(minecart);
-                            minecart.setHurtDir(1);
-                            mob.startRiding(minecart, true);
-                        }
-                    }
-                }
+            BlockPos tpPos = tpPlace.asBlockPos();
+            if (entity.level().getBlockState(tpPos.below()).is(BlockTags.RAILS)) {
+                tpPos = tpPos.below();
             }
+            BlockState blockstate = entity.level().getBlockState(tpPos);
+            double yOffset = 0.0D;
+            RailShape railshape = blockstate.getBlock() instanceof BaseRailBlock
+                    ? ((BaseRailBlock) blockstate.getBlock()).getRailDirection(blockstate, level, tpPos, null)
+                    : RailShape.NORTH_SOUTH;
+            if (railshape.isAscending()) {
+                yOffset = 0.5D;
+            }
+            MinecoloniesMinecart minecart = ModEntities.MINECART.create(level);
+            final double x = tpPlace.x + 0.5D;
+            final double y = tpPlace.y + 0.625D + yOffset;
+            final double z = tpPlace.z + 0.5D;
+            assert minecart != null;
+            minecart.setPos(x, y, z);
+            minecart.setDeltaMovement(Vec3.ZERO);
+            minecart.xo = x;
+            minecart.yo = y;
+            minecart.zo = z;
+            level.addFreshEntity(minecart);
+            minecart.setHurtDir(1);
+            mob.startRiding(minecart, true);
         }
     }
 

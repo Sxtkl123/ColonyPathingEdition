@@ -1,26 +1,29 @@
 package com.arxyt.colonypathingedition.core.mixins.entity;
 
+import com.arxyt.colonypathingedition.api.AbstractMinecartAccessor;
 import com.minecolonies.api.entity.citizen.AbstractEntityCitizen;
 import com.minecolonies.api.entity.citizen.Skill;
 import com.minecolonies.api.entity.other.MinecoloniesMinecart;
 import com.minecolonies.core.colony.jobs.JobDeliveryman;
 import net.minecraft.core.BlockPos;
 import net.minecraft.tags.BlockTags;
+import net.minecraft.util.Mth;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.vehicle.Minecart;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.BaseRailBlock;
+import net.minecraft.world.level.block.PoweredRailBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Overwrite;
 
 import static com.minecolonies.api.research.util.ResearchConstants.WALKING;
 
 
 @Mixin(MinecoloniesMinecart.class)
-public class MinecoloniesMinecartMixin extends Minecart {
-
+public abstract class MinecoloniesMinecartMixin extends Minecart implements AbstractMinecartAccessor {
     public MinecoloniesMinecartMixin(final EntityType<?> type, final Level world)
     {
         super(type, world);
@@ -50,5 +53,113 @@ public class MinecoloniesMinecartMixin extends Minecart {
         }
 
         return Math.min(railMaxSpeed * speedFactor, getCurrentCartSpeedCapOnRail());
+    }
+
+    /**
+     * @author ARxyt
+     * @reason 重新获取矿车在铁轨上的数据，预备同步 1.21 最新的矿车 tick 事件 (可以防止矿车脱轨的算法)
+     */
+    @Overwrite(remap = false)
+    public void tick()
+    {
+        if (this.getHurtTime() > 0)
+        {
+            this.setHurtTime(this.getHurtTime() - 1);
+        }
+
+        if (this.getDamage() > 0.0F)
+        {
+            this.setDamage(this.getDamage() - 1.0F);
+        }
+
+        this.checkBelowWorld();
+        this.handleNetherPortal();
+        if (this.level().isClientSide)
+        {
+            if (getLSteps() > 0)
+            {
+                double d5 = this.getX() + (getLx() - this.getX()) / (double) getLSteps();
+                double d6 = this.getY() + (getLy() - this.getY()) / (double) getLSteps();
+                double d7 = this.getZ() + (getLz() - this.getZ()) / (double) getLSteps();
+                double d2 = Mth.wrapDegrees(getLyr() - (double) this.getYRot());
+                this.setYRot(this.getYRot() + (float) d2 / (float) getLSteps());
+                this.setXRot(this.getXRot() + (float) (getLxr() - (double) this.getXRot()) / (float) getLSteps());
+                lStepMinus();
+                this.setPos(d5, d6, d7);
+                this.setRot(this.getYRot(), this.getXRot());
+            }
+            else
+            {
+                this.reapplyPosition();
+                this.setRot(this.getYRot(), this.getXRot());
+            }
+        }
+        else
+        {
+            if (!this.isNoGravity())
+            {
+                double d0 = this.isInWater() ? -0.005D : -0.04D;
+                this.setDeltaMovement(this.getDeltaMovement().add(0.0D, d0, 0.0D));
+            }
+
+            int k = Mth.floor(this.getX());
+            int i = Mth.floor(this.getY());
+            int j = Mth.floor(this.getZ());
+            if (this.level().getBlockState(new BlockPos(k, i - 1, j)).is(BlockTags.RAILS))
+            {
+                --i;
+            }
+
+            BlockPos blockpos = new BlockPos(k, i, j);
+            BlockState blockstate = this.level().getBlockState(blockpos);
+            setOnRails(BaseRailBlock.isRail(blockstate));
+            if (canUseRail() && isOnRails())
+            {
+                this.moveAlongTrack(blockpos, blockstate);
+                if (blockstate.getBlock() instanceof PoweredRailBlock && ((PoweredRailBlock) blockstate.getBlock()).isActivatorRail())
+                {
+                    this.activateMinecart(k, i, j, blockstate.getValue(PoweredRailBlock.POWERED));
+                }
+            }
+            else
+            {
+                this.comeOffTrack();
+            }
+
+            this.checkInsideBlocks();
+            this.setXRot(0.0F);
+            double d1 = this.xo - this.getX();
+            double d3 = this.zo - this.getZ();
+            if (d1 * d1 + d3 * d3 > 0.001D)
+            {
+                this.setYRot((float) (Mth.atan2(d3, d1) * 180.0D / Math.PI));
+                if (getFlipped())
+                {
+                    this.setYRot(this.getYRot() + 180.0F);
+                }
+            }
+
+            double d4 = (double) Mth.wrapDegrees(this.getYRot() - this.yRotO);
+            if (d4 < -170.0D || d4 >= 170.0D)
+            {
+                this.setYRot(this.getYRot() + 180.0F);
+                filpReverse();
+            }
+
+            this.setRot(this.getYRot(), this.getXRot());
+            this.updateInWaterStateAndDoFluidPushing();
+            if (this.isInLava())
+            {
+                this.lavaHurt();
+                this.fallDistance *= 0.5F;
+            }
+
+            this.firstTick = false;
+        }
+
+        if (this.tickCount % 20 == 19 && getPassengers().isEmpty())
+        {
+            this.remove(RemovalReason.DISCARDED);
+        }
     }
 }

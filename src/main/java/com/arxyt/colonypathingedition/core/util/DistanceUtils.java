@@ -22,8 +22,8 @@ public class DistanceUtils {
 
     public static double dist(BlockPos pos1, BlockPos pos2) {
         double dx = pos1.getX() - pos2.getX();
-        double dy = (pos1.getX() - pos2.getY())/5.0;
-        double dz = pos1.getX() - pos2.getZ();
+        double dy = (pos1.getY() - pos2.getY())/5.0;
+        double dz = pos1.getZ() - pos2.getZ();
         return Math.sqrt(dx * dx + dy * dy + dz * dz);
     }
 

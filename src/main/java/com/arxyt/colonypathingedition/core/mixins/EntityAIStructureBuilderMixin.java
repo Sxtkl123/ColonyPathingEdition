@@ -80,10 +80,8 @@ public abstract class EntityAIStructureBuilderMixin extends AbstractEntityAIStru
     @Unique
     private boolean sentry() {
         BlockPos workPos = job.getWorkOrder().getLocation();
-        if (workFrom == null)
-        {
-            if (gotoPath == null || gotoPath.isCancelled())
-            {
+        if (workFrom == null) {
+            if (gotoPath == null || gotoPath.isCancelled()) {
                 final PathJobMoveCloseToXNearY pathJob = new PathJobMoveCloseToXNearY(world,
                         workPos,
                         workPos,
@@ -93,8 +91,7 @@ public abstract class EntityAIStructureBuilderMixin extends AbstractEntityAIStru
                 pathJob.getPathingOptions().dropCost = 1.5;
                 pathJob.extraNodes = 0;
             }
-            else if (gotoPath.isDone())
-            {
+            else if (gotoPath.isDone()) {
                 if (gotoPath.getPath() != null)
                 {
                     workFrom = gotoPath.getPath().getTarget();
@@ -108,8 +105,13 @@ public abstract class EntityAIStructureBuilderMixin extends AbstractEntityAIStru
             return repathCounter >= 3;
         }
         if(DistanceUtils.dist(workPos, workFrom) >= 10){
-            workFrom = null;
-            return ++repathCounter >= 3;
+            if(++repathCounter >= 3) {
+                return true;
+            }
+            else {
+                workFrom = null;
+                return false;
+            }
         }
         return true;
     }

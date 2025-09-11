@@ -33,6 +33,7 @@
     "heal.PatientMixin",
     "lumberjack.EntityAIWorkLumberjackMixin",
     "lumberjack.MangroveTreeMixin",
+    "minecraft.AbstractMinecartMixin",
     "minecraft.FurnaceBlockEntityMixin",
     "netherwork.EntityAIWorkNetherMixin",
     "pathfinding.AbstractPathJobMixin",
