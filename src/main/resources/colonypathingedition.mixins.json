@@ -49,6 +49,7 @@
     "pathfinding.heuristic.PathJobMoveTowardsMixin",
     "pathfinding.heuristic.PathJobPathwayMixin",
     "pathfinding.heuristic.PathJobRaiderPathingMixin",
+    "raider.AbstractEntityMinecoloniesRaiderMixin",
     "sleep.CitizenAIForHealerMixin",
     "sleep.CitizenManagerMixin",
     "sleep.EntityAISleepHealerSpecialMixin",
