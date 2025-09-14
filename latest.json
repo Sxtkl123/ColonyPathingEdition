@@ -1,19 +1,20 @@
 {
-  "latest_version": "1.0.4-ALPHA-2.2",
+  "latest_version": "1.0.4-ALPHA-3",
   "latest_stable_version": "1.0.3",
   "history_stable_version": [
     "1.0.3",
     "1.0.3-BETA-3.1"
   ],
   "history_unstable_version": [
+    "1.0.4-ALPHA-3",
     "1.0.4-ALPHA-2.2",
     "1.0.4-ALPHA-2.1",
     "1.0.4-ALPHA-2",
     "1.0.4-ALPHA-1"
   ],
   "latest_changelog": {
-    "zh_cn": "- 多处bug修复(详见日志)\n- 进一步平滑矿车使用动作\n- 下界矿工会为了活命额外等待一会盔甲合成(实验性内容，可能不稳定)",
-    "en_us": "- Various bug fixes (For more details, check the changelog)\n- Further smoothed minecart usage actions\n- Nether miner now waits longer for armor crafting to survive (experimental, may be unstable)"
+    "zh_cn": "- 修改了袭击者的仇恨设定，现在的仇恨设定会更利于保护市民.",
+    "en_us": "- The Raider's treat system has been adjusted to better protect civilians. "
   },
   "latest_stable_changelog": {
     "zh_cn": "测试修改了更新日志，如无必要可以不更新，这其实就是 1.0.3-BETA-3.1 测试结果相对稳定后发布的 release 版本",
