@@ -1,9 +1,11 @@
 package com.arxyt.colonypathingedition.core.mixins.sleep;
 
+import com.arxyt.colonypathingedition.api.JobNetherWorkerExtra;
 import com.arxyt.colonypathingedition.api.workersetting.BuildingHospitalExtra;
 import com.minecolonies.api.entity.ai.statemachine.states.IState;
 import com.minecolonies.api.entity.ai.statemachine.states.CitizenAIState;
 import com.minecolonies.core.colony.buildings.workerbuildings.BuildingHospital;
+import com.minecolonies.core.colony.jobs.JobNetherWorker;
 import com.minecolonies.core.entity.ai.workers.CitizenAI;
 import com.minecolonies.core.entity.citizen.EntityCitizen;
 import org.spongepowered.asm.mixin.Final;
@@ -34,6 +36,22 @@ public class CitizenAIForHealerMixin {
                 }
                 cir.setReturnValue(CitizenAIState.WORK);
             }
+        }
+    }
+
+    @Inject(
+            method = "shouldEat",
+            at = @At("HEAD"),
+            cancellable = true,
+            remap = false
+    )
+    private void specialshouldEatForNetherWorker(CallbackInfoReturnable<Boolean> cir) {
+        if(citizen.getCitizenJobHandler().getColonyJob() instanceof JobNetherWorker job){
+            if(!citizen.getCitizenData().justAte()) {
+                cir.setReturnValue(((JobNetherWorkerExtra)job).getShouldEat());
+                return;
+            }
+            ((JobNetherWorkerExtra)job).setShouldEat(false);
         }
     }
 

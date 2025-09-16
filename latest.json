@@ -6,6 +6,7 @@
     "1.0.3-BETA-3.1"
   ],
   "history_unstable_version": [
+    "1.0.4-ALPHA-4",
     "1.0.4-ALPHA-3",
     "1.0.4-ALPHA-2.2",
     "1.0.4-ALPHA-2.1",
@@ -13,8 +14,8 @@
     "1.0.4-ALPHA-1"
   ],
   "latest_changelog": {
-    "zh_cn": "- 修改了袭击者的仇恨设定，现在的仇恨设定会更利于保护市民.",
-    "en_us": "- The Raider's treat system has been adjusted to better protect civilians. "
+    "zh_cn": "- 大幅修改下界矿工相关设定，下面为部分摘要.\n   * 修复下界矿工可能无法在旅行内进食的bug\n   * 下界矿工现在可能会逃离战斗\n   * 充足准备下的额外旅行次数\n   * 进食后再开始旅行\n   * 其他细节调整",
+    "en_us": "- Major changes to Nether Worker, here are some key points:\n   * Fixed a bug where Nether Worker might not eat during trips\n   * Nether Worker might flee when defeated \n   * Better prep = more trips \n   * Grab a bite before journey \n   * Other small tweaks, we omit the details "
   },
   "latest_stable_changelog": {
     "zh_cn": "测试修改了更新日志，如无必要可以不更新，这其实就是 1.0.3-BETA-3.1 测试结果相对稳定后发布的 release 版本",

@@ -88,7 +88,7 @@ public abstract class BuildingHospitalMixin implements BuildingHospitalExtra {
         return healerOnDuty;
     }
 
-    @Inject(method = "deserializeNBT(Lnet/minecraft/nbt/CompoundTag;)V",at=@At("RETURN"),remap = false)
+    @Inject(method = "deserializeNBT(Lnet/minecraft/nbt/CompoundTag;)V", at = @At("RETURN"), remap = false)
     private void deserializeNBTAddition (CompoundTag compound,CallbackInfo cir){
         if(compound.contains("on_duty_worker")){
             healerOnDuty = compound.getInt("on_duty_worker");
@@ -98,7 +98,7 @@ public abstract class BuildingHospitalMixin implements BuildingHospitalExtra {
         }
     }
 
-    @Inject(method = "serializeNBT()Lnet/minecraft/nbt/CompoundTag;",at=@At("RETURN"),remap = false,cancellable = true)
+    @Inject(method = "serializeNBT()Lnet/minecraft/nbt/CompoundTag;", at = @At("RETURN"), remap = false, cancellable = true)
     private void serializeNBTAddition (CallbackInfoReturnable<CompoundTag> cir){
         CompoundTag tag = cir.getReturnValue();
         tag.putInt("on_duty_worker", healerOnDuty);
