@@ -2,6 +2,7 @@ package com.arxyt.colonypathingedition.core.mixins.food;
 
 import com.arxyt.colonypathingedition.api.workersetting.BuildingCookExtra;
 import com.arxyt.colonypathingedition.core.config.PathingConfig;
+import com.arxyt.colonypathingedition.core.minecolonies.FoodUtilExtra;
 import com.minecolonies.api.colony.ICitizenData;
 import com.minecolonies.api.colony.IColony;
 import com.minecolonies.api.colony.buildings.IBuilding;
@@ -21,10 +22,14 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
+import net.minecraft.world.item.Item;
 import org.spongepowered.asm.mixin.*;
+import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Redirect;
 
 import java.util.Objects;
 
+import static com.arxyt.colonypathingedition.core.minecolonies.FoodUtilExtra.getRecalLocalScore;
 import static com.minecolonies.api.util.constant.CitizenConstants.FULL_SATURATION;
 import static com.minecolonies.api.util.constant.CitizenConstants.NIGHT;
 import static com.minecolonies.api.util.constant.Constants.SECONDS_A_MINUTE;
@@ -46,10 +51,25 @@ public abstract class EntityAIEatTaskMixin {
     @Shadow(remap = false) protected abstract boolean hasFood();
     @Shadow(remap = false) protected abstract void reset();
 
+    @Shadow(remap = false) private int foodSlot;
     @Unique private boolean forceEatAtHut = false;
     @Unique public int STOP_EATING_SATURATION = 18;
 
     @Unique private final double WAITING_MINUTES = PathingConfig.RESTAURANT_WAITING_TIME.get();
+
+    @Redirect(
+            method = "eat",
+            at = @At(value = "INVOKE", target = "Lcom/minecolonies/core/entity/ai/minimal/EntityAIEatTask;hasFood()Z"),
+            remap = false
+    )
+    private boolean hasFoodWithoutRestaurantCheck(EntityAIEatTask instance) {
+        final int slot = FoodUtilExtra.getBestFoodForCitizenWithRestaurantCheck(citizen.getInventoryCitizen(), citizen.getCitizenData(), restaurant == null ? null : restaurant.getModule(RESTAURANT_MENU).getMenu(),false);
+        if(slot != -1) {
+            foodSlot = slot;
+            return true;
+        }
+        return false;
+    }
 
     /**
      * @author ARxyt
@@ -73,22 +93,16 @@ public abstract class EntityAIEatTaskMixin {
         if ( forceEatAtHut || bestRestaurantPos == null || BlockPosUtil.dist(citizenPos,buildingPos) < BlockPosUtil.dist(citizenPos,bestRestaurantPos) || (citizenData.getJob() != null && JOBS_FORCE_EAT_AT_HUT.contains(citizenData.getJob().getClass()))){
             if (EntityNavigationUtils.walkToBuilding(citizen, buildingWorker))
             {
-                final ICitizenFoodHandler foodHandler = citizenData.getCitizenFoodHandler();
-                final ICitizenFoodHandler.CitizenFoodStats foodStats = foodHandler.getFoodHappinessStats();
-                final int diversityRequirement = FoodUtils.getMinFoodDiversityRequirement(citizenData.getHomeBuilding() == null ? 0 : citizenData.getHomeBuilding().getBuildingLevel());
-                final int qualityRequirement = FoodUtils.getMinFoodQualityRequirement(citizenData.getHomeBuilding() == null ? 0 : citizenData.getHomeBuilding().getBuildingLevel());
-                if( foodStats.diversity() > diversityRequirement && foodStats.quality() >= qualityRequirement || forceEatAtHut )
+                final ItemStorage storageToGet = FoodUtils.checkForFoodInBuilding(citizen.getCitizenData(), null, buildingWorker);
+                if (storageToGet != null)
                 {
-                    final ItemStorage storageToGet = FoodUtils.checkForFoodInBuilding(citizen.getCitizenData(), null, buildingWorker);
-                    if (storageToGet != null)
-                    {
+                    boolean niceFood = getRecalLocalScore(citizenData, storageToGet.getItem()) == Float.MIN_VALUE;
+                    if(niceFood || forceEatAtHut) {
                         int qty = ((int) ((FULL_SATURATION - citizen.getCitizenData().getSaturation()) / FoodUtils.getFoodValue(storageToGet.getItemStack(), citizen))) + 1;
                         InventoryUtils.transferItemStackIntoNextBestSlotInItemHandler(buildingWorker, storageToGet, qty, citizen.getInventoryCitizen());
-                        if(hasFood()){
-                            forceEatAtHut = false;
-                            restaurant = null;
-                            return EAT;
-                        }
+                        forceEatAtHut = false;
+                        restaurant = null;
+                        return EAT;
                     }
                 }
                 return SEARCH_RESTAURANT;

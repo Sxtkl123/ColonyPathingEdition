@@ -2,25 +2,33 @@ package com.arxyt.colonypathingedition.core.mixins.food;
 
 import com.arxyt.colonypathingedition.core.config.PathingConfig;
 import com.minecolonies.api.colony.ICitizenData;
+import com.minecolonies.api.colony.buildings.IBuilding;
 import com.minecolonies.api.crafting.ItemStorage;
 import com.minecolonies.api.entity.citizen.citizenhandlers.ICitizenFoodHandler;
 import com.minecolonies.api.inventory.InventoryCitizen;
 import com.minecolonies.api.items.IMinecoloniesFoodItem;
 import com.minecolonies.api.util.FoodUtils;
+import com.minecolonies.api.util.MathUtils;
+import com.minecolonies.api.util.WorldUtil;
 import com.minecolonies.core.colony.buildings.workerbuildings.BuildingCook;
+import com.minecolonies.core.tileentities.TileEntityRack;
+import net.minecraft.core.BlockPos;
 import net.minecraft.world.food.FoodProperties;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.fml.ModList;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.entity.BlockEntity;
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Overwrite;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-import javax.annotation.Nullable;
 import java.util.Set;
+
+import static com.arxyt.colonypathingedition.core.minecolonies.FoodUtilExtra.getBestFoodForCitizenWithRestaurantCheck;
+import static com.arxyt.colonypathingedition.core.minecolonies.FoodUtilExtra.getRecalLocalScore;
+import static com.minecolonies.api.util.FoodUtils.getBestFoodForCitizen;
 
 @Mixin(FoodUtils.class)
 public class FoodUtilsMixin {
@@ -39,43 +47,100 @@ public class FoodUtilsMixin {
      * @author ARxyt
      * @reason 和我修改目标出现冲突，取消在此处进行需要在餐厅进食的检测，这里只返回最好的食物。
      */
-    @Overwrite(remap = false)
-    public static int getBestFoodForCitizen(final InventoryCitizen inventoryCitizen, final ICitizenData citizenData, @Nullable final Set<ItemStorage> menu) {
+    @Inject(method = "getBestFoodForCitizen", at = @At("HEAD"), remap = false, cancellable = true)
+    private static void rewriteGetBestFoodForCitizen(InventoryCitizen inventoryCitizen, ICitizenData citizenData, Set<ItemStorage> menu, CallbackInfoReturnable<Integer> cir) {
+        cir.setReturnValue(getBestFoodForCitizenWithRestaurantCheck(inventoryCitizen, citizenData ,menu ,true));
+    }
+
+    /**
+     * @author ARxyt
+     * @reason 重置检测部分，更改为修改后的代码。
+     */
+    @Inject(method = "checkForFoodInBuilding", at = @At("HEAD"), remap = false, cancellable = true)
+    private static void rewriteCheckForFoodInBuilding(ICitizenData citizenData, Set<ItemStorage> menu, IBuilding building, CallbackInfoReturnable<ItemStorage> cir){
         // Smaller score is better.
-        int bestScore = Integer.MAX_VALUE;
-        int bestSlot = -1;
+        float bestScore = Integer.MAX_VALUE;
+        ItemStorage bestStorage = null;
 
-        final ICitizenFoodHandler foodHandler = citizenData.getCitizenFoodHandler();
-        final ICitizenFoodHandler.CitizenFoodStats foodStats = foodHandler.getFoodHappinessStats();
-        final int diversityRequirement = FoodUtils.getMinFoodDiversityRequirement(citizenData.getHomeBuilding() == null ? 0 : citizenData.getHomeBuilding().getBuildingLevelEquivalent());
-        final int qualityRequirement = FoodUtils.getMinFoodQualityRequirement(citizenData.getHomeBuilding() == null ? 0 : citizenData.getHomeBuilding().getBuildingLevelEquivalent());
-        for (int i = 0; i < inventoryCitizen.getSlots(); i++)
-        {
-            final ItemStorage invStack = new ItemStorage(inventoryCitizen.getStackInSlot(i));
-            if ((menu == null || menu.contains(invStack)) && FoodUtils.canEat(invStack.getItemStack(), citizenData.getHomeBuilding(), citizenData.getWorkBuilding()))
+        final Level world = building.getColony().getWorld();
+
+        for (final BlockPos pos : building.getContainers()) {
+            if (WorldUtil.isBlockLoaded(world, pos))
             {
-                final boolean isMinecolfood = invStack.getItem() instanceof IMinecoloniesFoodItem;
-                final int localScore = foodHandler.checkLastEaten(invStack.getItem()) * (isMinecolfood ? 1 : 2);
-                if (menu == null && foodHandler.getLastEaten() == invStack.getItem())
+                final BlockEntity entity = world.getBlockEntity(pos);
+                if (entity instanceof TileEntityRack rackEntity)
                 {
-                    continue;
-                }
-
-                // If the quality and diversity requirement would be fulfilled, already go ahead with this food. Don't need to check others.
-                if ((localScore < 0 && isMinecolfood)
-                        || (localScore < 0 && foodStats.quality() > qualityRequirement * 2)
-                        || (isMinecolfood && foodStats.diversity() > diversityRequirement * 2))
-                {
-                    return i;
-                }
-
-                if (localScore < bestScore)
-                {
-                    bestScore = localScore;
-                    bestSlot = i;
+                    for (final ItemStorage storage : rackEntity.getAllContent().keySet())
+                    {
+                        if ((menu == null || menu.contains(storage)) && FoodUtils.canEat(storage.getItemStack(), citizenData.getHomeBuilding(), citizenData.getWorkBuilding()))
+                        {
+                            final Item food = storage.getItem();
+                            final float localScore = getRecalLocalScore(citizenData, food);
+                            if (localScore == Float.MIN_VALUE){
+                                cir.setReturnValue(new ItemStorage(storage.getItemStack().copy()));
+                                return;
+                            }
+                            if (localScore < bestScore)
+                            {
+                                bestScore = localScore;
+                                bestStorage = storage;
+                            }
+                        }
+                    }
                 }
             }
         }
-        return bestSlot;
+        cir.setReturnValue(bestStorage == null ? null : new ItemStorage(bestStorage.getItemStack().copy()));
+    }
+
+    /**
+     * @author ARxyt
+     * @reason 重置检测部分，更改为修改后的代码。
+     */
+    @Inject(method = "hasBestOptionInInv", at = @At("HEAD"), remap = false, cancellable = true)
+    private static void hasBestOptionInInv(InventoryCitizen inventoryCitizen, ICitizenData citizenData, Set<ItemStorage> menu, IBuilding building, CallbackInfoReturnable<Boolean> cir)
+    {
+        final int invSlot = getBestFoodForCitizen(inventoryCitizen, citizenData, menu);
+        // Smaller score is better.
+        float bestScore = Integer.MAX_VALUE;
+        float bestInvScore = Integer.MAX_VALUE;
+        if (invSlot >= 0)
+        {
+            final ItemStack stack = inventoryCitizen.getStackInSlot(invSlot);
+            bestInvScore = getRecalLocalScore(citizenData, stack.getItem());
+            if(bestInvScore == Float.MIN_VALUE){
+                cir.setReturnValue(true);
+                return;
+            }
+        }
+
+        final Level world = building.getColony().getWorld();
+        for (final BlockPos pos : building.getContainers())
+        {
+            if (WorldUtil.isBlockLoaded(world, pos))
+            {
+                final BlockEntity entity = world.getBlockEntity(pos);
+                if (entity instanceof TileEntityRack rackEntity)
+                {
+                    for (final ItemStorage storage : rackEntity.getAllContent().keySet())
+                    {
+                        if ((menu == null || menu.contains(storage)) && FoodUtils.canEat(storage.getItemStack(), citizenData.getHomeBuilding(), citizenData.getWorkBuilding()))
+                        {
+                            final Item food = storage.getItem();
+                            final float localScore = getRecalLocalScore(citizenData, food);
+                            if (localScore == Float.MIN_VALUE){
+                                cir.setReturnValue(false);
+                                return;
+                            }
+                            if (localScore < bestScore)
+                            {
+                                bestScore = localScore;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        cir.setReturnValue(bestInvScore < bestScore);
     }
 }

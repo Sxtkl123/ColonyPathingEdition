@@ -1,4 +1,4 @@
-package com.arxyt.colonypathingedition.core.mixins.heal;
+package com.arxyt.colonypathingedition.core.mixins.healer;
 
 import com.arxyt.colonypathingedition.core.mixins.accessor.AbstractAISkeletonAccessor;
 import com.arxyt.colonypathingedition.core.mixins.accessor.AbstractEntityAIBasicAccessor;

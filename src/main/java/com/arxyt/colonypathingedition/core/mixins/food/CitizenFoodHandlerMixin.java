@@ -38,7 +38,7 @@ public class CitizenFoodHandlerMixin {
                 {
                     qualityFoodCounter += 0.5;
                 }
-                FoodProperties foodProperties=foodItem.getFoodProperties(new ItemStack(foodItem),null);
+                FoodProperties foodProperties = foodItem.getFoodProperties(new ItemStack(foodItem),null);
                 if(foodProperties != null){
                     qualityFoodCounter += foodProperties.getSaturationModifier();
                 }
@@ -49,7 +49,7 @@ public class CitizenFoodHandlerMixin {
                 {
                     diversityFoodCounter += 0.5;
                 }
-                FoodProperties foodProperties=foodItem.getFoodProperties(new ItemStack(foodItem),null);
+                FoodProperties foodProperties = foodItem.getFoodProperties(new ItemStack(foodItem),null);
                 if(foodProperties != null){
                     diversityFoodCounter += Math.max(foodProperties.getSaturationModifier() * 2.0f , 1.0f);
                 }

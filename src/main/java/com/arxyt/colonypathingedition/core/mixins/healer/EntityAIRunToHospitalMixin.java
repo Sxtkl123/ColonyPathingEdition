@@ -1,4 +1,4 @@
-package com.arxyt.colonypathingedition.core.mixins.heal;
+package com.arxyt.colonypathingedition.core.mixins.healer;
 
 import com.minecolonies.api.colony.IColony;
 import com.minecolonies.api.util.WorldUtil;

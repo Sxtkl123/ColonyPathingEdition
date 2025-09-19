@@ -27,12 +27,10 @@ import net.minecraft.world.InteractionHand;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.animal.Animal;
 import net.minecraft.world.entity.item.ItemEntity;
+import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.NotNull;
 import org.spongepowered.asm.mixin.*;
-import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.Constant;
-import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.ModifyConstant;
+import org.spongepowered.asm.mixin.injection.*;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import java.util.*;
@@ -41,6 +39,7 @@ import java.util.function.Predicate;
 import static com.arxyt.colonypathingedition.core.costants.states.HerderCheckState.*;
 import static com.minecolonies.api.entity.ai.statemachine.states.AIWorkerState.*;
 import static com.minecolonies.api.util.constant.Constants.TICKS_SECOND;
+import static com.minecolonies.api.util.constant.StatisticsConstants.BREEDING_ATTEMPTS;
 import static com.minecolonies.api.util.constant.StatisticsConstants.ITEM_USED;
 
 @Mixin(AbstractEntityAIHerder.class)
@@ -122,7 +121,7 @@ public abstract class AbstractEntityAIHerderMixin<J extends AbstractJob<?, J>, B
 
         if (breedTimeOut > 0)
         {
-            breedTimeOut -= DECIDING_DELAY;
+            breedTimeOut -= (int)Math.round(DECIDING_DELAY * (1 + getPrimarySkillLevel() / 40.0D));
         }
         if (pickupTimeOut > 0)
         {
@@ -339,7 +338,9 @@ public abstract class AbstractEntityAIHerderMixin<J extends AbstractJob<?, J>, B
             // Values taken from vanilla.
             worker.swing(InteractionHand.MAIN_HAND);
             StatsUtil.trackStatByName(building, ITEM_USED, worker.getMainHandItem().getItem().getDescriptionId(), 1);
-            worker.getMainHandItem().shrink(1);
+            if (worker.getRandom().nextDouble() > getPrimarySkillLevel() / 198.0D) {
+                worker.getMainHandItem().shrink(1);
+            }
             worker.getCitizenExperienceHandler().addExperience(XP_PER_ACTION);
             worker.level().broadcastEntityEvent(toFeed, (byte) 18);
             toFeed.playSound(SoundEvents.GENERIC_EAT, 1.0F, 1.0F);
@@ -353,4 +354,22 @@ public abstract class AbstractEntityAIHerderMixin<J extends AbstractJob<?, J>, B
         return getState();
     }
 
+    /**
+     * @author ARxyt
+     * @reason Do some change
+     */
+    @Redirect(
+            method = "breedTwoAnimals",
+            at = @At(
+                    value = "INVOKE",
+                    target = "Lnet/minecraft/world/item/ItemStack;shrink(I)V"
+            ),
+            remap = false
+    )
+    private void redirectShrink(ItemStack itemStack, int amount)
+    {
+        if (worker.getRandom().nextDouble() > getPrimarySkillLevel() / 198.0D) {
+            itemStack.shrink(amount);
+        }
+    }
 }

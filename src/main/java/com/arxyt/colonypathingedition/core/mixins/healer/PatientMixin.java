@@ -1,4 +1,4 @@
-package com.arxyt.colonypathingedition.core.mixins.heal;
+package com.arxyt.colonypathingedition.core.mixins.healer;
 
 import com.arxyt.colonypathingedition.api.PatientExtras;
 import com.minecolonies.core.entity.ai.workers.util.Patient;

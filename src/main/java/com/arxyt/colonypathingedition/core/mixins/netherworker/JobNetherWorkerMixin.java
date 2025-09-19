@@ -1,4 +1,4 @@
-package com.arxyt.colonypathingedition.core.mixins.netherwork;
+package com.arxyt.colonypathingedition.core.mixins.netherworker;
 
 import com.arxyt.colonypathingedition.api.JobNetherWorkerExtra;
 import com.minecolonies.core.colony.jobs.JobNetherWorker;

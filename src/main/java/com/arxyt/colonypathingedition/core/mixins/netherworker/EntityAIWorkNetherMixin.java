@@ -1,4 +1,4 @@
-package com.arxyt.colonypathingedition.core.mixins.netherwork;
+package com.arxyt.colonypathingedition.core.mixins.netherworker;
 
 import com.arxyt.colonypathingedition.api.AbstractEntityAIBasicExtra;
 import com.arxyt.colonypathingedition.api.JobNetherWorkerExtra;
@@ -19,7 +19,6 @@ import com.minecolonies.api.util.*;
 import com.minecolonies.core.MineColonies;
 import com.minecolonies.core.colony.buildings.modules.ExpeditionLogModule;
 import com.minecolonies.core.colony.buildings.modules.expedition.ExpeditionLog;
-import com.minecolonies.core.colony.buildings.workerbuildings.BuildingCook;
 import com.minecolonies.core.colony.buildings.workerbuildings.BuildingNetherWorker;
 import com.minecolonies.core.colony.jobs.JobNetherWorker;
 import com.minecolonies.core.entity.ai.workers.crafting.AbstractEntityAICrafting;
