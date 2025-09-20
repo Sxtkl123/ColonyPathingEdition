@@ -9,7 +9,6 @@ import com.minecolonies.api.colony.buildings.IBuilding;
 import com.minecolonies.api.colony.interactionhandling.ChatPriority;
 import com.minecolonies.api.colony.jobs.IJob;
 import com.minecolonies.api.crafting.ItemStorage;
-import com.minecolonies.api.entity.citizen.citizenhandlers.ICitizenFoodHandler;
 import com.minecolonies.api.util.*;
 import com.minecolonies.core.colony.buildings.workerbuildings.BuildingCook;
 import com.minecolonies.core.colony.interactionhandling.StandardInteraction;
@@ -22,13 +21,14 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
-import net.minecraft.world.item.Item;
 import org.spongepowered.asm.mixin.*;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Redirect;
 
 import java.util.Objects;
 
+import static com.arxyt.colonypathingedition.core.costants.AdditionalContants.JOBS_EAT_IMMEDIATELY;
+import static com.arxyt.colonypathingedition.core.costants.AdditionalContants.JOBS_FORCE_EAT_AT_HUT;
 import static com.arxyt.colonypathingedition.core.minecolonies.FoodUtilExtra.getRecalLocalScore;
 import static com.minecolonies.api.util.constant.CitizenConstants.FULL_SATURATION;
 import static com.minecolonies.api.util.constant.CitizenConstants.NIGHT;
@@ -37,7 +37,6 @@ import static com.minecolonies.api.util.constant.Constants.TICKS_SECOND;
 import static com.minecolonies.api.util.constant.TranslationConstants.NO_RESTAURANT;
 import static com.minecolonies.core.colony.buildings.modules.BuildingModules.RESTAURANT_MENU;
 import static com.minecolonies.core.entity.ai.minimal.EntityAIEatTask.EatingState.*;
-import static com.arxyt.colonypathingedition.core.costants.AdditionalContants.*;
 
 @Mixin(EntityAIEatTask.class)
 public abstract class EntityAIEatTaskMixin {
@@ -47,14 +46,13 @@ public abstract class EntityAIEatTaskMixin {
     @Shadow(remap = false) private BlockPos eatPos;
     @Shadow(remap = false) private int timeOutWalking;
     @Shadow(remap = false) private int waitingTicks;
+    @Shadow(remap = false) private int foodSlot;
 
     @Shadow(remap = false) protected abstract boolean hasFood();
     @Shadow(remap = false) protected abstract void reset();
 
-    @Shadow(remap = false) private int foodSlot;
     @Unique private boolean forceEatAtHut = false;
     @Unique public int STOP_EATING_SATURATION = 18;
-
     @Unique private final double WAITING_MINUTES = PathingConfig.RESTAURANT_WAITING_TIME.get();
 
     @Redirect(

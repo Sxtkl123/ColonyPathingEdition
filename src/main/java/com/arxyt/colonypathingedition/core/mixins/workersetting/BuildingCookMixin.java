@@ -12,7 +12,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 @Mixin(BuildingCook.class)
-public class BuildingCookForCustomerMixin implements BuildingCookExtra {
+public class BuildingCookMixin implements BuildingCookExtra {
     private final Queue<Integer> customerQueue = new ConcurrentLinkedQueue<>();
     private final Set<Integer> processingCustomers = ConcurrentHashMap.newKeySet();
 

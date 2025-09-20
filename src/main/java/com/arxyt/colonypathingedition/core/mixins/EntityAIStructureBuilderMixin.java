@@ -67,8 +67,8 @@ public abstract class EntityAIStructureBuilderMixin extends AbstractEntityAIStru
     @Unique
     private boolean formalist(final BlockPos currentBlock) {
         workFrom = currentBlock;
-        return walkWithProxy(workFrom, STANDARD_WORKING_RANGE)
-                || MathUtils.twoDimDistance(worker.blockPosition(), workFrom) < MIN_WORKING_RANGE;
+        walkWithProxy(workFrom, STANDARD_WORKING_RANGE);
+        return true;
     }
 
     /**
@@ -137,8 +137,12 @@ public abstract class EntityAIStructureBuilderMixin extends AbstractEntityAIStru
     @Unique
     private boolean gibbon(final BlockPos currentBlock) {
         workFrom = currentBlock;
-        walkWithProxy(workFrom, STANDARD_WORKING_RANGE);
-        return MathUtils.twoDimDistance(worker.blockPosition(), workFrom) < PathingConfig.BUILDER_GIBBON_RANGE.get();
+        boolean stopPathing = walkWithProxy(workFrom, STANDARD_WORKING_RANGE);
+        if(MathUtils.twoDimDistance(worker.blockPosition(), workFrom) < PathingConfig.BUILDER_GIBBON_RANGE.get()){
+            repathCounter = 0;
+            return true;
+        }
+        return stopPathing && ++repathCounter >= 3;
     }
 
     /**

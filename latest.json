@@ -1,11 +1,12 @@
 {
-  "latest_version": "1.0.4-ALPHA-4.1",
+  "latest_version": "1.0.4-BETA-4.2",
   "latest_stable_version": "1.0.3",
   "history_stable_version": [
     "1.0.3",
     "1.0.3-BETA-3.1"
   ],
   "history_unstable_version": [
+    "1.0.4-BETA-4.2",
     "1.0.4-ALPHA-4.1",
     "1.0.4-ALPHA-4",
     "1.0.4-ALPHA-3",
@@ -15,8 +16,8 @@
     "1.0.4-ALPHA-1"
   ],
   "latest_changelog": {
-    "zh_cn": "1.21.1 版本暂未更新，目前更新版本仅为 1.20.1 \n- **修复与 minecolonies_tweaks 的冲突问题**\n- **修复版本更新后因为代码翻新导致工位进食系统故障的问题**\n- 修改进食要求，现在市民会预测自己吃下当前食物后的状态栏，并保证自己维持在最优的食物条件下。\n- 牧民现在随等级增加会减少喂食的消耗，同时降低繁殖冷却。\n- 混凝土工人工作加速，随等级增加最高至18倍速，可与任务系统兼容。",
-    "en_us": "1.21.1 not yet updated (current release: 1.20.1)\n- Fixed conflict with minecolonies_tweaks\n- Fixed eating system bug after refactor\n- Citizens now eat more intelligently to stay optimal\n- Herdsmen consume less food & breed faster with level\n- Concrete mixers can speed up to maximum 18x with levels"
+    "zh_cn": "- 强化与修复混凝土工人，现在混凝土工人能够正常提供混凝土和混凝土粉末\n- 建筑工人/寻路bug修复",
+    "en_us": "- Improved efficiency of concrete worker and now they can correctly provide concrete and powder\n- Builder and pathfinding bug fixes"
   },
   "latest_stable_changelog": {
     "zh_cn": "测试修改了更新日志，如无必要可以不更新，这其实就是 1.0.3-BETA-3.1 测试结果相对稳定后发布的 release 版本",
