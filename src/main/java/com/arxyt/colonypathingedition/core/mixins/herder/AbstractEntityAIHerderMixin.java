@@ -112,7 +112,7 @@ public abstract class AbstractEntityAIHerderMixin<J extends AbstractJob<?, J>, B
 
     /**
      * @author ARxyt
-     * @reason 重新写一下计算顺序，太诡异了，所有的前置条件和状态转移做的非常奇怪。理应没有冲突，方便起见暂时使用 Overwrite.
+     * @reason Rewrite the calculation order — it’s too convoluted. All the preconditions and state transitions are handled in a very strange way. There should be no conflicts, so for convenience, temporarily use @Overwrite.
      */
     @Overwrite(remap = false)
     public IAIState decideWhatToDo()
@@ -193,25 +193,22 @@ public abstract class AbstractEntityAIHerderMixin<J extends AbstractJob<?, J>, B
 
     /**
      * @author ARxyt
-     * @reason 写的太狗屎，重构一下
+     * @reason Several changes on butcher chance.
      */
     @Overwrite(remap = false)
     public double chanceToButcher(final List<? extends Animal> allAnimals)
     {
-        // 用幂运算替代原先的乘法
+        // Optional max animals
         int maxAnimals = (int) Math.pow(getMaxAnimalMultiplier(),building.getBuildingLevel()) + 2;
+
         int minAnimals = getMaxAnimalMultiplier() * building.getBuildingLevel() + 1;
+
+        // Optional max animals
         if (!isMaxAnimalChange){
             maxAnimals = minAnimals + 1;
         }
-        // 如果没开启繁殖设置，且动物总数未超过上限，则不屠宰
-        if (!building.getSetting(AbstractBuilding.BREEDING).getValue()
-                && allAnimals.size() <= maxAnimals)
-        {
-            return 0;
-        }
 
-        // 统计所有成年动物
+        // Count all adult animals
         int grownUp = 0;
         for (Animal animal : allAnimals)
         {
@@ -221,7 +218,7 @@ public abstract class AbstractEntityAIHerderMixin<J extends AbstractJob<?, J>, B
             }
         }
 
-        // 成年动物太少时不屠宰
+        // Not butcher if the number of adults is too low
         if (grownUp <= minAnimals)
         {
             return 0;
@@ -232,7 +229,7 @@ public abstract class AbstractEntityAIHerderMixin<J extends AbstractJob<?, J>, B
 
     /**
      * @author ARxyt
-     * @reason 屠宰的检测/击杀方式/寻路要求改变，理应没有冲突，方便起见暂时使用 Overwrite.
+     * @reason The detection, killing method, and pathfinding requirements for butcher have changed. There should be no conflicts, so for convenience, temporarily use @Overwrite.
      */
     @Overwrite(remap = false)
     protected IAIState butcherAnimals() {
@@ -291,7 +288,7 @@ public abstract class AbstractEntityAIHerderMixin<J extends AbstractJob<?, J>, B
 
     /**
      * @author ARxyt
-     * @reason 很多设置上的修改，理应没有冲突，方便起见暂时使用 Overwrite.
+     * @reason Not feed adult animals and additional growth for babies.
      */
     @Overwrite(remap = false)
     protected IAIState feedAnimal() {

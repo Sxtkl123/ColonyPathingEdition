@@ -70,7 +70,7 @@ public abstract class EntityAIWorkLumberjackMixin extends AbstractEntityAICrafti
     }
 
     /**
-     * 在放置树苗前注入物品检查逻辑
+     * Slot merging / No saplings required
      */
     @Inject(method = "placeSaplings", at = @At("HEAD"), cancellable = true, remap = false)
     private void onPlaceSaplings(
@@ -81,15 +81,11 @@ public abstract class EntityAIWorkLumberjackMixin extends AbstractEntityAICrafti
     ) {
         Tree tree = job.getTree();
 
-        // 访问 getInventory() 方法（通过父类 Invoker）
         InventoryCitizen inventory = getInventory();
-
-        // 后续逻辑...
         assert tree != null;
         int required = tree.getStumpLocations().size();
         ItemStack targetSapling = tree.getSapling();
 
-        // 寻找第一个存放目标树苗的槽位作为主槽位
         int mainSaplingSlot = -1;
 
         for (int i = 0; i < inventory.getSlots(); i++)
@@ -102,7 +98,6 @@ public abstract class EntityAIWorkLumberjackMixin extends AbstractEntityAICrafti
             }
         }
 
-        // 没有找到任何树苗槽位，取消补种
         if (mainSaplingSlot == -1)
         {
             if(PathingConfig.LUMBERJACK_PLANT_WITHOUT_SAPLINGS.get() && worker.getInventoryCitizen().hasSpace()){
@@ -121,14 +116,12 @@ public abstract class EntityAIWorkLumberjackMixin extends AbstractEntityAICrafti
             }
         }
 
-        // 计算总需求并尝试合并
         ItemStack mainStack = inventory.getStackInSlot(mainSaplingSlot);
         int currentCount = mainStack.getCount();
         int needed = required - currentCount;
 
         if (needed > 0)
         {
-            // 遍历其他槽位转移树苗到主槽位
             for (int i = mainSaplingSlot + 1; i < inventory.getSlots(); i++)
             {
                 ItemStack stackInSlot = inventory.getStackInSlot(i);
@@ -143,19 +136,18 @@ public abstract class EntityAIWorkLumberjackMixin extends AbstractEntityAICrafti
                 }
             }
 
-            // 最终检查数量是否足够
             if (mainStack.getCount() < required)
             {
                 if(PathingConfig.LUMBERJACK_PLANT_WITHOUT_SAPLINGS.get()){
                     inventory.getStackInSlot(mainSaplingSlot).setCount(required);
                 }
-                ci.cancel(); // 合并后仍然不足
+                ci.cancel();
             }
         }
     }
 
     /**
-     * 存储当前树木位置
+     * Store tree pos
      */
     @Inject(method = "findTrees", at = @At("RETURN"), remap = false)
     private void storeTrees(CallbackInfoReturnable<IAIState> cir){
@@ -168,7 +160,7 @@ public abstract class EntityAIWorkLumberjackMixin extends AbstractEntityAICrafti
 
     /**
      * @author ARxyt
-     * @reason 因为状态转移设计有问题只能重写
+     * @reason Remaster design of state transition
      */
     @Overwrite(remap = false)
     private IAIState gathering(){
@@ -221,7 +213,7 @@ public abstract class EntityAIWorkLumberjackMixin extends AbstractEntityAICrafti
     }
 
     /**
-     * 直接把物品传送到脚下，便捷且拾取率高
+     * Optional: teleport items to lumberjack's feet pos.
     */
     @Unique
     public void finalizeGatherIstantly(){
@@ -239,7 +231,7 @@ public abstract class EntityAIWorkLumberjackMixin extends AbstractEntityAICrafti
     }
 
     /**
-     * 看起来更像在收集的样子，而不是愣住
+     * Optional: break leaves for items on trees.
      */
     @Unique
     public boolean finalizeGatherByBreakingLeaves(){
@@ -278,6 +270,9 @@ public abstract class EntityAIWorkLumberjackMixin extends AbstractEntityAICrafti
         return false;
     }
 
+    /**
+     * Remaster design
+     */
     @Override
     public void gatherItems()
     {
@@ -322,6 +317,9 @@ public abstract class EntityAIWorkLumberjackMixin extends AbstractEntityAICrafti
         }
     }
 
+    /**
+     * Check drops before start working.
+     */
     @Inject(method = "prepareForWoodcutting", at = @At("RETURN"), remap = false, cancellable = true)
     private void remasterPrepareOrderForWoodcutting(CallbackInfoReturnable<IAIState> cir){
         if(cir.getReturnValue() == LUMBERJACK_SEARCHING_TREE ){

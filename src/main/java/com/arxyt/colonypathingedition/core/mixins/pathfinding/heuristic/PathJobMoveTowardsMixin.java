@@ -30,7 +30,7 @@ public abstract class PathJobMoveTowardsMixin implements AbstractPathJobAccessor
 
     /**
      * @author ARxyt
-     * @reason 修改一下
+     * @reason Slight change.
      */
     @Overwrite(remap = false)
     protected boolean isAtDestination(@NotNull final MNode n)

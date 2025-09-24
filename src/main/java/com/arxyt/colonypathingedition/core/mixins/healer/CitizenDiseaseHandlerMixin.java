@@ -41,7 +41,7 @@ public abstract class CitizenDiseaseHandlerMixin implements ICitizenDiseaseHandl
 
     /**
      * @author ARxyt
-     * @reason 加入生病逻辑判断
+     * @reason Count sickTime
      */
     @Overwrite(remap = false)
     public void write(final CompoundTag compound)
@@ -61,7 +61,7 @@ public abstract class CitizenDiseaseHandlerMixin implements ICitizenDiseaseHandl
 
     /**
      * @author ARxyt
-     * @reason 加入生病逻辑判断
+     * @reason Count sickTime
      */
     @Overwrite(remap = false)
     public void read(final CompoundTag compound)
@@ -83,7 +83,7 @@ public abstract class CitizenDiseaseHandlerMixin implements ICitizenDiseaseHandl
 
     /**
      * @author ARxyt
-     * @reason 加入生病逻辑判断
+     * @reason Count sickTime
      */
     @Overwrite(remap = false)
     public boolean setDisease(final @Nullable Disease disease)
@@ -97,7 +97,10 @@ public abstract class CitizenDiseaseHandlerMixin implements ICitizenDiseaseHandl
         return false;
     }
 
-    /** 将生病时间统计放在疾病监测事件中 */
+    /**
+     * @author ARxyt
+     * @reason Count sickTime
+     */
     @Inject(method = "update", at= @At("RETURN") ,remap = false)
     public void afterUpdate(final int tickRate, CallbackInfo cir){
         if ( isSick() ){
@@ -116,7 +119,7 @@ public abstract class CitizenDiseaseHandlerMixin implements ICitizenDiseaseHandl
 
     /**
      * @author ARxyt
-     * @reason 重写一下hurt判定
+     * @reason Remaster isHurt() for wounded citizens.
      */
     @Overwrite(remap = false)
     public boolean isHurt()

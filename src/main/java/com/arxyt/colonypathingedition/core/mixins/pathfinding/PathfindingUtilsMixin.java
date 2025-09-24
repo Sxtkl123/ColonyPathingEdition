@@ -27,7 +27,6 @@ public abstract class PathfindingUtilsMixin {
 
     @Invoker(value = "canStandInSolidBlock",remap = false)
     static boolean callCanStandInSolidBlock(BlockState state) {
-        // 永远不会被执行，Mixin会在运行时替换
         throw new AssertionError();
     }
 

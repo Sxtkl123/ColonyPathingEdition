@@ -30,7 +30,7 @@ public abstract class AbstractEntityAIGuardMixinForFleeAndRegen implements Abstr
 
     /**
      * @author ARxyt
-     * @reason 修改逃跑的目标地点
+     * @reason Change target to flee.
      */
     @Overwrite(remap = false)
     private IAIState flee()
@@ -69,7 +69,7 @@ public abstract class AbstractEntityAIGuardMixinForFleeAndRegen implements Abstr
 
     /**
      * @author ARxyt
-     * @reason 修改进入START_WORKING的条件和一系列生命回复条件
+     * @reason Change methods to regen.
      */
     @Overwrite(remap = false)
     private IAIState regen()

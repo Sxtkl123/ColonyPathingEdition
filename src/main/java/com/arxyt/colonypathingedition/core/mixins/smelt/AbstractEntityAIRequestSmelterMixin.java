@@ -125,7 +125,7 @@ public abstract class AbstractEntityAIRequestSmelterMixin<AI extends AbstractEnt
 
     /**
      * @author ARxyt
-     * @reason 工人分开计算
+     * @reason Workers calculated separately
      */
     @Overwrite(remap = false)
     protected int getExtendedCount(final ItemStack stack)
@@ -191,7 +191,7 @@ public abstract class AbstractEntityAIRequestSmelterMixin<AI extends AbstractEnt
     }
     /**
      * @author ARxyt
-     * @reason 加强加速幅度，增加燃烧时长的同时降低servertick调用量。
+     * @reason Boost acceleration, extend burn duration, and reduce serverTick() usage.
      */
     @Overwrite(remap = false)
     private boolean accelerateFurnaces()
@@ -225,7 +225,7 @@ public abstract class AbstractEntityAIRequestSmelterMixin<AI extends AbstractEnt
 
     /**
      * @author ARxyt
-     * @reason 重写计算部分，使得每个村民使用的熔炉分开计算
+     * @reason Remastered，Workers calculated separately.
      */
     @Overwrite(remap = false)
     private int countOfBurningFurnaces()
@@ -251,7 +251,7 @@ public abstract class AbstractEntityAIRequestSmelterMixin<AI extends AbstractEnt
 
     /**
      * @author ARxyt
-     * @reason 拿取时尝试直接给予熔炉占用者，没有占用者时再尝试直接拿取。
+     * @reason When picking up, first attempt to give directly to the furnace occupant; if there is no occupant, then attempt to pick up directly.
      */
     @Overwrite(remap = false)
     private void extractFromFurnaceSlot(final FurnaceBlockEntity furnace, final int slot)
@@ -312,7 +312,7 @@ public abstract class AbstractEntityAIRequestSmelterMixin<AI extends AbstractEnt
 
     /**
      * @author ARxyt
-     * @reason 涉及替取后的结果检测，此时 walkTo 为 null，需要大量修改代码。
+     * @reason Involves result checking after replacement pickup; at this point walkTo is null, requiring extensive code modifications.
      */
     @Overwrite(remap = false)
     private IAIState retrieveSmeltableFromFurnace() {
@@ -377,12 +377,11 @@ public abstract class AbstractEntityAIRequestSmelterMixin<AI extends AbstractEnt
 
     /**
      * @author ARxyt
-     * @reason 涉及分发策略/熔炉使用策略的修改以及熔炉占用策略的补充。
+     * @reason Involves modifications to the distribution strategy / furnace usage strategy, as well as additions to the furnace occupation strategy.
      */
     @Overwrite(remap = false)
     private IAIState fillUpFurnace()
     {
-        //Log.getLogger().debug(" {} now in fillUpFurnace", getWorker().getName().getString());
         final FurnaceUserModule module = building.getFirstModuleOccurance(FurnaceUserModule.class);
         if (module.getFurnaces().isEmpty())
         {
@@ -391,7 +390,6 @@ public abstract class AbstractEntityAIRequestSmelterMixin<AI extends AbstractEnt
                 getWorker().getCitizenData().triggerInteraction(new StandardInteraction(Component.translatable(BAKER_HAS_NO_FURNACES_MESSAGE), ChatPriority.BLOCKING));
             }
             invokeSetDelay(STANDARD_DELAY);
-            //Log.getLogger().debug(" {} not a furnace in fillUpFurnace", getWorker().getName().getString());
             return START_WORKING;
         }
 
@@ -399,7 +397,6 @@ public abstract class AbstractEntityAIRequestSmelterMixin<AI extends AbstractEnt
         {
             walkTo = null;
             invokeSetDelay(STANDARD_DELAY);
-            //Log.getLogger().debug(" {} wrong walkTo in fillUpFurnace", getWorker().getName().getString());
             return START_WORKING;
         }
 
@@ -409,7 +406,6 @@ public abstract class AbstractEntityAIRequestSmelterMixin<AI extends AbstractEnt
         {
             if(!isFurnaceNotOccupied(furnace) && !isFurnaceCanReoccupied(furnace))
             {
-                //Log.getLogger().debug(" {} furnace is occupied in fillUpFurnace", getWorker().getName().getString());
                 return START_WORKING;
             }
             final int maxFurnaces = getMaxUsableFurnaces();
@@ -424,7 +420,6 @@ public abstract class AbstractEntityAIRequestSmelterMixin<AI extends AbstractEnt
 
             if (targetCount <= 0)
             {
-                //Log.getLogger().debug(" {} wrong target count :{} in fillUpFurnace", getWorker().getName().getString(),targetCount);
                 if(smeltableInFurnaces + resultInFurnaces == 0){
                     walkTo = null;
                     checkRecipeFinish = true;
@@ -466,7 +461,6 @@ public abstract class AbstractEntityAIRequestSmelterMixin<AI extends AbstractEnt
                     if (toTransfer > 0) {
                         setFurnaceOccupy(furnace,getWorker().getCivilianID());
                         if (!invokeWalkToSafePos(walkTo)) {
-                            //Log.getLogger().debug(" {} pathing in fillUpFurnace", getWorker().getName().getString());
                             return invokeGetState();
                         }
                         CitizenItemUtils.hitBlockWithToolInHand(getWorker(), walkTo);
@@ -491,11 +485,9 @@ public abstract class AbstractEntityAIRequestSmelterMixin<AI extends AbstractEnt
             }
             else
             {
-                //This is a safety net for the AI getting way out of sync with it's tracking. It shouldn't happen.
                 getJob().finishRequest(false);
                 invokeResetValues();
                 walkTo = null;
-                //Log.getLogger().debug(" {} went wrong place in fillUpFurnace", getWorker().getName().getString());
                 return IDLE;
             }
         }
@@ -505,24 +497,21 @@ public abstract class AbstractEntityAIRequestSmelterMixin<AI extends AbstractEnt
         }
         walkTo = null;
         invokeSetDelay(STANDARD_DELAY);
-        //Log.getLogger().debug(" {} success? |{}| in fillUpFurnace", getWorker().getName().getString(),success);
         return START_WORKING;
     }
 
     /**
      * @author ARxyt
-     * @reason 目前只是修改了进入的判定条件。
+     * @reason Currently, only the entry conditions have been modified.
      */
     @Overwrite(remap = false)
     private IAIState checkIfAbleToSmelt()
     {
-        //Log.getLogger().debug(" {} now in checkIfAbleToSmelt", getWorker().getName().getString());
         // We're fully committed currently, try again later.
         final int burning = countOfBurningFurnaces();
         final int canUse = countOfUsableFurnaces();
         if (canUse == 0 || (burning > 0 && (burning >= getMaxUsableFurnaces() || (getJob().getCraftCounter() + getJob().getProgress()) >= getJob().getMaxCraftingCount())))
         {
-            //Log.getLogger().debug(" {} reach usage: {}, can use: {}", getWorker().getName().getString(), burning, canUse);
             if(canUse == 0){
                 walkTo = null;
                 checkRecipeFinish = true;
@@ -539,7 +528,6 @@ public abstract class AbstractEntityAIRequestSmelterMixin<AI extends AbstractEnt
 
             if (entity instanceof FurnaceBlockEntity furnace)
             {
-                //Log.getLogger().debug(" {} furnace state: smelt slot empty |{}|, furnace occupied |{}|, furnace can reset |{}|", getWorker().getName().getString(),furnace.getItem(SMELTABLE_SLOT).isEmpty(),isFurnaceNotOccupied(furnace),isFurnaceCanReoccupied(furnace));
                 if (furnace.getItem(SMELTABLE_SLOT).isEmpty() && (isFurnaceNotOccupied(furnace) || isFurnaceCanReoccupied(furnace)))
                 {
                     randomFurnace = -1;
@@ -564,9 +552,7 @@ public abstract class AbstractEntityAIRequestSmelterMixin<AI extends AbstractEnt
             accelerateRandomFurnaces(module);
         }
 
-        //Log.getLogger().debug(" {} failed to get furnace", getWorker().getName().getString());
         return invokeGetState();
     }
-
 
 }

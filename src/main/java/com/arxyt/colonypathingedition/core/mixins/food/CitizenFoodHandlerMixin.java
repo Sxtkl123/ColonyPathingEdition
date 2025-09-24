@@ -24,6 +24,9 @@ public class CitizenFoodHandlerMixin {
     @Shadow(remap = false) private ICitizenFoodHandler.CitizenFoodStats foodStatCache;
     @Shadow(remap = false) private boolean dirty;
 
+    /**
+     * Remaster quality/diversity requirements.
+     */
     @Inject(remap = false,method ="getFoodHappinessStats" ,at = @At("HEAD"), cancellable = true)
     public void rewriteGetFoodHappinessStats(CallbackInfoReturnable<ICitizenFoodHandler.CitizenFoodStats> cir)
     {

@@ -26,7 +26,7 @@ public class CitizenManagerMixin {
 
     /**
      * @author ARxyt
-     * @reason 做一点优化处理
+     * @reason Optimize.
      */
     @Overwrite(remap = false)
     public void onCitizenSleep()

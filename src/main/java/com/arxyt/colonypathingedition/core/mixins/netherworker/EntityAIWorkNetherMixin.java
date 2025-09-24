@@ -73,7 +73,8 @@ public abstract class EntityAIWorkNetherMixin extends AbstractEntityAICrafting<J
     @Final @Shadow(remap = false) private static float SECONDARY_DAMAGE_REDUCTION;
     @Final @Shadow(remap = false) List<ItemStack> netherEdible;
 
-    int timeOutCounter = 0;
+    @Unique int timeOutCounter = 0;
+    @Unique boolean hasEaten = false;
 
     public EntityAIWorkNetherMixin(@NotNull JobNetherWorker job) {
         super(job);
@@ -122,7 +123,7 @@ public abstract class EntityAIWorkNetherMixin extends AbstractEntityAICrafting<J
 
     /**
      * @author ARxyt
-     * @reason 重写算法，以求其能够正常穿装备/拿取食物前往下界。
+     * @reason Rewrite to ensure it can properly equip armor / pick up food before going to the Nether.
      */
     @Overwrite(remap = false)
     protected IAIState decide()
@@ -279,12 +280,10 @@ public abstract class EntityAIWorkNetherMixin extends AbstractEntityAICrafting<J
         return NETHER_LEAVE;
     }
 
-    @Unique boolean hasEaten = false;
-
     /**
      * Leave for the Nether by walking to the portal and going invisible.
      * @author ARxyt
-     * @reason 修改部分过长，故使用 Overwrite
+     * @reason Reset some data.
      */
     @Overwrite(remap = false)
     protected IAIState leaveForNether()
@@ -348,7 +347,7 @@ public abstract class EntityAIWorkNetherMixin extends AbstractEntityAICrafting<J
 
     /**
      * @author ARxyt
-     * @reason 重写回合制，
+     * @reason Rewrite combat with monster; add some extra travels，
      */
     @Overwrite(remap = false)
     protected IAIState stayInNether()
@@ -592,7 +591,7 @@ public abstract class EntityAIWorkNetherMixin extends AbstractEntityAICrafting<J
 
     /**
      * @author ARxyt
-     * @reason 要不要看看你在写什么?
+     * @reason WTF?
      */
     @Overwrite(remap = false)
     private List<ItemStack> getEdiblesList()

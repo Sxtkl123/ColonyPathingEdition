@@ -35,9 +35,6 @@ public abstract class AbstractEntityAIUsesFurnaceMixin implements AbstractAISkel
 
     @Shadow(remap = false) protected abstract void extractFromFurnace(final FurnaceBlockEntity furnace);
 
-    /**
-     * 原方法在向熔炉输入可熔炼物后调用，之后提取成品。
-     */
     @Inject(
             method = "fillUpFurnace",
             at = @At(
@@ -55,7 +52,7 @@ public abstract class AbstractEntityAIUsesFurnaceMixin implements AbstractAISkel
             BlockEntity entity = getWorld().getBlockEntity(getWalkTo());
             if (entity instanceof FurnaceBlockEntity furnace && !(ItemStackUtils.isEmpty(furnace.getItem(RESULT_SLOT))))
             {
-                // 提取已熔炼产物,防止卡炉
+                // Extract smelted products to prevent furnace blockage
                 extractFromFurnace(furnace);
             }
         }
@@ -63,7 +60,7 @@ public abstract class AbstractEntityAIUsesFurnaceMixin implements AbstractAISkel
 
     /**
      * @author ARxyt
-     * @reason 修改
+     * @reason Slightly changed.
      */
     @Overwrite(remap = false)
     protected BlockPos getPositionOfOvenToRetrieveFrom()
@@ -86,7 +83,7 @@ public abstract class AbstractEntityAIUsesFurnaceMixin implements AbstractAISkel
 
     /**
      * @author ARxyt
-     * @reason 加强加速幅度，增加燃烧时长的同时降低servertick调用量。
+     * @reason Boost acceleration, extend burn duration, and reduce serverTick() usage.
      */
     @Overwrite(remap = false)
     private IAIState accelerateFurnaces()

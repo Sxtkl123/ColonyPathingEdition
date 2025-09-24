@@ -42,7 +42,7 @@ abstract public class EntityAISickTaskMixin {
 
     /**
      * @author ARxyt
-     * @reason 降低要求，防止低血量村民暴毙
+     * @reason Look for heal modification.
      */
     @Overwrite(remap = false)
     private IState checkForCure()
@@ -76,7 +76,7 @@ abstract public class EntityAISickTaskMixin {
         return APPLY_CURE;
     }
 
-    // 预留位置，在仓库库存AI修正的时候会将此状态修改为清理背包的状态
+    // Reserved code
 //    /**
 //     * @author ARxyt
 //     * @reason
@@ -84,6 +84,10 @@ abstract public class EntityAISickTaskMixin {
 //    @Overwrite(remap = false)
 //    private IState goToHut()
 
+    /**
+     * @author ARxyt
+     * @reason Check if cured.
+     */
     @Inject(
             method = "wander",
             at = @At("RETURN"),
@@ -101,7 +105,7 @@ abstract public class EntityAISickTaskMixin {
 
     /**
      * @author ARxyt
-     * @reason 检查生病时间
+     * @reason Look for heal modification.
      */
     @Overwrite(remap = false)
     private IState searchHospital()
@@ -134,6 +138,10 @@ abstract public class EntityAISickTaskMixin {
         return GO_TO_HOSPITAL;
     }
 
+    /**
+     * @author ARxyt
+     * @reason Check if cured.
+     */
     @Inject(
             method = "goToHospital",
             at = @At("HEAD"),
@@ -149,7 +157,7 @@ abstract public class EntityAISickTaskMixin {
 
     /**
      * @author ARxyt
-     * @reason 降低要求，防止低血量村民暴毙
+     * @reason Look for heal modification.
      */
     @Overwrite(remap = false)
     private IState waitForCure()
@@ -237,5 +245,4 @@ abstract public class EntityAISickTaskMixin {
         guessDisease = null;
     }
 
-    // Math.max(PathingConfig.MAX_PERCENTAGE_HP_FOR_CURE.get() * citizen.getMaxHealth(), PathingConfig.MAX_HP_FOR_CURE.get());
 }

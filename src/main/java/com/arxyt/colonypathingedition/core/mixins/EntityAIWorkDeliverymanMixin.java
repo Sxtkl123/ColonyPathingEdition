@@ -16,10 +16,10 @@ import org.spongepowered.asm.mixin.injection.Redirect;
 
 @Mixin(EntityAIWorkDeliveryman.class)
 public abstract class EntityAIWorkDeliverymanMixin implements AbstractAISkeletonAccessor<JobDeliveryman>, AbstractEntityAIBasicAccessor<BuildingDeliveryman> {
-    // 提升单次运输容量
+
     /**
      * @author ARxyt
-     * @reason 略微加大一下可用slot数
+     * @reason Additional slot to use.
      */
     @Overwrite(remap = false)
     private boolean cannotHoldMoreItems() {
@@ -29,7 +29,10 @@ public abstract class EntityAIWorkDeliverymanMixin implements AbstractAISkeleton
         return InventoryUtils.getAmountOfStacksInItemHandler(getWorker().getInventoryCitizen()) > 2 + 5 * getBuilding().getBuildingLevel();
     }
 
-    // 增强并发任务处理能力
+    /**
+     * @author ARxyt
+     * @reason Additional quest to manage.
+     */
     @Redirect(
             method = "prepareDelivery",
             at = @At(
@@ -40,7 +43,6 @@ public abstract class EntityAIWorkDeliverymanMixin implements AbstractAISkeleton
             remap = false
     )
     private int redirectGetSecondarySkillLevel(EntityAIWorkDeliveryman instance) {
-        // 仅在 prepareDelivery() 中调用时生效
         final int originalSkillLevel = invokeGetSecondarySkillLevel();
         final int buildingLevel = getBuilding().getBuildingLevel();
         return  (2 * buildingLevel + (int)Math.sqrt(originalSkillLevel * 9));

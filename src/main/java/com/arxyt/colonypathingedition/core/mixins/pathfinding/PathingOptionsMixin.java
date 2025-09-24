@@ -14,7 +14,6 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
  */
 @Mixin(PathingOptions.class)
 public abstract class PathingOptionsMixin {
-    // Shadow 目标字段
     @Shadow(remap = false) public double railsExitCost;
     @Shadow(remap = false) public double swimCost;
     @Shadow(remap = false) public double onRailCost;
@@ -26,7 +25,6 @@ public abstract class PathingOptionsMixin {
     @Shadow(remap = false) public double walkInShapesCost;
     @Shadow(remap = false) public double divingCost;
 
-    // 在构造函数中注入，覆盖默认值
     @Inject(
             method = "<init>",
             at = @At("RETURN")

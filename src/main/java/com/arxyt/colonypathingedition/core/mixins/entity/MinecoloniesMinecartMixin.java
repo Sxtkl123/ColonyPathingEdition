@@ -29,6 +29,9 @@ public abstract class MinecoloniesMinecartMixin extends Minecart implements Abst
         super(type, world);
     }
 
+    /**
+     * Boost minecart speed.
+     */
     @Override
     public double getMaxSpeedWithRail() { //Non-default because getMaximumSpeed is protected
         if (!canUseRail()) return getMaxSpeed();
@@ -57,7 +60,7 @@ public abstract class MinecoloniesMinecartMixin extends Minecart implements Abst
 
     /**
      * @author ARxyt
-     * @reason 重新获取矿车在铁轨上的数据，预备同步 1.21 最新的矿车 tick 事件 (可以防止矿车脱轨的算法)
+     * @reason Get data if minecart is on rail, @Overwrite as preparation to adapt 1.21.1 codes for minecarts.
      */
     @Overwrite(remap = false)
     public void tick()

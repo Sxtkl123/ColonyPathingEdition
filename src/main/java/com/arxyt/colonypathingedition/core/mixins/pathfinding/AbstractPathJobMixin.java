@@ -3,22 +3,26 @@ package com.arxyt.colonypathingedition.core.mixins.pathfinding;
 import com.arxyt.colonypathingedition.api.IMNodeExtras;
 import com.arxyt.colonypathingedition.core.config.PathingConfig;
 import com.arxyt.colonypathingedition.core.mixins.accessor.AbstractAISkeletonAccessor;
-import com.ldtteam.domumornamentum.block.decorative.*;
+import com.ldtteam.domumornamentum.block.decorative.PanelBlock;
+import com.ldtteam.domumornamentum.block.decorative.PostBlock;
+import com.ldtteam.domumornamentum.block.decorative.ShingleBlock;
+import com.ldtteam.domumornamentum.block.decorative.ShingleSlabBlock;
 import com.ldtteam.structurize.blockentities.interfaces.IBlueprintDataProviderBE;
 import com.minecolonies.api.colony.buildings.workerbuildings.ITownHall;
 import com.minecolonies.api.colony.jobs.IJob;
 import com.minecolonies.api.entity.citizen.AbstractEntityCitizen;
 import com.minecolonies.api.util.Log;
 import com.minecolonies.api.util.ShapeUtil;
+import com.minecolonies.api.util.constant.ColonyConstants;
+import com.minecolonies.core.entity.pathfinding.MNode;
 import com.minecolonies.core.entity.pathfinding.PathfindingUtils;
 import com.minecolonies.core.entity.pathfinding.PathingOptions;
 import com.minecolonies.core.entity.pathfinding.SurfaceType;
 import com.minecolonies.core.entity.pathfinding.pathjobs.AbstractPathJob;
 import com.minecolonies.core.entity.pathfinding.world.CachingBlockLookup;
-import com.minecolonies.core.entity.pathfinding.MNode;
-import com.minecolonies.api.util.constant.ColonyConstants;
 import com.minecolonies.core.util.WorkerUtil;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
+import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.level.Level;
@@ -26,17 +30,20 @@ import net.minecraft.world.level.LevelReader;
 import net.minecraft.world.level.block.*;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.core.BlockPos;
-import net.minecraft.world.level.block.state.properties.*;
+import net.minecraft.world.level.block.state.properties.BlockStateProperties;
+import net.minecraft.world.level.block.state.properties.Half;
+import net.minecraft.world.level.block.state.properties.RailShape;
+import net.minecraft.world.level.block.state.properties.SlabType;
 import net.minecraft.world.level.pathfinder.Path;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.*;
 import org.spongepowered.asm.mixin.gen.Invoker;
-import org.spongepowered.asm.mixin.injection.*;
+import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
-import org.spongepowered.asm.mixin.injection.callback.LocalCapture;
 
 import java.util.List;
 import java.util.Map;
@@ -50,26 +57,62 @@ public abstract class AbstractPathJobMixin implements AbstractAISkeletonAccessor
 
     @Final @Shadow(remap = false) private Level actualWorld;
     @Final @Shadow(remap = false) public static int MAX_NODES;
+    @Final @Shadow(remap = false) private Int2ObjectOpenHashMap<MNode> nodes;
+    @Final @Shadow(remap = false) protected LevelReader world;
     @Shadow(remap = false) private PathingOptions pathingOptions;
     @Shadow(remap = false) protected CachingBlockLookup cachedBlockLookup;
     @Shadow(remap = false) protected BlockPos.MutableBlockPos tempWorldPos;
     @Shadow(remap = false) protected int maxNodes;
+    @Shadow(remap = false) private double maxCost;
+    @Shadow(remap = false) protected double heuristicMod;
+    @Shadow(remap = false) private int visitedLevel;
+    @Shadow(remap = false) private Queue<MNode> nodesToVisit;
 
     @Shadow(remap = false) protected abstract void recalcHeuristic(final MNode node);
+    @Shadow(remap = false) public abstract Mob getEntity();
+    @Shadow(remap = false) protected abstract boolean isPassable(int x, int y, int z, boolean head, MNode parent);
+    @Shadow(remap = false) public abstract PathingOptions getPathingOptions();
+    @Shadow(remap = false) protected abstract boolean canLeaveBlock(int x, int y, int z, int parentX, int parentY, int parentZ, boolean head);
 
-    @Unique protected int actualMaxNodes;
+    @Invoker(value="getGroundHeight",remap = false)
+    public abstract int invokeGetGroundHeight(final MNode node, final int x, final int y, final int z);
 
+    @Invoker(value="createNode",remap = false)
+    public abstract MNode invokeCreateNode(final MNode parent, final int x, final int y, final int z, final int nodeKey, final double heuristic, final double cost);
+
+    @Invoker(value="calculateSwimming",remap = false)
+    public abstract boolean invokeCalculateSwimming(final BlockState below, final BlockState state, final BlockState above, @Nullable final MNode node);
+
+    @Invoker(value="modifyCost",remap = false)
+    public abstract double invokeModifyCost(
+            final double cost,
+            final MNode parent,
+            final boolean swimstart,
+            final boolean swimming,
+            final int x,
+            final int y,
+            final int z,
+            final BlockState state, final BlockState below);
+
+    @Invoker(value="computeHeuristic",remap = false)
+    protected abstract double computeHeuristic(final int x, final int y, final int z);
+
+    @Unique final private int callbackTimesTolerance =  PathingConfig.CALLBACK_TIMES_TOLERANCE.get();
+    @Unique final private double onRailPreference = PathingConfig.ONRAIL_PREFERENCE.get();
+    @Unique final private double onRoadPreference = PathingConfig.ONROAD_PREFERENCE.get();
+    @Unique final private double onRailCallbackMultiplier = PathingConfig.ONRAIL_CALLBACK_MULTIPLIER.get();
+    @Unique final private double onRoadCallbackMultiplier = PathingConfig.ONRAIL_CALLBACK_MULTIPLIER.get();
     @Unique public double ladderSwitchCost = PathingConfig.LADDER_SWITCH_COST_DEFINER.get();
     @Unique public double shingleCost = PathingConfig.SHINGLE_COST_DEFINER.get();
     @Unique public double destroyingFarmlandCost = PathingConfig.FARMLAND_COST_DEFINER.get();
     @Unique public double leafCost = PathingConfig.LEAF_COST_DEFINER.get();
     @Unique public double sweetBerryCost = PathingConfig.WATER_COST_DEFINER.get();
+    @Unique private BlockEntity townhall;
+    @Unique protected int actualMaxNodes;
 
     /**
-     * 重写 computeCost 方法，修改游泳进入成本并添加自定义逻辑。
-     *
-     * @author YourName
-     * @reason 调整路径计算中的游泳成本
+     * @author ARxyt
+     * @reason Add some change reported in issue but rejected.
      */
     @Overwrite(remap = false)
     protected double computeCost(
@@ -208,7 +251,7 @@ public abstract class AbstractPathJobMixin implements AbstractAISkeletonAccessor
     }
 
     /**
-     * 在 search 方法头部插入：记录当前 maxNodes 到 savedMaxNodes
+     * Save maxNodes to savedMaxNodes
      */
     @Inject(
             method = "search",
@@ -223,8 +266,7 @@ public abstract class AbstractPathJobMixin implements AbstractAISkeletonAccessor
 
 
     /**
-     * 用 Redirect 拦截 recalcHeuristic(bestNode) 调用，
-     * 调用原方法后，bestNode 已被更新，我们可以在这里用它做计算。
+     * Change to maxNodes.
      */
     @Redirect(
             method = "search()Lnet/minecraft/world/level/pathfinder/Path;",
@@ -238,18 +280,14 @@ public abstract class AbstractPathJobMixin implements AbstractAISkeletonAccessor
     )
     private void onRecalcHeuristicAndThen1(AbstractPathJob instance, MNode bestNode)
     {
-        // 1) 先执行原来的 recalcHeuristic(bestNode)
         recalcHeuristic(bestNode);
-
-        // 2) 按 bestNode 的 heuristic 调整 maxNodes：
         double h = bestNode.getHeuristic();
         int extra = (int) Math.ceil(Math.sqrt(h) * 10);
         maxNodes = Math.max(Math.min(actualMaxNodes + extra , MAX_NODES),maxNodes);
     }
 
     /**
-     * 用 Redirect 拦截 recalcHeuristic(bestNode) 调用，
-     * 调用原方法后，bestNode 已被更新，我们可以在这里用它做计算。
+     * Change to maxNodes.
      */
     @Redirect(
             method = "search()Lnet/minecraft/world/level/pathfinder/Path;",
@@ -269,40 +307,6 @@ public abstract class AbstractPathJobMixin implements AbstractAISkeletonAccessor
         int extra = (int) Math.ceil(Math.sqrt(h) * 10);
         maxNodes = Math.max(Math.min(actualMaxNodes + extra , MAX_NODES),maxNodes);
     }
-
-    @Shadow(remap = false) private double maxCost;
-    @Shadow(remap = false) protected double heuristicMod;
-    @Final @Shadow(remap = false) private Int2ObjectOpenHashMap<MNode> nodes;
-    @Final @Shadow(remap = false) protected LevelReader world;
-
-    @Shadow(remap = false) protected abstract boolean isPassable(int x, int y, int z, boolean head, MNode parent);
-
-    @Shadow(remap = false) public abstract PathingOptions getPathingOptions();
-
-    @Shadow(remap = false) protected abstract boolean canLeaveBlock(int x, int y, int z, int parentX, int parentY, int parentZ, boolean head);
-
-    @Invoker(value="getGroundHeight",remap = false)
-    public abstract int invokeGetGroundHeight(final MNode node, final int x, final int y, final int z);
-
-    @Invoker(value="createNode",remap = false)
-    public abstract MNode invokeCreateNode(final MNode parent, final int x, final int y, final int z, final int nodeKey, final double heuristic, final double cost);
-
-    @Invoker(value="calculateSwimming",remap = false)
-    public abstract boolean invokeCalculateSwimming(final BlockState below, final BlockState state, final BlockState above, @Nullable final MNode node);
-
-    @Invoker(value="modifyCost",remap = false)
-    public abstract double invokeModifyCost(
-            final double cost,
-            final MNode parent,
-            final boolean swimstart,
-            final boolean swimming,
-            final int x,
-            final int y,
-            final int z,
-            final BlockState state, final BlockState below);
-
-    @Invoker(value="computeHeuristic",remap = false)
-    protected abstract double computeHeuristic(final int x, final int y, final int z);
 
     private int recheckGroundHeight(int x, int y, int z){
         final BlockState state = cachedBlockLookup.getBlockState(x, y , z);
@@ -426,7 +430,7 @@ public abstract class AbstractPathJobMixin implements AbstractAISkeletonAccessor
 
     /**
      * @author ARxyt
-     * @reason 重构代码，取消corner链接，使用统一规则缩减代码量，同时de奇怪的bug
+     * @reason Delete corner node, rewrite corner check method.
      */
     @Overwrite( remap = false)
     protected final void exploreInDirection(final MNode node, int dX, int dY, int dZ) {
@@ -593,13 +597,8 @@ public abstract class AbstractPathJobMixin implements AbstractAISkeletonAccessor
         return nextNode;
     }
 
-    final private double onRailPreference = PathingConfig.ONRAIL_PREFERENCE.get();
-    final private double onRoadPreference = PathingConfig.ONROAD_PREFERENCE.get();
-    final private double onRailCallbackMultiplier = PathingConfig.ONRAIL_CALLBACK_MULTIPLIER.get();
-    final private double onRoadCallbackMultiplier = PathingConfig.ONRAIL_CALLBACK_MULTIPLIER.get();
-
     /**
-     * 启发值修正函数，根据 node、onRoad、onRails 做“绕路豁免”或其他调整。
+     * Heuristic correction function, making “detour exemptions” or other adjustments based on node, onRoad, and onRails.
      */
     private double modifyHeuristic(MNode node, MNode nextNode, double heuristic, boolean onRoad, boolean onRails)
     {
@@ -629,13 +628,6 @@ public abstract class AbstractPathJobMixin implements AbstractAISkeletonAccessor
         return newHeuristic;
     }
 
-    final private int callbackTimesTolerance =  PathingConfig.CALLBACK_TIMES_TOLERANCE.get();
-
-    @Shadow(remap = false) private int visitedLevel;
-    @Shadow(remap = false) private Queue<MNode> nodesToVisit;
-
-    @Shadow(remap = false) public abstract Mob getEntity();
-
     private void updateNode(@NotNull final MNode node, @NotNull final MNode nextNode, final double heuristic, final double cost, boolean onRails)
     {
         IMNodeExtras extras = (IMNodeExtras) node;
@@ -664,8 +656,7 @@ public abstract class AbstractPathJobMixin implements AbstractAISkeletonAccessor
         nodesToVisit.offer(nextNode);
     }
 
-    @Unique
-    private BlockEntity townhall;
+
 
     @Inject(method = "<init>*", at = @At("RETURN"))
     private void onConstructorReturn(CallbackInfo ci) {

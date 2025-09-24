@@ -23,6 +23,8 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.network.PacketDistributor;
 import org.jetbrains.annotations.NotNull;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.gen.Invoker;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -33,12 +35,36 @@ import static com.minecolonies.api.util.constant.CitizenConstants.BLOCK_BREAK_SO
 
 
 @Mixin(EntityAIWorkFarmer.class)
-public abstract class EntityAIWorkFarmerMixin implements AbstractAISkeletonAccessor<JobFarmer>, AbstractEntityAIBasicAccessor<AbstractBuilding>{
-    @Invoker(value="getSurfacePos",remap = false)
-    public abstract BlockPos invokeGetSurfacePos(final BlockPos position);
+public abstract class EntityAIWorkFarmerMixin implements AbstractAISkeletonAccessor<JobFarmer>, AbstractEntityAIBasicAccessor<AbstractBuilding> {
+
+    @Shadow(remap = false) protected abstract BlockPos getSurfacePos(final BlockPos position);
+    @Shadow(remap = false) protected abstract boolean isCompost(final ItemStack itemStack);
 
     /**
-     * 跳过对水稻的锄地操作
+     * Methods to clarify special seed by Tags
+     */
+    @Unique private static boolean isUnderWater(@NotNull ItemStack stack) {
+        return stack.is(ModTag.SEEDS_UNDERWATER);
+    }
+    @Unique private static boolean isNoFarmland(@NotNull ItemStack stack) {
+        return stack.is(ModTag.SEEDS_NOFARMLAND);   //目前暂未对相关内容进行处理，预计过几个版本后会尝试完成对浆果类的作物的适配。
+    }
+
+    /**
+     * Bonemeal target check with fewer param
+     */
+    @Unique private boolean isBoneMealAble(BlockPos position,BonemealableBlock bonemealable) {
+        BlockState state = getWorld().getBlockState(position);
+        return bonemealable.isValidBonemealTarget(
+                getWorld(),
+                position,
+                state,
+                false // pIsClient 应为 false（服务端逻辑）
+        );
+    }
+
+    /**
+     * Skip hoeing if seeds plant directly on dirt.
      */
     @Inject(
             method = "findHoeableSurface",
@@ -55,7 +81,22 @@ public abstract class EntityAIWorkFarmerMixin implements AbstractAISkeletonAcces
     }
 
     /**
-     * 修改耕地类型验证逻辑：水稻需要水方块种植
+     * Skip creating farmland if seeds plant directly on dirt.
+     */
+    @Inject(
+            method = "createCorrectFarmlandForSeed",
+            at = @At("HEAD"),
+            cancellable = true,
+            remap = false
+    )
+    private void onCreateFarmland(ItemStack seed, BlockPos pos, CallbackInfo ci) {
+        if (isUnderWater(seed)||isNoFarmland(seed)) {
+            ci.cancel(); // 跳过原方法（不创建耕地）
+        }
+    }
+
+    /**
+     * Add special check for special seeds.
      */
     @Inject(
             method = "isRightFarmLandForCrop",
@@ -79,7 +120,7 @@ public abstract class EntityAIWorkFarmerMixin implements AbstractAISkeletonAcces
     }
 
     /**
-     * 修改种植位置检查：水稻需要一格深水
+     * Add special check for special seeds.
      */
     @Inject(
             method = "findPlantableSurface",
@@ -90,7 +131,7 @@ public abstract class EntityAIWorkFarmerMixin implements AbstractAISkeletonAcces
     private void onFindPlantableSurface(@NotNull BlockPos position, @NotNull FarmField farmField, CallbackInfoReturnable<BlockPos> cir) {
         ItemStack seed = farmField.getSeed();
         if (isUnderWater(seed)) {
-            position = invokeGetSurfacePos(position);
+            position = getSurfacePos(position);
             if (position == null
                     || (!getWorld().getBlockState(position).is(Blocks.WATER) && !(getWorld().getBlockState(position).getBlock() instanceof BushBlock))
             )
@@ -102,6 +143,9 @@ public abstract class EntityAIWorkFarmerMixin implements AbstractAISkeletonAcces
         }
     }
 
+    /**
+     * Special plant action for special seeds.
+     */
     @Inject(
             method = "plantCrop",
             at = @At("HEAD"),
@@ -135,9 +179,9 @@ public abstract class EntityAIWorkFarmerMixin implements AbstractAISkeletonAcces
         }
     }
 
-    @Invoker(value = "isCompost",remap = false)
-    public abstract boolean invokeIsCompost(final ItemStack itemStack);
-
+    /**
+     * Special harvest action for special seeds.
+     */
     @Inject(
             method = "findHarvestableSurface",
             at = @At(
@@ -153,21 +197,22 @@ public abstract class EntityAIWorkFarmerMixin implements AbstractAISkeletonAcces
         BlockState surfaceState = getWorld().getBlockState(position.above());
         Block surfaceBlock = surfaceState.getBlock();
         if (surfaceBlock instanceof BushBlock){
-            // 通过 BonemealableBlock 接口判断成熟状态
+            // Not valid bonemeal target means crops are mature.
             if (surfaceBlock instanceof BonemealableBlock bonemealable) {
                 Block upWaterBlock = getWorld().getBlockState(position.above().above()).getBlock();
                 if (!isBoneMealAble(position.above(),bonemealable)) {
-                    cir.setReturnValue(upWaterBlock instanceof BushBlock ? position.above() : position); //此处应该为position，目前这么设置是因为已知的水中种植的方块只有水稻，为了长得快些就只处理伸出水面的部分
+                    // harvest above for rice, reduce steps to grow.
+                    cir.setReturnValue(upWaterBlock instanceof BushBlock ? position.above() : position);
                     return;
                 }
-                final int amountOfCompostInInv = InventoryUtils.getItemCountInItemHandler(getWorker().getInventoryCitizen(), this::invokeIsCompost);
+                final int amountOfCompostInInv = InventoryUtils.getItemCountInItemHandler(getWorker().getInventoryCitizen(), this::isCompost);
                 if (amountOfCompostInInv == 0)
                 {
                     cir.setReturnValue(null);
                     return;
                 }
 
-                if (InventoryUtils.shrinkItemCountInItemHandler(getWorker().getInventoryCitizen(), this::invokeIsCompost))
+                if (InventoryUtils.shrinkItemCountInItemHandler(getWorker().getInventoryCitizen(), this::isCompost))
                 {
                     Network.getNetwork().sendToPosition(new CompostParticleMessage(position.above()),
                             new PacketDistributor.TargetPoint(position.getX(), position.getY(), position.getZ(), BLOCK_BREAK_SOUND_RANGE, getWorld().dimension()));
@@ -180,50 +225,12 @@ public abstract class EntityAIWorkFarmerMixin implements AbstractAISkeletonAcces
                         return;
                     }
                     bonemealable = (BonemealableBlock) surfaceBlock;
-                    cir.setReturnValue(isBoneMealAble(position.above(),bonemealable) ? null : upWaterBlock instanceof BushBlock ? position.above() : position); //此处应该为position，目前这么设置是因为已知的水中种植的方块只有水稻，为了长得快些就只处理伸出水面的部分
+                    // harvest above for rice, reduce steps to grow.
+                    cir.setReturnValue(isBoneMealAble(position.above(),bonemealable) ? null : upWaterBlock instanceof BushBlock ? position.above() : position);
                     return;
                 }
             }
             cir.setReturnValue(null);
         }
-    }
-
-    /**
-     * 水稻无需创建耕地，直接种植
-     */
-    @Inject(
-            method = "createCorrectFarmlandForSeed",
-            at = @At("HEAD"),
-            cancellable = true,
-            remap = false
-    )
-    private void onCreateFarmland(ItemStack seed, BlockPos pos, CallbackInfo ci) {
-        if (isUnderWater(seed)||isNoFarmland(seed)) {
-            ci.cancel(); // 跳过原方法（不创建耕地）
-        }
-    }
-
-    // ================================== 工具方法 ================================== //
-
-    /**
-     * 判断是否为特殊处理种子（通过 Tag）
-     */
-    private static boolean isUnderWater(@NotNull ItemStack stack) {
-        return stack.is(ModTag.SEEDS_UNDERWATER);
-    }
-    private static boolean isNoFarmland(@NotNull ItemStack stack) {
-        return stack.is(ModTag.SEEDS_NOFARMLAND);   //目前暂未对相关内容进行处理，预计过几个版本后会尝试完成对浆果类的作物的适配。
-    }
-    /**
-     * 一个方便的调用是否可以使用骨粉来确定是否成熟的方法
-     */
-    private boolean isBoneMealAble(BlockPos position,BonemealableBlock bonemealable) {
-        BlockState state = getWorld().getBlockState(position);
-        return bonemealable.isValidBonemealTarget(
-                getWorld(),
-                position,
-                state,
-                false // pIsClient 应为 false（服务端逻辑）
-        );
     }
 }

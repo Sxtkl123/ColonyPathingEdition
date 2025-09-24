@@ -42,7 +42,7 @@ public class FoodUtilsMixin {
 
     /**
      * @author ARxyt
-     * @reason 和我修改目标出现冲突，取消在此处进行需要在餐厅进食的检测，这里只返回最好的食物。
+     * @reason Have conflicts with my modification, remastered。
      */
     @Inject(method = "getBestFoodForCitizen", at = @At("HEAD"), remap = false, cancellable = true)
     private static void rewriteGetBestFoodForCitizen(InventoryCitizen inventoryCitizen, ICitizenData citizenData, Set<ItemStorage> menu, CallbackInfoReturnable<Integer> cir) {
@@ -51,7 +51,7 @@ public class FoodUtilsMixin {
 
     /**
      * @author ARxyt
-     * @reason 重置检测部分，更改为修改后的代码。
+     * @reason Remaster prior。
      */
     @Inject(method = "checkForFoodInBuilding", at = @At("HEAD"), remap = false, cancellable = true)
     private static void rewriteCheckForFoodInBuilding(ICitizenData citizenData, Set<ItemStorage> menu, IBuilding building, CallbackInfoReturnable<ItemStorage> cir){
@@ -92,7 +92,7 @@ public class FoodUtilsMixin {
 
     /**
      * @author ARxyt
-     * @reason 重置检测部分，更改为修改后的代码。
+     * @reason Remaster prior。
      */
     @Inject(method = "hasBestOptionInInv", at = @At("HEAD"), remap = false, cancellable = true)
     private static void hasBestOptionInInv(InventoryCitizen inventoryCitizen, ICitizenData citizenData, Set<ItemStorage> menu, IBuilding building, CallbackInfoReturnable<Boolean> cir)

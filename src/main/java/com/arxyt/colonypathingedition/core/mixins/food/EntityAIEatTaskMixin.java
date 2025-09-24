@@ -55,6 +55,9 @@ public abstract class EntityAIEatTaskMixin {
     @Unique public int STOP_EATING_SATURATION = 18;
     @Unique private final double WAITING_MINUTES = PathingConfig.RESTAURANT_WAITING_TIME.get();
 
+    /**
+     * No more restrict check when start eating.
+     */
     @Redirect(
             method = "eat",
             at = @At(value = "INVOKE", target = "Lcom/minecolonies/core/entity/ai/minimal/EntityAIEatTask;hasFood()Z"),
@@ -71,7 +74,7 @@ public abstract class EntityAIEatTaskMixin {
 
     /**
      * @author ARxyt
-     * @reason 之前的问题比较多，而且暂时没有人修改AI，直接重写比较方便
+     * @reason Several changes on source code, @Overwrite is more convenient
      */
     @Overwrite(remap = false)
     private EntityAIEatTask.EatingState goToHut()
@@ -86,14 +89,17 @@ public abstract class EntityAIEatTaskMixin {
         final BlockPos bestRestaurantPos = colony.getBuildingManager().getBestBuilding(citizen, BuildingCook.class);
         final BlockPos citizenPos = citizen.blockPosition();
         final BlockPos buildingPos = buildingWorker.getPosition();
-        // 对不在小屋附近工作的村民来说，就近吃饭可能更方便，顺便也防止触发村民在工作地点和厨房来回跑的bug,这里跳过chef,因为chef一般来说可以在自己小屋吃饭
-        // 在餐厅一段时间后如果发现餐厅没有食物，会再次触发"Force Eat At Hut"状态，此时市民会无视丰富度和质量要求尝试在自己的工作岗位尝试食用一次食物，然后聚集回餐厅，并触发警告(警告暂时没做)
+        // For citizens working outside their work huts, maybe more efficient to eat nearby.
+        // Chefs should eat at their workplace more often, as they are producers of food.
         if ( forceEatAtHut || bestRestaurantPos == null || BlockPosUtil.dist(citizenPos,buildingPos) < BlockPosUtil.dist(citizenPos,bestRestaurantPos) || (citizenData.getJob() != null && JOBS_FORCE_EAT_AT_HUT.contains(citizenData.getJob().getClass()))){
             if (EntityNavigationUtils.walkToBuilding(citizen, buildingWorker))
             {
                 final ItemStorage storageToGet = FoodUtils.checkForFoodInBuilding(citizen.getCitizenData(), null, buildingWorker);
                 if (storageToGet != null)
                 {
+                    // When restaurants out of food, would trigger "Force Eat At Hut".
+                    // Worker would return to work hut to eat, regardless of food condition.
+                    // If there isn't food at hut, go back to restaurants to wait for player.
                     boolean niceFood = getRecalLocalScore(citizenData, storageToGet.getItem()) == Float.MIN_VALUE;
                     if(niceFood || forceEatAtHut) {
                         int qty = ((int) ((FULL_SATURATION - citizen.getCitizenData().getSaturation()) / FoodUtils.getFoodValue(storageToGet.getItemStack(), citizen))) + 1;
@@ -117,7 +123,7 @@ public abstract class EntityAIEatTaskMixin {
 
     /**
      * @author ARxyt
-     * @reason 之前的问题比较多，而且暂时没有人修改AI，直接重写比较方便
+     * @reason Several changes on source code, @Overwrite is more convenient
      */
     @Overwrite(remap = false)
     private EntityAIEatTask.EatingState searchRestaurant()
@@ -148,7 +154,7 @@ public abstract class EntityAIEatTaskMixin {
 
     /**
      * @author ARxyt
-     * @reason 之前的问题比较多，而且暂时没有人修改AI，直接重写比较方便
+     * @reason Several changes on source code, @Overwrite is more convenient
      */
     @Overwrite(remap = false)
     private EntityAIEatTask.EatingState goToRestaurant()
@@ -178,7 +184,7 @@ public abstract class EntityAIEatTaskMixin {
 
     /**
      * @author ARxyt
-     * @reason 后面要改算法，这里先+1qty用着
+     * @reason Several changes on source code, @Overwrite is more convenient
      */
     @Overwrite(remap = false)
     private EntityAIEatTask.EatingState getFoodYourself()
@@ -223,7 +229,7 @@ public abstract class EntityAIEatTaskMixin {
 
     /**
      * @author ARxyt
-     * @reason 函数太短了，还是重写方便，这是一个防止村民走到餐厅外的地方等待送餐的修改
+     * @reason Prevent citizen from walking to "eat place" outside restaurant
      */
     @Overwrite(remap = false)
     private BlockPos findPlaceToEat()
@@ -244,7 +250,7 @@ public abstract class EntityAIEatTaskMixin {
 
     /**
      * @author ARxyt
-     * @reason 要改好多地方，重写了吧
+     * @reason Several changes on source code, @Overwrite is more convenient
      */
     @Overwrite(remap = false)
     private EntityAIEatTask.EatingState goToEatingPlace()

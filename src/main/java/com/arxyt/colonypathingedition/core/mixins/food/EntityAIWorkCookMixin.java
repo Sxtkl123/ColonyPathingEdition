@@ -70,7 +70,7 @@ public abstract class EntityAIWorkCookMixin extends AbstractEntityAIBasicMixin<B
 
     /**
      * @author ARxyt
-     * @reason 修改监测内容的同时允许厨师单次服务多个村民
+     * @reason No longer actively scan for customers inside the restaurant, and allow serving multiple customers.
      */
     @Overwrite(remap = false)
     private IAIState serveFoodToCitizen(){
@@ -177,7 +177,7 @@ public abstract class EntityAIWorkCookMixin extends AbstractEntityAIBasicMixin<B
 
     /**
      * @author ARxyt
-     * @reason 餐厅方块增加记忆，修改对应监测内容；优先对玩家的服务；取消在此函数内对顾客点菜进行处理；修改警告条件。
+     * @reason The restaurant block now has memory. Cook now prioritizes serving the player. Removes handling of customer ordering within this function. Modifies the warning conditions.
      */
     @Inject(method = "checkForImportantJobs", at=@At("HEAD"), remap = false, cancellable = true)
     protected void checkForImportantJobs(CallbackInfoReturnable<IAIState> cir) {
@@ -229,7 +229,7 @@ public abstract class EntityAIWorkCookMixin extends AbstractEntityAIBasicMixin<B
             final int canServeInRow = canServeInRow();
             final int workerSize = building.getAllAssignedCitizen().size();
             int shouldServeInRow = (customerSize - 1) / workerSize + 1;
-            // customerSize <= 3 的判断是防止有一个厨师因故未能上工影响分配效率，同时能够保证有断断续续的客流时有厨师能够有空余时间处理烧制任务，此方案相对检测上工厨师来说更低耗。
+            // The check customerSize <= 3 is to prevent the allocation efficiency from being affected when a chef fails to start work for some reason; this approach is relatively less costly compared to detecting which chefs are on duty.
             if (customerSize <= 3){
                 shouldServeInRow = Math.min( canServeInRow() , customerSize);
             }

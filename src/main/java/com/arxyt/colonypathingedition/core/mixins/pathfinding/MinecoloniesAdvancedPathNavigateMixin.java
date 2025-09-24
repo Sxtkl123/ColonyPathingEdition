@@ -43,7 +43,7 @@ public abstract class MinecoloniesAdvancedPathNavigateMixin extends AbstractAdva
     }
 
     /**
-     * 将 900 * 900 替换为 (maxDistance)^2
+     * Change 900 * 900 to (maxDistance)^2
      */
     @ModifyConstant(
             method = "setPathJob",
@@ -71,7 +71,7 @@ public abstract class MinecoloniesAdvancedPathNavigateMixin extends AbstractAdva
         if (asNavigator().isDone()) {
             return;
         }
-        //路径修正，市民下车后一定会tp到下一个路径点处，阻止因下车随机性导致路径重算
+        // Path correction: after dismounting, citizens will always teleport to the next path point, preventing path recalculation caused by random dismount positions.
         int nodeIndex = Objects.requireNonNull(this.getPath()).getNextNodeIndex();
         @NotNull final PathPointExtended pEx = (PathPointExtended) (this.getPath().getNode(nodeIndex));
         if (!pEx.isOnRails()) {
@@ -80,7 +80,7 @@ public abstract class MinecoloniesAdvancedPathNavigateMixin extends AbstractAdva
             ourEntity.teleportTo(pEx.x + 0.5, pEx.y, pEx.z + 0.5);
             return;
         }
-        //增加脱轨补偿，一旦拐弯处脱轨将会tp到更远的位置，取决于当前车速
+        // Added derailment compensation: if derailed at a turn, they will teleport farther ahead, depending on the current speed.
         if(entity instanceof MinecoloniesMinecart minecoloniesMinecart && !minecoloniesMinecart.isOnRails()) {
             Vec3 movement = minecoloniesMinecart.getDeltaMovement();
             double speed = movement.length();

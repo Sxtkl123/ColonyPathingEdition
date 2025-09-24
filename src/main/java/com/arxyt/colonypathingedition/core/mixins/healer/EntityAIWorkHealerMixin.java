@@ -68,7 +68,8 @@ public abstract class EntityAIWorkHealerMixin extends AbstractEntityAIBasicMixin
 
     /**
      * @author ARxyt
-     * @reason 后期会调整请求物资的方案，由于过于费时先搁置
+     * @reason Healer modifications, adjust to accept wounded citizen.
+     * 后期会调整请求物资的方案，由于过于费时先搁置
      */
     @Overwrite(remap = false)
     private IAIState decide()
@@ -248,7 +249,7 @@ public abstract class EntityAIWorkHealerMixin extends AbstractEntityAIBasicMixin
 
     /**
      * @author ARxyt
-     * @reason 修改治疗方案和能力
+     * @reason Modify treatment plan and abilities
      */
     @Overwrite(remap = false)
     private IAIState cure()
@@ -330,7 +331,7 @@ public abstract class EntityAIWorkHealerMixin extends AbstractEntityAIBasicMixin
 
     /**
      * @author ARxyt
-     * @reason 修改治疗方案和能力
+     * @reason Modify treatment plan and abilities
      */
     @Overwrite(remap = false)
     private IAIState freeCure()
@@ -389,7 +390,7 @@ public abstract class EntityAIWorkHealerMixin extends AbstractEntityAIBasicMixin
 
     /**
      * @author ARxyt
-     * @reason 修改治疗方案和能力
+     * @reason Modify treatment plan and abilities
      */
     @Overwrite(remap = false)
     private IAIState curePlayer()
@@ -415,7 +416,7 @@ public abstract class EntityAIWorkHealerMixin extends AbstractEntityAIBasicMixin
 
     /**
      * @author ARxyt
-     * @reason 修改治疗方案和能力
+     * @reason Modify treatment plan and abilities
      */
     @Overwrite(remap = false)
     private IAIState wander()

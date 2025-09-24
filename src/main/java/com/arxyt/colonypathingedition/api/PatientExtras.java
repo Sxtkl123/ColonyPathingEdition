@@ -3,12 +3,14 @@ package com.arxyt.colonypathingedition.api;
 
 public interface PatientExtras {
     /**
-     * @return 已经在处理中
+     * If the patient are treating by healer
+     * @return healer Civilian ID
      */
     int getEmployed();
 
     /**
-     * 设置其是否在处理中
+     * Set healer treating patient.
+     * @param doctor: healer Civilian ID
      */
     void setEmployed(int doctor);
 

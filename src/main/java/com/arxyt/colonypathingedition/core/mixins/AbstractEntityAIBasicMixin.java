@@ -105,7 +105,7 @@ public abstract class AbstractEntityAIBasicMixin<B extends AbstractBuilding,J ex
                         nearestPlayer = null;
                     }
                 } else if (townHall.isInBuilding(worker.blockPosition())) {
-                    // 在level中查找玩家实体
+                    // find entity player
                     List<? extends Player> players = WorldUtil.getEntitiesWithinBuilding(getWorld(), Player.class, townHall,
                             player -> !player.isSpectator() && colony.getPermissions().hasPermission(player,Action.RIGHTCLICK_ENTITY));
                     Player nearestOfficer = players.stream()
@@ -119,7 +119,7 @@ public abstract class AbstractEntityAIBasicMixin<B extends AbstractBuilding,J ex
                 return EntityNavigationUtils.walkToBuilding(worker,townHall);
             }
         }
-        // 调用原方法行为：
+        // back to ordinary
         return walkToBuilding();
     }
 

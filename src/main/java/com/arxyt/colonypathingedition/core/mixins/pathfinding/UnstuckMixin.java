@@ -53,7 +53,7 @@ public abstract class UnstuckMixin<NAV extends PathNavigation & IMinecoloniesNav
 
     /**
      * @author ARxyt
-     * @reason 我不太想写啥原因，我已经气笑了
+     * @reason It's awful.
      */
     @Overwrite(remap = false)
     private void tryUnstuck(final NAV navigator)
@@ -63,7 +63,7 @@ public abstract class UnstuckMixin<NAV extends PathNavigation & IMinecoloniesNav
             return;
         }
 
-        // (补丁)试图阻止一下在工位的随机游走
+        // (Patch) Attempt to prevent random wandering at the workstation
         if ((prevDestination == null || prevDestination.equals(BlockPos.ZERO)) && stuckLevel == 0 && stuckLevelRecorder != 0 ){
             stuckLevelRecorder = 5;
             return;
@@ -71,7 +71,7 @@ public abstract class UnstuckMixin<NAV extends PathNavigation & IMinecoloniesNav
 
         delayToNextUnstuckAction = 50;
 
-        // 向前小距离传送
+        // Small forward teleport
         boolean teleported = false;
         if (teleportRange > 0 && hadPath)
         {
@@ -94,7 +94,7 @@ public abstract class UnstuckMixin<NAV extends PathNavigation & IMinecoloniesNav
             stuckLevel++;
         }
 
-        // 新绕路算法
+        // New detour algorithm
         if ((stuckLevel <= 4 && !teleported) && prevDestination != null && !prevDestination.equals(BlockPos.ZERO)) {
             int range;
             if (navigator.getPath() != null) {
@@ -104,7 +104,8 @@ public abstract class UnstuckMixin<NAV extends PathNavigation & IMinecoloniesNav
             }
             range = 20 * stuckLevel;
             BlockPos startPos = navigator.getOurEntity().blockPosition();
-            //获取一个可能是通路的方向(因为同向遍历已近似广度优先，绕道到另一侧可以最大化收益)
+            // Obtain a possibly passable direction.
+            // Since same-direction traversal is already approximately breadth-first, detouring to the other side can maximize benefit.
             BlockPos dPos = new BlockPos(prevDestination.getX()-startPos.getX(),0,prevDestination.getZ()-startPos.getZ());
             double distance =BlockPosUtil.distSqr(dPos,BlockPos.ZERO);
             if(distance == 0){
@@ -152,7 +153,7 @@ public abstract class UnstuckMixin<NAV extends PathNavigation & IMinecoloniesNav
             return;
         }
 
-        // 这是调用路径完全卡住之后直接传送到目标地点的算法的地方
+        // Directly teleport to the target location after the path is completely stuck.
         if (stuckLevel >= 5)
         {
             completeStuckAction(navigator);

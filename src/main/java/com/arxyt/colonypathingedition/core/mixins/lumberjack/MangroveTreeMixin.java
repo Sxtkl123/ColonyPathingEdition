@@ -56,11 +56,10 @@ public abstract class MangroveTreeMixin {
             }
             if (stumpLocations.size() > 0 && sapling.is(Items.MANGROVE_PROPAGULE))
             {
-                // 保留原有 acc 的 X 和 Z 坐标
                 int targetX = acc.getX();
                 int targetZ = acc.getZ();
 
-                // 从 topLog 的 Y 坐标向下搜索到 yLevel（树的根部高度）
+                // search from Y axis of topLog to yLevel（Y axis of lowest stumps）
                 BlockPos plantPos = null;
                 for (int y = topLog.getY(); y >= yLevel; y--)
                 {
@@ -68,10 +67,10 @@ public abstract class MangroveTreeMixin {
                     BlockState checkBlock = world.getBlockState(checkPos);
                     BlockState belowBlock = world.getBlockState(checkPos.below());
 
-                    // 检查基底方块是否可种植（如泥巴），且上方可放置树苗（空气/水）
+                    // check solid base plantable
                     if ( (belowBlock.is(BlockTags.DIRT)||belowBlock.is(Blocks.MUD)) &&
                             (checkBlock.canBeReplaced()||checkBlock.is(Blocks.WATER))) {
-                        plantPos = checkPos; // 有效位置为基底方块的上方
+                        plantPos = checkPos; // above solid base
                         break;
                     }
                 }
@@ -93,7 +92,7 @@ public abstract class MangroveTreeMixin {
 
     /**
      * @author ARxyt
-     * @reason 修改一下红树木的补种策略,所以在这里重构了fillTreeStumps，这里转而调用重构后的算法，重置函数以保证稳定性。
+     * @reason When planting mangrove, function is reset to ensure stability。
      */
     @Inject(
             method = "findLogs",

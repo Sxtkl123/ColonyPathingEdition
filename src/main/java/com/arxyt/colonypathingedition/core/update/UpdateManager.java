@@ -28,9 +28,9 @@ import static com.arxyt.colonypathingedition.core.costants.AdditionalContants.*;
 @Mod.EventBusSubscriber(modid = ColonyPathingEdition.MODID, bus = Mod.EventBusSubscriber.Bus.FORGE, value = Dist.CLIENT)
 public class UpdateManager {
     private static final String UPDATE_URL = "https://arxyt.github.io/ColonyPathingEdition/latest.json";
+    private static final String UPDATE_URL_CHINESE = "https://gitee.com/wcngrz/pathfinding-edition-for-minecolonies/raw/master/latest.json";
     private static final int HTTP_TIMEOUT_MS = 5000;
     private static final String FALLBACK_LANGUAGE = "en_us";
-
     @SubscribeEvent
     public static void onPlayerLoggedIn(PlayerEvent.PlayerLoggedInEvent event) {
         Player player = event.getEntity();
@@ -60,23 +60,27 @@ public class UpdateManager {
 
     @Nullable
     private static JsonObject fetchUpdateInfo() {
-        HttpURLConnection connection = null;
-        try {
-            connection = (HttpURLConnection) new URL(UPDATE_URL).openConnection();
-            configureConnection(connection);
+        String[] urls = {UPDATE_URL, UPDATE_URL_CHINESE};
+        for (String url : urls) {
+            HttpURLConnection connection = null;
+            try {
+                connection = (HttpURLConnection) new URL(url).openConnection();
+                configureConnection(connection);
 
-            if (connection.getResponseCode() != HttpURLConnection.HTTP_OK) {
-                ColonyPathingEdition.LOGGER.warn("[Update Check] HTTP {}: {}", connection.getResponseCode(), UPDATE_URL);
-                return null;
+                if (connection.getResponseCode() != HttpURLConnection.HTTP_OK) {
+                    ColonyPathingEdition.LOGGER.warn("[Update Check] HTTP {}: {}", connection.getResponseCode(), url);
+                    continue;
+                }
+
+                return parseResponse(connection);
+            } catch (IOException e) {
+                ColonyPathingEdition.LOGGER.warn("[Update Check] Network error when accessing {}", url, e);
+            } finally {
+                if (connection != null) connection.disconnect();
             }
-
-            return parseResponse(connection);
-        } catch (IOException e) {
-            ColonyPathingEdition.LOGGER.error("[Update Check] Network error", e);
-            return null;
-        } finally {
-            if (connection != null) connection.disconnect();
         }
+        ColonyPathingEdition.LOGGER.error("[Update Check] All update sources failed");
+        return null;
     }
 
     private static void configureConnection(HttpURLConnection connection) throws ProtocolException {

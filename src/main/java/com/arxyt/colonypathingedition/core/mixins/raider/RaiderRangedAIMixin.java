@@ -28,7 +28,7 @@ public class RaiderRangedAIMixin<T extends AbstractEntityMinecoloniesMonster & I
 
     /**
      * @author ARxyt
-     * 降低逃跑卫兵的威胁度
+     * Reduce the threat level of fleeing guards.
      */
     @Override
     protected boolean checkForTarget()
@@ -46,7 +46,7 @@ public class RaiderRangedAIMixin<T extends AbstractEntityMinecoloniesMonster & I
 
     /**
      * @author ARxyt
-     * 初始化一部分威胁等级，让卫兵能够优先拉到仇恨，同时取消无目标时才能进入此算法的设定，野蛮人现在可以动态确定威胁目标
+     * Initialize part of the threat levels so guards can preferentially draw aggro; raiders can now dynamically determine threat targets.
      */
     @Override
     protected boolean searchNearbyTarget()
@@ -97,7 +97,7 @@ public class RaiderRangedAIMixin<T extends AbstractEntityMinecoloniesMonster & I
 
     /**
      * @author ARxyt
-     * @reason 这样改方便点，判定也少，将游客纳入野蛮人自然仇恨对象。
+     * @reason Making guests part of the raiders’ natural hostility targets.
      */
     @Overwrite(remap = false)
     protected boolean isAttackableTarget(final LivingEntity target)

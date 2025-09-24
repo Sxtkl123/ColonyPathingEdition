@@ -14,9 +14,11 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 /**
- * 此Mixin的目的是修改pickUp机制。
- * 1.本地存储 pickUpDay, 阻止每次进入存档即重置所有小屋清仓计时。
- * 2.当尝试发出 pick up 进程后，不要求下一次 pick up 请求仅来清理 “尝试 pick up“ 的进程堵塞问题。
+ * The purpose of this Mixin is to modify the pickUp mechanism.
+ * 1. Locally store pickUpDay to prevent all hut clearance timers from resetting
+ *    every time the save is loaded.
+ * 2. After attempting to issue a pickUp process, do not require the next pickUp
+ *    request to solely resolve the process blockage caused by the "attempted pickUp".
  */
 @Mixin(AbstractBuilding.class)
 public abstract class AbstractBuildingMixin extends AbstractBuildingContainer {
