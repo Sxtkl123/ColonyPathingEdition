@@ -198,7 +198,7 @@ public abstract class EntityAIEatTaskMixin {
                 return GET_FOOD_YOURSELF;
             }
 
-            final ItemStorage storageToGet = FoodUtils.checkForFoodInBuilding(citizen.getCitizenData(), cookBuilding.getModule(RESTAURANT_MENU).getMenu(), cookBuilding);
+            final ItemStorage storageToGet = FoodUtils.checkForFoodInBuilding(citizen.getCitizenData(), null, cookBuilding);
             if (storageToGet != null)
             {
                 int qty = ((int) ((FULL_SATURATION - citizen.getCitizenData().getSaturation()) / FoodUtils.getFoodValue(storageToGet.getItemStack(), citizen))) + 1;
@@ -234,7 +234,7 @@ public abstract class EntityAIEatTaskMixin {
             if (restaurant instanceof BuildingCook)
             {
                 final BlockPos sitting = ((BuildingCook) restaurant).getNextSittingPosition();
-                if(restaurant.isInBuilding(sitting)){
+                if(sitting == null || restaurant.isInBuilding(sitting)){
                     return sitting;
                 }
             }

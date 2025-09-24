@@ -12,12 +12,14 @@ import com.minecolonies.api.util.Log;
 import com.minecolonies.api.util.ShapeUtil;
 import com.minecolonies.core.entity.pathfinding.PathfindingUtils;
 import com.minecolonies.core.entity.pathfinding.PathingOptions;
+import com.minecolonies.core.entity.pathfinding.SurfaceType;
 import com.minecolonies.core.entity.pathfinding.pathjobs.AbstractPathJob;
 import com.minecolonies.core.entity.pathfinding.world.CachingBlockLookup;
 import com.minecolonies.core.entity.pathfinding.MNode;
 import com.minecolonies.api.util.constant.ColonyConstants;
 import com.minecolonies.core.util.WorkerUtil;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
+import net.minecraft.core.Direction;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelReader;
@@ -57,7 +59,7 @@ public abstract class AbstractPathJobMixin implements AbstractAISkeletonAccessor
 
     @Unique protected int actualMaxNodes;
 
-    @Unique public double panelCost = PathingConfig.PANEL_COST_DEFINER.get();
+    @Unique public double ladderSwitchCost = PathingConfig.LADDER_SWITCH_COST_DEFINER.get();
     @Unique public double shingleCost = PathingConfig.SHINGLE_COST_DEFINER.get();
     @Unique public double destroyingFarmlandCost = PathingConfig.FARMLAND_COST_DEFINER.get();
     @Unique public double leafCost = PathingConfig.LEAF_COST_DEFINER.get();
@@ -133,7 +135,7 @@ public abstract class AbstractPathJobMixin implements AbstractAISkeletonAccessor
 
         if (!isDiving)
         {
-            if (Math.abs(dYDouble) > 0.6 && !ladder && !(dY == 1 && (below.getBlock() instanceof StairBlock) && below.getValue(StairBlock.FACING)==directionFromDelta(dX,0,dZ) && below.getValue(StairBlock.HALF)== Half.BOTTOM))
+            if (Math.abs(dYDouble) > 0.6 && !ladder && !(dY == 1 && (below.getBlock() instanceof StairBlock) && below.getValue(StairBlock.FACING) == directionFromDelta(dX,0,dZ) && below.getValue(StairBlock.HALF) == Half.BOTTOM))
             {
                 if (dYDouble > 0.0)
                 {
@@ -164,18 +166,17 @@ public abstract class AbstractPathJobMixin implements AbstractAISkeletonAccessor
                 }
             }
             else if (ladder && parent.isLadder() && dY == 0){
-                cost += panelCost;
+                cost += ladderSwitchCost;
             }
+        }
+
+        if (below.getBlock() instanceof PanelBlock){
+            cost += 0.2;
         }
 
         if (below.getBlock() instanceof ShingleBlock || below.getBlock() instanceof ShingleSlabBlock)
         {
             cost += shingleCost;
-        }
-
-        if (state.getBlock() instanceof PanelBlock)
-        {
-            cost += panelCost;
         }
 
         if (below.getBlock() instanceof LeavesBlock)
@@ -274,6 +275,12 @@ public abstract class AbstractPathJobMixin implements AbstractAISkeletonAccessor
     @Final @Shadow(remap = false) private Int2ObjectOpenHashMap<MNode> nodes;
     @Final @Shadow(remap = false) protected LevelReader world;
 
+    @Shadow(remap = false) protected abstract boolean isPassable(int x, int y, int z, boolean head, MNode parent);
+
+    @Shadow(remap = false) public abstract PathingOptions getPathingOptions();
+
+    @Shadow(remap = false) protected abstract boolean canLeaveBlock(int x, int y, int z, int parentX, int parentY, int parentZ, boolean head);
+
     @Invoker(value="getGroundHeight",remap = false)
     public abstract int invokeGetGroundHeight(final MNode node, final int x, final int y, final int z);
 
@@ -298,7 +305,10 @@ public abstract class AbstractPathJobMixin implements AbstractAISkeletonAccessor
     protected abstract double computeHeuristic(final int x, final int y, final int z);
 
     private int recheckGroundHeight(int x, int y, int z){
-        //final BlockState state = cachedBlockLookup.getBlockState(x, y , z);
+        final BlockState state = cachedBlockLookup.getBlockState(x, y , z);
+        if (ShapeUtil.max(state.getCollisionShape(world, new BlockPos(x, y, z)), Direction.Axis.Y) != 0){
+            return y;
+        }
         final BlockState belowState = cachedBlockLookup.getBlockState(x, y - 1, z);
         boolean belowIsWater = PathfindingUtils.isWater(cachedBlockLookup, null, belowState, null);
         if(!belowIsWater && (ShapeUtil.getEndY(belowState.getCollisionShape(world, tempWorldPos.set(x, y - 1, z)), 0) < 0.125) )
@@ -310,12 +320,27 @@ public abstract class AbstractPathJobMixin implements AbstractAISkeletonAccessor
 
     private boolean checkConerCollision(int x,int y,int z) {
         final BlockState above = cachedBlockLookup.getBlockState(x,y+1,z);
-        return !(ShapeUtil.getStartY(above.getCollisionShape(world, tempWorldPos.set(x, y + 1, z)), 1) < 0.875)||(above.hasProperty(BlockStateProperties.OPEN)&&!(above.getBlock() instanceof PanelBlock));
+        return !(ShapeUtil.getStartY(above.getCollisionShape(world, tempWorldPos.set(x, y + 1, z)), 1) < 0.875) || above.hasProperty(BlockStateProperties.OPEN);
     }
 
-    private boolean checkPossiblyPassing(MNode node,int nextX,int nextY,int nextZ,MNode cornerNode,int dY){
+    private boolean checkPossiblyPassing(MNode node,int nextX,int nextY,int nextZ,MNode cornerNode,int dX, int dY, int dZ){
         BlockPos cornerPos = new BlockPos(cornerNode.x,cornerNode.y,cornerNode.z).above();
         BlockState cornerState = cachedBlockLookup.getBlockState(cornerPos);
+        if(cornerState.getBlock() instanceof PanelBlock){
+            if(!cornerState.getValue(BlockStateProperties.OPEN)){
+                return false;
+            }
+            else{
+                boolean possiblyPassing = true;
+                if(dX != 0){
+                    possiblyPassing = dX > 0 ? ShapeUtil.min(cornerState.getCollisionShape(world, cornerPos), Direction.Axis.X) != 0 : ShapeUtil.max(cornerState.getCollisionShape(world, cornerPos), Direction.Axis.X) != 1;
+                }
+                if(dZ != 0){
+                    possiblyPassing = possiblyPassing && dZ > 0 ? ShapeUtil.min(cornerState.getCollisionShape(world, cornerPos), Direction.Axis.Z) != 0 : ShapeUtil.max(cornerState.getCollisionShape(world, cornerPos), Direction.Axis.Z) != 1;
+                }
+                return possiblyPassing;
+            }
+        }
         BlockPos checkPos;
         if(dY > 0){
             checkPos = new BlockPos(nextX,nextY,nextZ).below();
@@ -324,7 +349,7 @@ public abstract class AbstractPathJobMixin implements AbstractAISkeletonAccessor
             checkPos = new BlockPos(node.x,node.y,node.z).below();
         }
         BlockState checkState = cachedBlockLookup.getBlockState(checkPos);
-        double rawDY = 2 + ShapeUtil.getStartY(cornerState.getCollisionShape(world, tempWorldPos.set(cornerPos)), 1)-ShapeUtil.getEndY(checkState.getCollisionShape(world, tempWorldPos.set(checkPos)),0);
+        double rawDY = 2 + ShapeUtil.getStartY(cornerState.getCollisionShape(world, tempWorldPos.set(cornerPos)), 1) - ShapeUtil.getEndY(checkState.getCollisionShape(world, tempWorldPos.set(checkPos)),0);
         //目前先用着rawDY，这是对楼梯间缝隙的粗略估计，精细估计需要对缝隙进行更详细的刻画，之后再补，现在先这么用着
         return !(rawDY > 1.8);
     }
@@ -356,26 +381,47 @@ public abstract class AbstractPathJobMixin implements AbstractAISkeletonAccessor
         return true;
     }
 
-    @Inject(
-            method = "checkDrop",
-            at = @At(
-                    value = "INVOKE",
-                    target = "Lnet/minecraft/world/level/block/state/BlockState;isAir()Z",
-                    shift = At.Shift.AFTER
-            ),
-            locals = LocalCapture.CAPTURE_FAILHARD,
-            cancellable = true,
-            remap = false
-    )
-    private void afterIsAir(
-            @Nullable final MNode parent, int x, int y, int z, boolean isSwimming, CallbackInfoReturnable<Integer> cir,  boolean canDrop, int i,  BlockState below) {
-        if (!below.isAir()) {
-            if (PathfindingUtils.isLadder(below,pathingOptions)) {
-                cir.setReturnValue(y - i + 1);
-            } else {
-                cir.setReturnValue(Integer.MIN_VALUE);
+    /**
+     * @author ARxyt
+     * @reason Some not valid drop change.
+     */
+    @Overwrite(remap = false)
+    private int checkDrop(@Nullable final MNode parent, final int x, final int y, final int z, final boolean isSwimming) {
+        final boolean canDrop = parent != null && !parent.isLadder();
+        //  Nothing to stand on
+        if (!canDrop || ((parent.x != x || parent.z != z) && isPassable(parent.x, parent.y - 1, parent.z, false, parent)
+                &&
+                SurfaceType.getSurfaceType(world,
+                        cachedBlockLookup.getBlockState(parent.x, parent.y - 1, parent.z),
+                        tempWorldPos.set(parent.x, parent.y - 1, parent.z),
+                        getPathingOptions())
+                        == SurfaceType.DROPABLE
+                &&
+                SurfaceType.getSurfaceType(world,
+                        cachedBlockLookup.getBlockState(parent.x, parent.y, parent.z),
+                        tempWorldPos.set(parent.x, parent.y, parent.z),
+                        getPathingOptions())
+                        == SurfaceType.DROPABLE)) {
+            return Integer.MIN_VALUE;
+        }
+
+        for (int i = 1; i <= (pathingOptions.canDrop ? 10 : 2); i++) {
+            final BlockState below = cachedBlockLookup.getBlockState(x, y - i, z);
+            if (!canLeaveBlock(x, y - 1, z, x, y, z, false)) {
+                return Integer.MIN_VALUE;
+            }
+            if (SurfaceType.getSurfaceType(world, below, tempWorldPos.set(x, y - i, z), getPathingOptions()) == SurfaceType.WALKABLE) {
+                //  Level path
+                return y - i + 1;
+            } else if (!below.isAir()) {
+                if (PathfindingUtils.isLadder(below, pathingOptions)) {
+                    return y - i + 1;
+                } else {
+                    return Integer.MIN_VALUE;
+                }
             }
         }
+        return Integer.MIN_VALUE;
     }
 
     /**
@@ -423,18 +469,12 @@ public abstract class AbstractPathJobMixin implements AbstractAISkeletonAccessor
                 conerNode = invokeCreateNode(null, conerX, conerY, conerZ, nodeKey, node.getHeuristic(), node.getCost());
                 conerNode.setCornerNode(isPassable);
                 conerNode.increaseVisited();
-                if(!isPassable){
-                    if(checkPossiblyPassing(node, nextX, newY, nextZ, conerNode, newY - node.y)){
-                        return;
-                    }
+                if(!isPassable && checkPossiblyPassing(node, nextX, newY, nextZ, conerNode, dX, newY - node.y, dZ)) {
+                    return;
                 }
             }
-            else{
-                if(!conerNode.isCornerNode()){
-                    if(checkPossiblyPassing(node, nextX, newY, nextZ, conerNode, newY - node.y)){
-                        return;
-                    }
-                }
+            else if(!conerNode.isCornerNode() && checkPossiblyPassing(node, nextX, newY, nextZ, conerNode, dX, newY - node.y, dZ)){
+                return;
             }
             dY = newY - node.y;
         }

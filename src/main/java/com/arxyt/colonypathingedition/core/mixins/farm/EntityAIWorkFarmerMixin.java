@@ -41,16 +41,16 @@ public abstract class EntityAIWorkFarmerMixin implements AbstractAISkeletonAcces
      * 跳过对水稻的锄地操作
      */
     @Inject(
-            method = "hoeIfAble",
+            method = "findHoeableSurface",
             at = @At("HEAD"),
             cancellable = true,
             remap = false
     )
-    private void onHoeIfAble(BlockPos position, @NotNull FarmField farmField, CallbackInfoReturnable<Boolean> cir) {
+    private void noNeedToHoeSurface(BlockPos position, @NotNull FarmField farmField, CallbackInfoReturnable<Boolean> cir) {
         ItemStack seed = farmField.getSeed();
         // 若种子标记为无需耕地，直接跳过锄地
         if (isUnderWater(seed)||isNoFarmland(seed)) {
-            cir.setReturnValue(true); // 返回 true 表示“已处理”
+            cir.setReturnValue(null);
         }
     }
 
@@ -155,8 +155,9 @@ public abstract class EntityAIWorkFarmerMixin implements AbstractAISkeletonAcces
         if (surfaceBlock instanceof BushBlock){
             // 通过 BonemealableBlock 接口判断成熟状态
             if (surfaceBlock instanceof BonemealableBlock bonemealable) {
+                Block upWaterBlock = getWorld().getBlockState(position.above().above()).getBlock();
                 if (!isBoneMealAble(position.above(),bonemealable)) {
-                    cir.setReturnValue(position.above()); //此处应该为position，目前这么设置是因为已知的水中种植的方块只有水稻，为了长得快些就只处理伸出水面的部分
+                    cir.setReturnValue(upWaterBlock instanceof BushBlock ? position.above() : position); //此处应该为position，目前这么设置是因为已知的水中种植的方块只有水稻，为了长得快些就只处理伸出水面的部分
                     return;
                 }
                 final int amountOfCompostInInv = InventoryUtils.getItemCountInItemHandler(getWorker().getInventoryCitizen(), this::invokeIsCompost);
@@ -179,7 +180,7 @@ public abstract class EntityAIWorkFarmerMixin implements AbstractAISkeletonAcces
                         return;
                     }
                     bonemealable = (BonemealableBlock) surfaceBlock;
-                    cir.setReturnValue(isBoneMealAble(position.above(),bonemealable) ? null : position.above()); //此处应该为position，目前这么设置是因为已知的水中种植的方块只有水稻，为了长得快些就只处理伸出水面的部分
+                    cir.setReturnValue(isBoneMealAble(position.above(),bonemealable) ? null : upWaterBlock instanceof BushBlock ? position.above() : position); //此处应该为position，目前这么设置是因为已知的水中种植的方块只有水稻，为了长得快些就只处理伸出水面的部分
                     return;
                 }
             }

@@ -14,7 +14,7 @@ public class PathingConfig {
     public static ForgeConfigSpec.DoubleValue DIVE_COST_DEFINER;
     public static ForgeConfigSpec.DoubleValue CAVE_COST_DEFINER;
     public static ForgeConfigSpec.DoubleValue RAILEXIT_COST_DEFINER;
-    public static ForgeConfigSpec.DoubleValue PANEL_COST_DEFINER;
+    public static ForgeConfigSpec.DoubleValue LADDER_SWITCH_COST_DEFINER;
     public static ForgeConfigSpec.DoubleValue SHINGLE_COST_DEFINER;
     public static ForgeConfigSpec.DoubleValue FARMLAND_COST_DEFINER;
     public static ForgeConfigSpec.DoubleValue LEAF_COST_DEFINER;
@@ -94,9 +94,9 @@ public class PathingConfig {
                 .defineInRange("railExitAddon", 4.0, 0.0, 24.0);
         builder.pop();
         builder.push("Typical Cost Definer #针对性Cost定义#");
-        PANEL_COST_DEFINER = builder
-                .comment("Walk into panel cost addon (default: 4.0) #走在面板方块中(会不停的跳)的Cost (默认 : 4.0)#")
-                .defineInRange("panelCostAddon", 4.0, 0.0, 24.0);
+        LADDER_SWITCH_COST_DEFINER = builder
+                .comment("Cost on switch ladder when climbing (default: 4.0) #攀爬时切换梯子的Cost (默认 : 4.0)#")
+                .defineInRange("ladderSwitchCostAddon", 4.0, 0.0, 24.0);
         SHINGLE_COST_DEFINER = builder
                 .comment("Walk on shingle cost addon (default: 3.0, original:3.0) #上房揭瓦(走在屋瓦上)的Cost (默认 : 3.0 殖民地原设置 : 3.0)#")
                 .defineInRange("shingleCostAddon", 3.0, 0.0, 24.0);
