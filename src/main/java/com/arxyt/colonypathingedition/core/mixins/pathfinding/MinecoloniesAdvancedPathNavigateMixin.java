@@ -4,6 +4,7 @@ import com.arxyt.colonypathingedition.core.config.PathingConfig;
 import com.minecolonies.api.entity.ModEntities;
 import com.minecolonies.api.entity.other.MinecoloniesMinecart;
 import com.minecolonies.core.entity.citizen.EntityCitizen;
+import com.minecolonies.core.entity.other.SittingEntity;
 import com.minecolonies.core.entity.pathfinding.PathPointExtended;
 import com.minecolonies.core.entity.pathfinding.navigation.AbstractAdvancedPathNavigate;
 import com.minecolonies.core.entity.pathfinding.navigation.MinecoloniesAdvancedPathNavigate;
@@ -62,6 +63,10 @@ public abstract class MinecoloniesAdvancedPathNavigateMixin extends AbstractAdva
         }
 
         final Entity entity = ourEntity.getVehicle();
+        if(!(entity instanceof MinecoloniesMinecart minecoloniesMinecart)){
+            return;
+        }
+
         if ( this.path == null || this.path.isDone() ){
             ourEntity.stopRiding();
             entity.remove(Entity.RemovalReason.DISCARDED);
@@ -81,7 +86,7 @@ public abstract class MinecoloniesAdvancedPathNavigateMixin extends AbstractAdva
             return;
         }
         // Added derailment compensation: if derailed at a turn, they will teleport farther ahead, depending on the current speed.
-        if(entity instanceof MinecoloniesMinecart minecoloniesMinecart && !minecoloniesMinecart.isOnRails()) {
+        if(!minecoloniesMinecart.isOnRails()) {
             Vec3 movement = minecoloniesMinecart.getDeltaMovement();
             double speed = movement.length();
             ourEntity.stopRiding();

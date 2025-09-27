@@ -67,9 +67,12 @@
     "workersetting.BuildingHospitalMixin",
     "workersetting.BuildingLumberjackMixin",
     "workersetting.BuildingModulesMixin",
-    "workersetting.BuildingNetherWorkerMixin"
+    "workersetting.BuildingNetherWorkerMixin",
+    "workersetting.MinimumStockModuleMixin"
   ],
-  "client": [],
+  "client": [
+    "workersetting.MinimumStockModuleWindowMixin"
+  ],
   "server": [],
   "minVersion": "0.8.5",
   "priority": 999

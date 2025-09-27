@@ -53,6 +53,7 @@ public class PathingConfig {
     public static ForgeConfigSpec.DoubleValue FOOD_PUNISHER;
     public static ForgeConfigSpec.DoubleValue FOOD_BONUS_NORMAL;
     public static ForgeConfigSpec.DoubleValue FOOD_BONUS_MINECOLONIES;
+    public static ForgeConfigSpec.BooleanValue MINIMUM_STOCK_PRECISE;
 
     public static ForgeConfigSpec.IntValue MAX_PATHING_DISTANCE;
 
@@ -198,12 +199,15 @@ public class PathingConfig {
         builder.push("Herder Modifier #养殖户修改#");
         MAX_ANIMAL_MODIFIER = builder
                 .comment("Max animal modifier, would you like to modify the max animals to 2^(building level)? (default: false)\n 养殖场最大生物数是否改为 2^建筑等级 原为 2*建筑等级(动物数目过大会导致卡顿，所以不默认开启),(默认 : false)")
-                .define("increaceMaxAnimal",false);
+                .define("increaseMaxAnimal",false);
         BUTCHER_INSTANT_KILL = builder
                 .comment("Will butcher kill animals instantly? (default: true)\n 屠户是否会秒杀动物 (默认 : true)")
                 .define("butcherInstantKill",true);
         builder.pop();
         builder.push("Common Citizens Modifier #通用市民修改#");
+        MINIMUM_STOCK_PRECISE = builder
+                .comment("Minimum stock can now be set in item counts rather than in stacks.\n 开启后，最低存量将按个计数，而不是按组(目前显示还有问题)。")
+                .define("minimumStockPrecise",false);
         PICK_MATERIAL_AT_HUT = builder.comment("Should citizens pick material at their own hut.\n 你的非快递员市民是否应当在他们的小屋方块处取货。")
                         .define("pickMaterialAtHut", true);
         EARLY_ENCHANT = builder.comment("Allows workers to use enchanted tools at their current level.\n 允许工人在工具允许等级时就启用一部分低级附魔工具。")

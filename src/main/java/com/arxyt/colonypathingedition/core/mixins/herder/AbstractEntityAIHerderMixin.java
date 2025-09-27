@@ -270,7 +270,7 @@ public abstract class AbstractEntityAIHerderMixin<J extends AbstractJob<?, J>, B
         if (BlockPosUtil.getDistance2D(center,toKill.blockPosition()) < 4 && !ItemStackUtils.isEmpty(this.worker.getMainHandItem())) {
             this.worker.swing(InteractionHand.MAIN_HAND);
             DamageSource ds = toKill.level().damageSources().playerAttack(getFakePlayer());
-            toKill.hurt(ds, PathingConfig.BUTCHER_INSTANT_KILL.get()? Float.MAX_VALUE : 3.0F * building.getBuildingLevel());
+            toKill.hurt(ds, PathingConfig.BUTCHER_INSTANT_KILL.get()? 999.0F : 3.0F * building.getBuildingLevel());
             CitizenItemUtils.damageItemInHand(this.worker, InteractionHand.MAIN_HAND, 1);
         }
 

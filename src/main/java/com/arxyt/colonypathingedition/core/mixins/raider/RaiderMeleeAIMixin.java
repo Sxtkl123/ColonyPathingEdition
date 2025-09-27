@@ -100,14 +100,4 @@ public class RaiderMeleeAIMixin<T extends AbstractEntityMinecoloniesMonster & IT
 
         return foundTarget;
     }
-
-    /**
-     * @author ARxyt
-     * @reason Making guests part of the raiders’ natural hostility targets.
-     */
-    @Overwrite(remap = false)
-    protected boolean isAttackableTarget(final LivingEntity target)
-    {
-        return (target instanceof AbstractEntityCitizen && !target.isInvisible()) || (target instanceof Player && !((Player) target).isCreative() && !target.isSpectator());
-    }
 }
