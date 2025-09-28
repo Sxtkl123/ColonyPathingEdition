@@ -31,6 +31,8 @@ import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.monster.MagmaCube;
+import net.minecraft.world.entity.monster.Slime;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.SwordItem;
@@ -388,6 +390,13 @@ public abstract class EntityAIWorkNetherMixin extends AbstractEntityAICrafting<J
                             LivingEntity mob = (LivingEntity) mobType.create(world);
                             assert mob != null;
                             float mobHealth = mob.getHealth();
+
+                            if(mob instanceof MagmaCube magmaCube){
+                                magmaCube.setSize(2,false);
+                            }
+                            else if(mob instanceof Slime slime){
+                                slime.setSize(1,false);
+                            }
 
                             // Calculate how much damage the mob will do if it lands a hit (Before armor)
                             float incomingDamage = tag.getFloat(TAG_DAMAGE);

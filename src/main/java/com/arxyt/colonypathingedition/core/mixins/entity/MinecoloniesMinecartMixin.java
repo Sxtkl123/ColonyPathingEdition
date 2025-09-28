@@ -5,6 +5,7 @@ import com.minecolonies.api.entity.citizen.AbstractEntityCitizen;
 import com.minecolonies.api.entity.citizen.Skill;
 import com.minecolonies.api.entity.other.MinecoloniesMinecart;
 import com.minecolonies.core.colony.jobs.JobDeliveryman;
+import com.minecolonies.core.entity.citizen.EntityCitizen;
 import net.minecraft.core.BlockPos;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.util.Mth;
@@ -160,7 +161,7 @@ public abstract class MinecoloniesMinecartMixin extends Minecart implements Abst
             this.firstTick = false;
         }
 
-        if (this.tickCount % 20 == 19 && getPassengers().isEmpty())
+        if (this.tickCount % 20 == 19 && this.getPassengers().isEmpty())
         {
             this.remove(RemovalReason.DISCARDED);
         }

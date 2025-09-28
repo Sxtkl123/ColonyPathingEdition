@@ -10,6 +10,7 @@
     "AbstractEntityAIInteractMixin",
     "EntityAIStructureBuilderMixin",
     "EntityAIWorkDeliverymanMixin",
+    "EntityAIWorkEnchanterMixin",
     "ItemStackUtilsMixin",
     "accessor.AbstractAISkeletonAccessor",
     "accessor.AbstractEntityAIBasicAccessor",
