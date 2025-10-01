@@ -98,7 +98,7 @@ public abstract class EntityAIWorkCookMixin extends AbstractEntityAIBasicMixin<B
                         if (storage != null)
                         {
                             citizenToServe.add(citizen);
-                            needsCurrently = new Tuple<>(stack -> new ItemStorage(stack).equals(storage), STACKSIZE);
+                            needsCurrently = new Tuple<>(stack -> new ItemStorage(stack).equals(storage), 16);
                             withSpecialReturn = true;
                             return GATHERING_REQUIRED_MATERIALS;
                         }

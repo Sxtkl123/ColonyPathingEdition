@@ -33,10 +33,7 @@ import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.monster.MagmaCube;
 import net.minecraft.world.entity.monster.Slime;
-import net.minecraft.world.item.BlockItem;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.SwordItem;
-import net.minecraft.world.item.TieredItem;
+import net.minecraft.world.item.*;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
@@ -391,13 +388,6 @@ public abstract class EntityAIWorkNetherMixin extends AbstractEntityAICrafting<J
                             assert mob != null;
                             float mobHealth = mob.getHealth();
 
-                            if(mob instanceof MagmaCube magmaCube){
-                                magmaCube.setSize(2,false);
-                            }
-                            else if(mob instanceof Slime slime){
-                                slime.setSize(1,false);
-                            }
-
                             // Calculate how much damage the mob will do if it lands a hit (Before armor)
                             float incomingDamage = tag.getFloat(TAG_DAMAGE);
                             incomingDamage -= incomingDamage * (getSecondarySkillLevel() * SECONDARY_DAMAGE_REDUCTION);
@@ -480,8 +470,13 @@ public abstract class EntityAIWorkNetherMixin extends AbstractEntityAICrafting<J
                                 LootParams context = this.getLootContext();
                                 LootTable loot = Objects.requireNonNull(world.getServer()).getLootData().getLootTable(mob.getLootTable());
                                 List<ItemStack> mobLoot = loot.getRandomItems(context);
+                                if(mob instanceof MagmaCube){
+                                    mobLoot.add(new ItemStack(Items.MAGMA_CREAM,1));
+                                }
+                                else if(mob instanceof Slime){
+                                    mobLoot.add(new ItemStack(Items.SLIME_BALL,1));
+                                }
                                 job.addProcessedResultsList(mobLoot);
-
                                 expeditionLog.addMob(mobType);
                                 expeditionLog.addLoot(mobLoot);
                             }

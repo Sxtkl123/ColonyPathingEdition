@@ -276,6 +276,12 @@ public abstract class EntityAIWorkHealerMixin extends AbstractEntityAIBasicMixin
         final Disease disease = citizen.getCitizenData().getCitizenDiseaseHandler().getDisease();
         if (disease == null)
         {
+            Network.getNetwork().sendToTrackingEntity(
+                    new CircleParticleEffectMessage(
+                            getWorker().position().add(0, 2, 0),
+                            ParticleTypes.HEART,
+                            progressTicks), getWorker());
+
             currentPatient = null;
             citizen.heal(10 + invokeGetPrimarySkillLevel() / 4.0F );
             citizen.addEffect(new MobEffectInstance(MobEffects.REGENERATION,20 + invokeGetSecondarySkillLevel() * 2,getBuilding().getBuildingLevel()));
