@@ -22,7 +22,7 @@ public abstract class EntityAIQuarrierMixin extends AbstractEntityAIStructureWit
     @Override
     protected List<ItemStack> increaseBlockDrops(final List<ItemStack> drops)
     {
-        int multiplier = getSecondarySkillLevel() / 5;
+        int multiplier = 1 + building.getBuildingLevel();
         for (ItemStack stack : drops) {
             if (!stack.isEmpty()) {
                 stack.setCount(stack.getCount() * multiplier);

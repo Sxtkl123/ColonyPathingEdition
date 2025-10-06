@@ -23,7 +23,9 @@ import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
 import org.spongepowered.asm.mixin.*;
 import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.Redirect;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import java.util.Objects;
 
@@ -48,12 +50,21 @@ public abstract class EntityAIEatTaskMixin {
     @Shadow(remap = false) private int waitingTicks;
     @Shadow(remap = false) private int foodSlot;
 
-    @Shadow(remap = false) protected abstract boolean hasFood();
     @Shadow(remap = false) protected abstract void reset();
 
     @Unique private boolean forceEatAtHut = false;
     @Unique public int STOP_EATING_SATURATION = 18;
     @Unique private final double WAITING_MINUTES = PathingConfig.RESTAURANT_WAITING_TIME.get();
+
+    @Unique
+    private boolean hasFoodInRestaurant(){
+        final int slot = FoodUtilExtra.getBestFoodForCitizenWithRestaurantCheck(citizen.getInventoryCitizen(), citizen.getCitizenData(), restaurant == null ? null : restaurant.getModule(RESTAURANT_MENU).getMenu(),false);
+        if(slot != -1) {
+            foodSlot = slot;
+            return true;
+        }
+        return false;
+    }
 
     /**
      * No more restrict check when start eating.
@@ -63,13 +74,8 @@ public abstract class EntityAIEatTaskMixin {
             at = @At(value = "INVOKE", target = "Lcom/minecolonies/core/entity/ai/minimal/EntityAIEatTask;hasFood()Z"),
             remap = false
     )
-    private boolean hasFoodWithoutRestaurantCheck(EntityAIEatTask instance) {
-        final int slot = FoodUtilExtra.getBestFoodForCitizenWithRestaurantCheck(citizen.getInventoryCitizen(), citizen.getCitizenData(), restaurant == null ? null : restaurant.getModule(RESTAURANT_MENU).getMenu(),false);
-        if(slot != -1) {
-            foodSlot = slot;
-            return true;
-        }
-        return false;
+    private boolean hasFoodWithoutRestaurantCheck1(EntityAIEatTask instance) {
+        return hasFoodInRestaurant();
     }
 
     /**
@@ -150,6 +156,14 @@ public abstract class EntityAIEatTaskMixin {
             return CHECK_FOR_FOOD;
         }
         return GO_TO_RESTAURANT;
+    }
+
+    @Inject(method = "waitForFood",at = @At("RETURN"),remap = false)
+    private void checkSaturationWaitingForFood(CallbackInfoReturnable<EntityAIEatTask.EatingState> cir){
+        final ICitizenData citizenData = citizen.getCitizenData();
+        if(citizenData.getSaturation() >= FULL_SATURATION){
+            citizenData.setJustAte(true);
+        }
     }
 
     /**
@@ -264,7 +278,7 @@ public abstract class EntityAIEatTaskMixin {
 
         if ( timeOutWalking++ > 400 )
         {
-            if (hasFood())
+            if (hasFoodInRestaurant())
             {
                 timeOutWalking = 0;
                 restaurantExtra.deleteCustomer(citizen.getCivilianID());
@@ -279,7 +293,7 @@ public abstract class EntityAIEatTaskMixin {
         if (EntityNavigationUtils.walkToPos(citizen, eatPos, 2, true))
         {
             SittingEntity.sitDown(eatPos, citizen, TICKS_SECOND * SECONDS_A_MINUTE);
-            if (!hasFood())
+            if (!hasFoodInRestaurant())
             {
                 waitingTicks++;
                 if (waitingTicks > SECONDS_A_MINUTE * WAITING_MINUTES)

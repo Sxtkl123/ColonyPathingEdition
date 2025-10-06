@@ -138,7 +138,7 @@ public abstract class AbstractEntityAIRequestSmelterMixin<AI extends AbstractEnt
                 if (WorldUtil.isBlockLoaded(getWorld(), pos))
                 {
                     final BlockEntity entity = getWorld().getBlockEntity(pos);
-                    if (entity instanceof final FurnaceBlockEntity furnace && isFurnaceOccupiedBy(furnace,getWorker().getCivilianID()))
+                    if (entity instanceof final FurnaceBlockEntity furnace && isFurnaceNotOccupied(furnace))
                     {
                         final ItemStack smeltableSlot = furnace.getItem(SMELTABLE_SLOT);
                         final ItemStack resultSlot = furnace.getItem(RESULT_SLOT);

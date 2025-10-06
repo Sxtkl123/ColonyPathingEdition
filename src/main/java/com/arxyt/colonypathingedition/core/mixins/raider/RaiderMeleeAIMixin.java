@@ -42,6 +42,12 @@ public class RaiderMeleeAIMixin<T extends AbstractEntityMinecoloniesMonster & IT
                     user.getThreatTable().addThreat(target, 20 - user.getThreatTable().getThreatFor(target));
                 }
             }
+            else if(target instanceof Player player){
+                if(player.isCreative()||player.isSpectator()){
+                    resetTarget();
+                    return false;
+                }
+            }
         }
         return super.checkForTarget();
     }

@@ -67,7 +67,7 @@ public class FoodUtilExtra {
             }
         }
         // Tried everything to maintain quality/diversity but failed, so if we have restaurants in colony, try to eat at restaurants.
-        if (needRestaurantCheck&& citizenData.getColony().getBuildingManager().getBestBuilding(citizenData.getWorkBuilding() == null ? citizenData.getHomePosition() : citizenData.getWorkBuilding().getPosition(), BuildingCook.class) != null){
+        if (needRestaurantCheck && citizenData.getColony().getBuildingManager().getBestBuilding(citizenData.getWorkBuilding() == null ? citizenData.getHomePosition() : citizenData.getWorkBuilding().getPosition(), BuildingCook.class) != null){
             return -1;
         }
         return bestSlot;
