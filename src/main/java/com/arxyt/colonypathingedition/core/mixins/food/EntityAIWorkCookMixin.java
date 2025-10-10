@@ -47,8 +47,8 @@ public abstract class EntityAIWorkCookMixin extends AbstractEntityAIBasicMixin<B
 
     @Final @Shadow(remap = false) private static VisibleCitizenStatus COOK;
     @Final @Shadow(remap = false) private static int LEVEL_TO_FEED_PLAYER;
-    @Final @Shadow(remap = false) private Queue<Player> playerToServe = new ArrayDeque<>();
-    @Final @Shadow(remap = false) private Queue<AbstractEntityCitizen> citizenToServe = new ArrayDeque<>();
+    @Final @Shadow(remap = false) private Queue<Player> playerToServe;
+    @Final @Shadow(remap = false) private Queue<AbstractEntityCitizen> citizenToServe;
 
     @Unique private Queue<Integer> initailCitizenToServe = new ArrayDeque<>();
     @Unique private static final double BASE_XP_GAIN = 2;
@@ -130,27 +130,26 @@ public abstract class EntityAIWorkCookMixin extends AbstractEntityAIBasicMixin<B
         final Predicate<ItemStack> canEatPredicate = stack -> module.getMenu().contains(new ItemStorage(stack));
         final ICitizenData citizenData = citizen.getCitizenData();
 
-        // redundant action
-//        if (!handler.hasSpace()) {
-//            for (int feedingAttempts = 0; feedingAttempts < 10; feedingAttempts++) {
-//                final int foodSlot = FoodUtils.getBestFoodForCitizen(getWorker().getInventoryCitizen(), citizenData, module.getMenu());
-//                if (foodSlot != -1) {
-//                    final ItemStack stack = getWorker().getInventoryCitizen().extractItem(foodSlot, 1, false);
-//                    citizenData.increaseSaturation(FoodUtils.getFoodValue(stack, getWorker()));
-//                    Objects.requireNonNull(getWorker().getCitizenColonyHandler().getColonyOrRegister()).getStatisticsManager().increment(FOOD_SERVED, getWorker().getCitizenColonyHandler().getColonyOrRegister().getDay());
-//                    StatsUtil.trackStatByStack(building, FOOD_SERVED_DETAIL, stack, 1);
-//                } else {
-//                    break;
-//                }
-//
-//                if (citizenData.getSaturation() >= CitizenConstants.FULL_SATURATION) {
-//                    break;
-//                }
-//            }
-//            return invokeGetState();
-//        } else if (InventoryUtils.hasItemInItemHandler(handler, canEatPredicate)) {
-//            return invokeGetState();
-//        }
+        if (!handler.hasSpace()) {
+            for (int feedingAttempts = 0; feedingAttempts < 10; feedingAttempts++) {
+                final int foodSlot = FoodUtils.getBestFoodForCitizen(getWorker().getInventoryCitizen(), citizenData, module.getMenu());
+                if (foodSlot != -1) {
+                    final ItemStack stack = getWorker().getInventoryCitizen().extractItem(foodSlot, 1, false);
+                    citizenData.increaseSaturation(FoodUtils.getFoodValue(stack, getWorker()));
+                    Objects.requireNonNull(getWorker().getCitizenColonyHandler().getColonyOrRegister()).getStatisticsManager().increment(FOOD_SERVED, getWorker().getCitizenColonyHandler().getColonyOrRegister().getDay());
+                    StatsUtil.trackStatByStack(building, FOOD_SERVED_DETAIL, stack, 1);
+                } else {
+                    break;
+                }
+
+                if (citizenData.getSaturation() >= CitizenConstants.FULL_SATURATION) {
+                    break;
+                }
+            }
+            return invokeGetState();
+        } else if (InventoryUtils.hasItemInItemHandler(handler, canEatPredicate)) {
+            return invokeGetState();
+        }
 
         final int foodSlot = FoodUtilExtra.getBestFoodForCitizenWithRestaurantCheck(getWorker().getInventoryCitizen(), citizenData, module.getMenu(),false);
         if (foodSlot == -1) {

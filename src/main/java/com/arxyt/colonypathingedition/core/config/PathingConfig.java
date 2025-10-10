@@ -24,6 +24,7 @@ public class PathingConfig {
     public static ForgeConfigSpec.DoubleValue ONROAD_CALLBACK_MULTIPLIER;
     public static ForgeConfigSpec.DoubleValue ONRAIL_PREFERENCE;
     public static ForgeConfigSpec.DoubleValue ONROAD_PREFERENCE;
+    public static ForgeConfigSpec.DoubleValue SWIMMING_PREFERENCE;
     public static ForgeConfigSpec.IntValue CALLBACK_TIMES_TOLERANCE;
 
     public static ForgeConfigSpec.DoubleValue RESTAURANT_WAITING_TIME;
@@ -132,6 +133,11 @@ public class PathingConfig {
                         This is a global heuristic reduction, representing how much villagers prefer path blocks when pathfinding far away from the target point. The smaller the value, the stronger the preference. (default: 0.92)
                         是一个全局的启发值减免，表现为村民在远离目标点处寻路时对道路方块的信任程度，数值越小越信任(默认 : 0.92)""")
                 .defineInRange("onRoadPreference", 0.92, 0.5, 2.0);
+        SWIMMING_PREFERENCE = builder
+                .comment("""
+                        This is a global heuristic multiplier, representing how much villagers prefer swimming when pathfinding far away from the target point. The smaller the value, the stronger the preference. (default: 1.3)
+                        是一个全局的启发值乘子，表现为村民在远离目标点处寻路时对水路的信任程度，数值越小越信任(默认 : 1.3)""")
+                .defineInRange("swimmingPreference", 1.3, 0.8, 3);
         CALLBACK_TIMES_TOLERANCE = builder
                 .comment("Tolerates how many times callback nodes can be expanded during each pathfinding process. (default: 2)\n 能容忍每次寻路中回扣节点被扩展几次，数值过大可能会造成扩展的无用节点增加 (默认 : 2)")
                 .defineInRange("callbackTimesTolerance", 2, 1, 25);

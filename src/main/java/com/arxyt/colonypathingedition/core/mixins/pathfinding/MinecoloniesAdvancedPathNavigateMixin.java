@@ -8,6 +8,7 @@ import com.minecolonies.core.entity.pathfinding.PathPointExtended;
 import com.minecolonies.core.entity.pathfinding.navigation.AbstractAdvancedPathNavigate;
 import com.minecolonies.core.entity.pathfinding.navigation.MinecoloniesAdvancedPathNavigate;
 import net.minecraft.core.BlockPos;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.Mob;
@@ -23,6 +24,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Constant;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.ModifyConstant;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import java.util.Objects;
@@ -62,20 +64,15 @@ public abstract class MinecoloniesAdvancedPathNavigateMixin extends AbstractAdva
             return;
         }
 
-        if ( this.path == null || this.path.isDone() ){
-            ourEntity.stopRiding();
+        if ( this.getPath() == null || this.getPath().isDone() ){
             entity.remove(Entity.RemovalReason.DISCARDED);
             return;
         }
 
-        if (asNavigator().isDone()) {
-            return;
-        }
         // Path correction: after dismounting, citizens will always teleport to the next path point, preventing path recalculation caused by random dismount positions.
-        int nodeIndex = Objects.requireNonNull(this.getPath()).getNextNodeIndex();
+        int nodeIndex = this.getPath().getNextNodeIndex();
         @NotNull final PathPointExtended pEx = (PathPointExtended) (this.getPath().getNode(nodeIndex));
         if (!pEx.isOnRails()) {
-            ourEntity.stopRiding();
             entity.remove(Entity.RemovalReason.DISCARDED);
             ourEntity.teleportTo(pEx.x + 0.5, pEx.y, pEx.z + 0.5);
             return;
@@ -84,8 +81,6 @@ public abstract class MinecoloniesAdvancedPathNavigateMixin extends AbstractAdva
         if(entity instanceof MinecoloniesMinecart minecoloniesMinecart && !minecoloniesMinecart.isOnRails()) {
             Vec3 movement = minecoloniesMinecart.getDeltaMovement();
             double speed = movement.length();
-            ourEntity.stopRiding();
-            entity.remove(Entity.RemovalReason.DISCARDED);
             nodeIndex = Math.min(this.getPath().getNodeCount() - 1, nodeIndex + (int)Math.floor(speed / 0.4F));
             @NotNull final PathPointExtended tpPlace = (PathPointExtended) (Objects.requireNonNull(this.getPath())).getNode(nodeIndex);
             if(!tpPlace.isOnRails()){
@@ -104,20 +99,15 @@ public abstract class MinecoloniesAdvancedPathNavigateMixin extends AbstractAdva
             if (railshape.isAscending()) {
                 yOffset = 0.5D;
             }
-            MinecoloniesMinecart minecart = ModEntities.MINECART.create(level);
             final double x = tpPlace.x + 0.5D;
             final double y = tpPlace.y + 0.625D + yOffset;
             final double z = tpPlace.z + 0.5D;
-            assert minecart != null;
-            minecart.setPos(x, y, z);
-            minecart.setDeltaMovement(Vec3.ZERO);
-            minecart.xo = x;
-            minecart.yo = y;
-            minecart.zo = z;
-            level.addFreshEntity(minecart);
-            minecart.setHurtDir(1);
-            mob.startRiding(minecart, true);
+            minecoloniesMinecart.setPos(x, y, z);
+            minecoloniesMinecart.setDeltaMovement(Vec3.ZERO);
+            minecoloniesMinecart.xo = x;
+            minecoloniesMinecart.yo = y;
+            minecoloniesMinecart.zo = z;
+            mob.startRiding(minecoloniesMinecart, true);
         }
     }
-
 }

@@ -3,6 +3,7 @@ package com.arxyt.colonypathingedition.core.mixins.entity;
 import com.minecolonies.api.colony.ICitizenData;
 import com.minecolonies.api.entity.citizen.AbstractCivilianEntity;
 import com.minecolonies.api.entity.citizen.AbstractEntityCitizen;
+import com.minecolonies.api.entity.citizen.citizenhandlers.ICitizenJobHandler;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.PathfinderMob;
@@ -14,7 +15,7 @@ import org.spongepowered.asm.mixin.Shadow;
 @Mixin(AbstractEntityCitizen.class)
 public abstract class AbstractEntityCitizenMixin extends AbstractCivilianEntity {
 
-    @Shadow(remap = false) public abstract ICitizenData getCitizenData();
+    @Shadow(remap = false) public abstract ICitizenJobHandler getCitizenJobHandler();
 
     public AbstractEntityCitizenMixin(final EntityType<? extends PathfinderMob> type, final Level world)
     {
@@ -26,8 +27,8 @@ public abstract class AbstractEntityCitizenMixin extends AbstractCivilianEntity 
         super.addAdditionalSaveData(tag);
 
         //市民职业信息
-        if(getCitizenData() != null && getCitizenData().getJob() != null) {
-            tag.putString("citizenJob", getCitizenData().getJob().getModel().getPath());
+        if(getCitizenJobHandler() != null && getCitizenJobHandler().getColonyJob() != null) {
+            tag.putString("citizenJob", getCitizenJobHandler().getColonyJob().getModel().getPath());
         }
         else{
             tag.putString("citizenJob", "unemployed");

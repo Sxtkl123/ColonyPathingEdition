@@ -6,11 +6,13 @@ import com.minecolonies.api.entity.citizen.Skill;
 import com.minecolonies.api.entity.other.MinecoloniesMinecart;
 import com.minecolonies.core.colony.jobs.JobDeliveryman;
 import com.minecolonies.core.entity.citizen.EntityCitizen;
+import com.minecolonies.core.entity.visitor.VisitorCitizen;
 import net.minecraft.core.BlockPos;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.util.Mth;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.vehicle.Minecart;
 import net.minecraft.world.level.Level;
@@ -21,6 +23,7 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Overwrite;
 
 import static com.minecolonies.api.research.util.ResearchConstants.WALKING;
+import static net.minecraft.world.entity.Entity.RemovalReason.DISCARDED;
 
 
 @Mixin(MinecoloniesMinecart.class)
@@ -161,9 +164,19 @@ public abstract class MinecoloniesMinecartMixin extends Minecart implements Abst
             this.firstTick = false;
         }
 
-        if (this.tickCount % 20 == 19 && this.getPassengers().isEmpty())
+        if (this.tickCount % 20 == 19)
         {
-            this.remove(RemovalReason.DISCARDED);
+            for(Entity passenger : this.getPassengers()){
+                if(passenger instanceof EntityCitizen citizen){
+                    if(citizen.getCivilianID() == 0){
+                        citizen.stopRiding();
+                        this.remove(DISCARDED);
+                    }
+                }
+            }
+            if(this.getPassengers().isEmpty()) {
+                this.remove(DISCARDED);
+            }
         }
     }
 }

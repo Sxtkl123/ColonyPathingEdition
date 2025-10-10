@@ -33,7 +33,6 @@ import static com.minecolonies.core.entity.ai.minimal.EntityAISickTask.DiseaseSt
 abstract public class EntityAISickTaskMixin {
     @Final @Shadow(remap = false) private EntityCitizen citizen;
     @Final @Shadow(remap = false) private ICitizenData citizenData;
-
     @Shadow(remap = false) private BlockPos bestHospital;
 
     @Shadow (remap = false) protected abstract void reset();

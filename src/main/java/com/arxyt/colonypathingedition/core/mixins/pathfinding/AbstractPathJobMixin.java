@@ -100,8 +100,9 @@ public abstract class AbstractPathJobMixin implements AbstractAISkeletonAccessor
     @Unique final private int callbackTimesTolerance =  PathingConfig.CALLBACK_TIMES_TOLERANCE.get();
     @Unique final private double onRailPreference = PathingConfig.ONRAIL_PREFERENCE.get();
     @Unique final private double onRoadPreference = PathingConfig.ONROAD_PREFERENCE.get();
+    @Unique final private double swimmingPreference = PathingConfig.SWIMMING_PREFERENCE.get();
     @Unique final private double onRailCallbackMultiplier = PathingConfig.ONRAIL_CALLBACK_MULTIPLIER.get();
-    @Unique final private double onRoadCallbackMultiplier = PathingConfig.ONRAIL_CALLBACK_MULTIPLIER.get();
+    @Unique final private double onRoadCallbackMultiplier = PathingConfig.ONROAD_CALLBACK_MULTIPLIER.get();
     @Unique public double ladderSwitchCost = PathingConfig.LADDER_SWITCH_COST_DEFINER.get();
     @Unique public double shingleCost = PathingConfig.SHINGLE_COST_DEFINER.get();
     @Unique public double destroyingFarmlandCost = PathingConfig.FARMLAND_COST_DEFINER.get();
@@ -603,7 +604,7 @@ public abstract class AbstractPathJobMixin implements AbstractAISkeletonAccessor
     private double modifyHeuristic(MNode node, MNode nextNode, double heuristic, boolean onRoad, boolean onRails)
     {
         double newHeuristic = heuristic;
-        double lastHeuristic =node.getHeuristic();
+        double lastHeuristic = node.getHeuristic();
         IMNodeExtras extras = (IMNodeExtras) node;
         IMNodeExtras extrasNext = (IMNodeExtras) nextNode;
         double callbackAddon = 0.0;
@@ -615,6 +616,9 @@ public abstract class AbstractPathJobMixin implements AbstractAISkeletonAccessor
         {
             heuristic *= onRoadPreference;
             callbackAddon = pathingOptions.onPathCost * onRoadCallbackMultiplier;
+        }
+        else if (nextNode.isSwimming()){
+            heuristic *= swimmingPreference;
         }
         if (lastHeuristic + callbackAddon <= heuristic){
             if (callbackAddon != 0.0){
