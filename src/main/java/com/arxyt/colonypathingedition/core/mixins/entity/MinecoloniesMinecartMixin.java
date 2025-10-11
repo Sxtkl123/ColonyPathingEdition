@@ -166,16 +166,19 @@ public abstract class MinecoloniesMinecartMixin extends Minecart implements Abst
 
         if (this.tickCount % 20 == 19)
         {
-            for(Entity passenger : this.getPassengers()){
-                if(passenger instanceof EntityCitizen citizen){
-                    if(citizen.getCivilianID() == 0){
-                        citizen.stopRiding();
-                        this.remove(DISCARDED);
-                    }
-                }
-            }
             if(this.getPassengers().isEmpty()) {
                 this.remove(DISCARDED);
+            }
+            else {
+                //Deal with ghost minecart
+                for (Entity passenger : this.getPassengers()) {
+                    //Ghost minecarts’ passengers mostly are ghost EntityCitizens with citizenId = 0.
+                    if (passenger instanceof EntityCitizen citizen && citizen.getCivilianID() == 0) {
+                        citizen.stopRiding();
+                        this.remove(DISCARDED);
+                        break;
+                    }
+                }
             }
         }
     }

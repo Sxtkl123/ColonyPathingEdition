@@ -180,7 +180,7 @@ public abstract class AbstractEntityAIRequestSmelterMixin<J extends AbstractJobC
 
     /**
      * @author ARxyt
-     * @reason isEmpty && isLit -> isEmpty || isLit
+     * @reason isEmpty && !isLit -> isEmpty || !isLit
      */
     @Overwrite(remap = false)
     private BlockPos getPositionOfOvenToRetrieveFrom()
