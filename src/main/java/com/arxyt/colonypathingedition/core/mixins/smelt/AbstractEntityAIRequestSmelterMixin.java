@@ -1,20 +1,17 @@
 package com.arxyt.colonypathingedition.core.mixins.smelt;
 
 import com.arxyt.colonypathingedition.api.FurnaceBlockEntityExtras;
-import com.arxyt.colonypathingedition.core.mixins.AbstractEntityAICraftingMixin;
-import com.arxyt.colonypathingedition.core.mixins.accessor.AbstractEntityAIBasicAccessor;
 import com.minecolonies.api.colony.interactionhandling.ChatPriority;
-import com.minecolonies.api.entity.ai.statemachine.AIEventTarget;
-import com.minecolonies.api.entity.ai.statemachine.AITarget;
-import com.minecolonies.api.entity.ai.statemachine.states.AIBlockingEventType;
 import com.minecolonies.api.entity.ai.statemachine.states.IAIState;
-import com.minecolonies.api.util.*;
+import com.minecolonies.api.util.InventoryUtils;
+import com.minecolonies.api.util.ItemStackUtils;
+import com.minecolonies.api.util.Tuple;
+import com.minecolonies.api.util.WorldUtil;
 import com.minecolonies.core.colony.buildings.AbstractBuilding;
 import com.minecolonies.core.colony.buildings.modules.BuildingModules;
 import com.minecolonies.core.colony.buildings.modules.FurnaceUserModule;
 import com.minecolonies.core.colony.interactionhandling.StandardInteraction;
 import com.minecolonies.core.colony.jobs.AbstractJobCrafter;
-import com.minecolonies.core.entity.ai.workers.AbstractEntityAIBasic;
 import com.minecolonies.core.entity.ai.workers.crafting.AbstractEntityAICrafting;
 import com.minecolonies.core.entity.ai.workers.crafting.AbstractEntityAIRequestSmelter;
 import com.minecolonies.core.util.citizenutils.CitizenItemUtils;

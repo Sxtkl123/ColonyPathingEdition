@@ -412,6 +412,9 @@ public abstract class AbstractPathJobMixin implements AbstractAISkeletonAccessor
 
         for (int i = 1; i <= (pathingOptions.canDrop ? 10 : 2); i++) {
             final BlockState below = cachedBlockLookup.getBlockState(x, y - i, z);
+            if (below.getBlock() instanceof BaseRailBlock){
+                return y - i + 1;
+            }
             if (!canLeaveBlock(x, y - 1, z, x, y, z, false)) {
                 return Integer.MIN_VALUE;
             }

@@ -1,14 +1,12 @@
 package com.arxyt.colonypathingedition.core.mixins.pathfinding;
 
 import com.arxyt.colonypathingedition.core.config.PathingConfig;
-import com.minecolonies.api.entity.ModEntities;
 import com.minecolonies.api.entity.other.MinecoloniesMinecart;
 import com.minecolonies.core.entity.other.SittingEntity;
 import com.minecolonies.core.entity.pathfinding.PathPointExtended;
 import com.minecolonies.core.entity.pathfinding.navigation.AbstractAdvancedPathNavigate;
 import com.minecolonies.core.entity.pathfinding.navigation.MinecoloniesAdvancedPathNavigate;
 import net.minecraft.core.BlockPos;
-import net.minecraft.server.level.ServerLevel;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.Mob;
@@ -24,7 +22,6 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Constant;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.ModifyConstant;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import java.util.Objects;
@@ -65,6 +62,7 @@ public abstract class MinecoloniesAdvancedPathNavigateMixin extends AbstractAdva
         }
 
         if ( this.getPath() == null || this.getPath().isDone() ){
+            ourEntity.stopRiding();
             entity.remove(Entity.RemovalReason.DISCARDED);
             return;
         }
@@ -73,6 +71,7 @@ public abstract class MinecoloniesAdvancedPathNavigateMixin extends AbstractAdva
         int nodeIndex = this.getPath().getNextNodeIndex();
         @NotNull final PathPointExtended pEx = (PathPointExtended) (this.getPath().getNode(nodeIndex));
         if (!pEx.isOnRails()) {
+            ourEntity.stopRiding();
             entity.remove(Entity.RemovalReason.DISCARDED);
             ourEntity.teleportTo(pEx.x + 0.5, pEx.y, pEx.z + 0.5);
             return;
