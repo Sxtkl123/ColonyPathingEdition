@@ -34,7 +34,7 @@ public class UpdateManager {
     @SubscribeEvent
     public static void onPlayerLoggedIn(PlayerEvent.PlayerLoggedInEvent event) {
         Player player = event.getEntity();
-        checkAndSendUpdateMessage(player);
+        // checkAndSendUpdateMessage(player);
     }
 
     private static void checkAndSendUpdateMessage(Player player) {

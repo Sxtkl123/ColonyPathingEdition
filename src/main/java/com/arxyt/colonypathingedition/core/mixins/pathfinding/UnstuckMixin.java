@@ -11,6 +11,7 @@ import com.minecolonies.api.util.constant.ColonyConstants;
 import com.minecolonies.core.entity.citizen.EntityCitizen;
 import com.minecolonies.core.entity.pathfinding.navigation.MinecoloniesAdvancedPathNavigate;
 import com.minecolonies.core.entity.pathfinding.navigation.PathingStuckHandler;
+import com.minecolonies.core.entity.pathfinding.pathjobs.PathJobMoveTowards;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.util.Mth;
@@ -90,36 +91,42 @@ public abstract class UnstuckMixin<NAV extends PathNavigation & IMinecoloniesNav
             }
         }
         else{
-            stuckLevel=Math.max(stuckLevelRecorder,stuckLevel);
+            stuckLevel = Math.max(stuckLevelRecorder,stuckLevel);
             stuckLevel++;
         }
 
         // New detour algorithm
         if ((stuckLevel <= 4 && !teleported) && prevDestination != null && !prevDestination.equals(BlockPos.ZERO)) {
-            int range;
             if (navigator.getPath() != null) {
                 moveAwayStartPos = navigator.getPath().getNodePos(navigator.getPath().getNextNodeIndex());
             } else {
                 moveAwayStartPos = navigator.getOurEntity().blockPosition().above();
             }
-            range = 20 * stuckLevel;
+            int range = 20 * stuckLevel;
             BlockPos startPos = navigator.getOurEntity().blockPosition();
             // Obtain a possibly passable direction.
             // Since same-direction traversal is already approximately breadth-first, detouring to the other side can maximize benefit.
-            BlockPos dPos = new BlockPos(prevDestination.getX()-startPos.getX(),0,prevDestination.getZ()-startPos.getZ());
-            double distance =BlockPosUtil.distSqr(dPos,BlockPos.ZERO);
+            BlockPos dPos = new BlockPos(prevDestination.getX() - startPos.getX(),0,prevDestination.getZ() - startPos.getZ());
+            double distance = BlockPosUtil.dist(dPos,BlockPos.ZERO);
             if(distance == 0){
                 dPos = dPos.relative(movingAwayDir,range);
                 movingAwayDir = movingAwayDir.getClockWise();
             }
             else{
-                dPos.multiply(Mth.ceil(range/distance));
+                if(stuckLevel >= 2){
+                    if(Math.abs(dPos.getX()) > Math.abs(dPos.getZ())) {
+                        dPos = dPos.relative(Direction.Axis.Z,stuckLevel % 2 == 0 ? -20:  20);
+                    }
+                    else{
+                        dPos = dPos.relative(Direction.Axis.X,stuckLevel % 2 == 0 ? -20:  20);
+                    }
+                }
             }
             navigator.setPauseTicks(0);
-            ((MinecoloniesAdvancedPathNavigateAccessor) navigator).invokeWalkTowards(prevDestination.offset(dPos.getX(),dPos.getY(),dPos.getZ()), range, 1.0f);
+            ((MinecoloniesAdvancedPathNavigateAccessor) navigator).invokeWalkTowards(prevDestination.offset(dPos), 100, 1.0f + 0.4f * stuckLevel);
             stuckLevelRecorder = stuckLevel;
-            navigator.setPauseTicks( range * TICKS_PER_BLOCK + 200);
-            delayToNextUnstuckAction = range * TICKS_PER_BLOCK;
+            navigator.setPauseTicks(300);
+            delayToNextUnstuckAction = 350;
             needReset = true;
             return;
         }

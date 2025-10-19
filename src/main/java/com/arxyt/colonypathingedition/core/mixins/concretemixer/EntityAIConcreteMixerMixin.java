@@ -36,6 +36,9 @@ public abstract class EntityAIConcreteMixerMixin extends AbstractEntityAICraftin
                     currentRequest != null && currentRecipeStorage != null &&
                     ItemHandlerHelper.canItemStacksStack(stack, currentRecipeStorage.getCleanedInput().get(0).getItemStack());
 
+    private final Predicate<ItemStack> REQUEST_CONCRETE_BLOCK =
+            stack -> stack.getItem() == currentRequest.getRequest().getStack().getItem();
+
     @Unique BlockPos posToMine = null;
 
     public EntityAIConcreteMixerMixin(@NotNull final JobConcreteMixer job) {
@@ -69,6 +72,18 @@ public abstract class EntityAIConcreteMixerMixin extends AbstractEntityAICraftin
             return START_WORKING;
         }
 
+        if(InventoryUtils.getCountFromBuilding(building, REQUEST_CONCRETE_BLOCK) >= currentRequest.getRequest().getCount()){
+            ItemStack stack = currentRequest.getRequest().getStack().copy();
+            stack.setCount(currentRequest.getRequest().getCount());
+            currentRequest.addDelivery(stack);
+            incrementActionsDone(getActionRewardForCraftingSuccess());
+            job.finishRequest(true);
+            worker.getCitizenExperienceHandler().addExperience(currentRequest.getRequest().getCount() / 2.0);
+            currentRequest = null;
+            currentRecipeStorage = null;
+            resetValues();
+            return START_WORKING;
+        }
 
         final int slot = getSlotWithPowderWithRequest();
         if (slot == -1)
@@ -76,6 +91,7 @@ public abstract class EntityAIConcreteMixerMixin extends AbstractEntityAICraftin
             if (InventoryUtils.getCountFromBuilding(building, REQUESTED_CONCRETE) > 0)
             {
                 needsCurrently = new Tuple<>(REQUESTED_CONCRETE, STACKSIZE);
+
                 return GATHERING_REQUIRED_MATERIALS;
             }
 

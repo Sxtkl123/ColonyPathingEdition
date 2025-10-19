@@ -59,11 +59,18 @@ public class BuildingModulesMixin
                 return () -> new CraftingWorkerBuildingModule(ModJobs.stoneSmeltery.get(),
                         Skill.Athletics,
                         Skill.Dexterity,
-                        false,
+                        true,
                         (b) -> Math.max(1, (b.getBuildingLevel() + 1) / 2),
                         Skill.Dexterity,
                         Skill.Athletics
                 );
+//            case "farmer_craft":
+//                return () -> new CraftingWorkerBuildingModule(ModJobs.farmer.get(),
+//                        Skill.Stamina,
+//                        Skill.Athletics,
+//                        false,
+//                        (b) -> Math.max(1, (b.getBuildingLevel() + 1) / 2)
+//                );
             default:
                 // leave unchanged
         }

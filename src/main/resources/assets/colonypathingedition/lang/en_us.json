@@ -3,5 +3,16 @@
   "com.arxyt.colonypathingedition.core.update.stable": "Pathfinding Edition for MineColonies has tested a stable version %s. It’s safe to update!",
   "com.arxyt.colonypathingedition.core.update.unstable": "This is not a safe version! Please decide carefully whether to update.",
   "com.arxyt.colonypathingedition.core.update.out_of_date": "Your Pathfinding Edition for Minecolonies version is out of date or found severe bugs! The lateset stable version is %s!",
-  "com.arxyt.colonypathingedition.core.update.changelog": "Here is the changelog："
+  "com.arxyt.colonypathingedition.core.update.changelog": "Here is the changelog：",
+  "com.arxyt.colonypathingedition.core.farmfield.rotation_count": "Crop Rotation Count",
+  "com.arxyt.colonypathingedition.core.farmfield.current_prefix": "Current:",
+  "com.arxyt.colonypathingedition.core.farmfield.season_suffix": "(Season)",
+  "com.arxyt.colonypathingedition.core.farmfield.day_suffix": "(Day)",
+  "com.arxyt.colonypathingedition.core.farmfield.season1": "Ssn. 1",
+  "com.arxyt.colonypathingedition.core.farmfield.season2": "Ssn. 2",
+  "com.arxyt.colonypathingedition.core.farmfield.season3": "Ssn. 3",
+  "com.arxyt.colonypathingedition.core.farmfield.season4": "Ssn. 4",
+  "com.arxyt.colonypathingedition.core.farmfield.select_seed": "Select Seed",
+  "com.arxyt.colonypathingedition.core.farmfield.duration": "Dur.",
+  "com.arxyt.colonypathingedition.core.farmfield.day_unit": "Days"
 }

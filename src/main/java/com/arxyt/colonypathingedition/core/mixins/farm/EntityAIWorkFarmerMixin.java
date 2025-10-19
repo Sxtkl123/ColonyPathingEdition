@@ -1,20 +1,41 @@
 package com.arxyt.colonypathingedition.core.mixins.farm;
 
+import com.arxyt.colonypathingedition.api.FarmFieldExtra;
 import com.arxyt.colonypathingedition.core.mixins.accessor.AbstractAISkeletonAccessor;
 import com.arxyt.colonypathingedition.core.mixins.accessor.AbstractEntityAIBasicAccessor;
 import com.arxyt.colonypathingedition.core.tag.ModTag;
+import com.google.common.reflect.TypeToken;
+import com.minecolonies.api.advancements.AdvancementTriggers;
+import com.minecolonies.api.colony.buildingextensions.IBuildingExtension;
+import com.minecolonies.api.colony.interactionhandling.ChatPriority;
+import com.minecolonies.api.colony.requestsystem.requestable.StackList;
+import com.minecolonies.api.entity.ai.JobStatus;
+import com.minecolonies.api.entity.ai.statemachine.states.IAIState;
+import com.minecolonies.api.entity.citizen.VisibleCitizenStatus;
+import com.minecolonies.api.equipment.ModEquipmentTypes;
+import com.minecolonies.api.items.ModItems;
 import com.minecolonies.api.util.InventoryUtils;
+import com.minecolonies.api.util.Log;
+import com.minecolonies.api.util.Tuple;
+import com.minecolonies.api.util.constant.translation.RequestSystemTranslationConstants;
 import com.minecolonies.core.Network;
 import com.minecolonies.core.colony.buildingextensions.FarmField;
 import com.minecolonies.core.colony.buildings.AbstractBuilding;
+import com.minecolonies.core.colony.buildings.modules.BuildingExtensionsModule;
+import com.minecolonies.core.colony.buildings.workerbuildings.BuildingFarmer;
+import com.minecolonies.core.colony.interactionhandling.StandardInteraction;
 import com.minecolonies.core.colony.jobs.JobFarmer;
+import com.minecolonies.core.entity.ai.workers.crafting.AbstractEntityAICrafting;
 import com.minecolonies.core.entity.ai.workers.production.agriculture.EntityAIWorkFarmer;
 import com.minecolonies.core.network.messages.client.CompostParticleMessage;
+import com.minecolonies.core.util.AdvancementUtils;
 import net.minecraft.core.BlockPos;
+import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.BonemealableBlock;
@@ -22,23 +43,44 @@ import net.minecraft.world.level.block.BushBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.network.PacketDistributor;
 import org.jetbrains.annotations.NotNull;
+import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
-import org.spongepowered.asm.mixin.gen.Invoker;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.function.Predicate;
+
+import static com.minecolonies.api.entity.ai.statemachine.states.AIWorkerState.*;
 import static com.minecolonies.api.util.constant.CitizenConstants.BLOCK_BREAK_SOUND_RANGE;
+import static com.minecolonies.api.util.constant.Constants.STACKSIZE;
+import static com.minecolonies.api.util.constant.TranslationConstants.NO_FREE_FIELDS;
 
 
 @Mixin(EntityAIWorkFarmer.class)
-public abstract class EntityAIWorkFarmerMixin implements AbstractAISkeletonAccessor<JobFarmer>, AbstractEntityAIBasicAccessor<AbstractBuilding> {
+public abstract class EntityAIWorkFarmerMixin extends AbstractEntityAICrafting<JobFarmer, BuildingFarmer> implements AbstractAISkeletonAccessor<JobFarmer>, AbstractEntityAIBasicAccessor<AbstractBuilding> {
 
     @Shadow(remap = false) protected abstract BlockPos getSurfacePos(final BlockPos position);
     @Shadow(remap = false) protected abstract boolean isCompost(final ItemStack itemStack);
+
+    @Shadow(remap = false) protected abstract IAIState canGoPlanting(@NotNull FarmField farmField);
+
+    @Shadow(remap = false) private int skippedState;
+
+    @Shadow(remap = false) private boolean didWork;
+
+    @Shadow(remap = false) @Final private static VisibleCitizenStatus FARMING_ICON;
+
+    @Shadow(remap = false) protected abstract boolean checkIfShouldExecute(@NotNull FarmField farmField, @NotNull Predicate<BlockPos> predicate);
+
+    @Shadow(remap = false) protected abstract BlockPos findHarvestableSurface(@NotNull BlockPos position);
+
+    @Shadow(remap = false) protected abstract BlockPos findHoeableSurface(@NotNull BlockPos position, @NotNull FarmField farmField);
 
     /**
      * Methods to clarify special seed by Tags
@@ -62,6 +104,101 @@ public abstract class EntityAIWorkFarmerMixin implements AbstractAISkeletonAcces
                 false // pIsClient 应为 false（服务端逻辑）
         );
     }
+
+    public EntityAIWorkFarmerMixin(@NotNull final JobFarmer job)
+    {
+        super(job);
+    }
+
+    @Inject(method = "prepareForFarming",at = @At("HEAD"),remap = false,cancellable = true)
+    private void remasteredPrepareForFarming(CallbackInfoReturnable<IAIState> cir){
+        worker.getCitizenData().setJobStatus(JobStatus.IDLE);
+        if (building == null || building.getBuildingLevel() < 1)
+        {
+            worker.getCitizenData().setJobStatus(JobStatus.STUCK);
+            cir.setReturnValue(PREPARING);
+            return;
+        }
+
+        final BuildingExtensionsModule module = building.getFirstModuleOccurance(BuildingExtensionsModule.class);
+        if (module.getOwnedExtensions().size() == building.getMaxBuildingLevel())
+        {
+            AdvancementUtils.TriggerAdvancementPlayersForColony(building.getColony(), AdvancementTriggers.MAX_FIELDS::trigger);
+        }
+
+        final int amountOfCompostInBuilding = InventoryUtils.hasBuildingEnoughElseCount(building, this::isCompost, 1);
+        final int amountOfCompostInInv = InventoryUtils.getItemCountInItemHandler(worker.getInventoryCitizen(), this::isCompost);
+
+        if (amountOfCompostInBuilding + amountOfCompostInInv <= 0)
+        {
+            if (building.requestFertilizer() && !building.hasWorkerOpenRequestsOfType(worker.getCitizenData().getId(), TypeToken.of(StackList.class)))
+            {
+                final List<ItemStack> compostAbleItems = new ArrayList<>();
+                compostAbleItems.add(new ItemStack(ModItems.compost, 1));
+                compostAbleItems.add(new ItemStack(Items.BONE_MEAL, 1));
+                worker.getCitizenData().createRequestAsync(new StackList(compostAbleItems, RequestSystemTranslationConstants.REQUEST_TYPE_FERTILIZER, STACKSIZE, 1));
+            }
+        }
+        else if (amountOfCompostInInv <= 0 && amountOfCompostInBuilding > 0)
+        {
+            needsCurrently = new Tuple<>(this::isCompost, STACKSIZE);
+            cir.setReturnValue(GATHERING_REQUIRED_MATERIALS);
+            return;
+        }
+
+        if (module.hasNoExtensions())
+        {
+            if (worker.getCitizenData() != null)
+            {
+                worker.getCitizenData().triggerInteraction(new StandardInteraction(Component.translatable(NO_FREE_FIELDS), ChatPriority.BLOCKING));
+            }
+            worker.getCitizenData().setJobStatus(JobStatus.STUCK);
+            cir.setReturnValue(IDLE);
+            return;
+        }
+
+        final IBuildingExtension fieldToWork = module.getExtensionToWorkOn();
+        if (fieldToWork instanceof FarmField farmField)
+        {
+            if (checkForToolOrWeapon(ModEquipmentTypes.hoe.get()))
+            {
+                worker.getCitizenData().setJobStatus(JobStatus.STUCK);
+                cir.setReturnValue(PREPARING);
+            }
+            worker.getCitizenData().setVisibleStatus(FARMING_ICON);
+            worker.getCitizenData().setJobStatus(JobStatus.WORKING);
+            if (farmField.getFieldStage() == FarmField.Stage.PLANTED && checkIfShouldExecute(farmField, pos -> this.findHarvestableSurface(pos) != null))
+            {
+                cir.setReturnValue(FARMER_HARVEST);
+                return;
+            }
+            else if (farmField.getFieldStage() == FarmField.Stage.HOED)
+            {
+                cir.setReturnValue(canGoPlanting(farmField));
+                return;
+            }
+            else if (farmField.getFieldStage() == FarmField.Stage.EMPTY && checkIfShouldExecute(farmField, pos -> this.findHoeableSurface(pos, farmField) != null))
+            {
+                cir.setReturnValue(FARMER_HOE);
+                return;
+            }
+            farmField.nextState();
+            if (++skippedState >= 4)
+            {
+                skippedState = 0;
+                didWork = true;
+                module.resetCurrentExtension();
+            }
+            cir.setReturnValue(IDLE);
+            return;
+        }
+        else if (fieldToWork != null)
+        {
+            Log.getLogger().warn("Farmer found non-FarmField extension: {}", fieldToWork.getClass());
+        }
+        cir.setReturnValue(IDLE);
+    }
+
 
     /**
      * Skip hoeing if seeds plant directly on dirt.

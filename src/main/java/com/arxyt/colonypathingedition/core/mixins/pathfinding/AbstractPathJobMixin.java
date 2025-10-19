@@ -3,6 +3,7 @@ package com.arxyt.colonypathingedition.core.mixins.pathfinding;
 import com.arxyt.colonypathingedition.api.IMNodeExtras;
 import com.arxyt.colonypathingedition.core.config.PathingConfig;
 import com.arxyt.colonypathingedition.core.mixins.accessor.AbstractAISkeletonAccessor;
+import com.arxyt.colonypathingedition.core.mixins.pathfinding.heuristic.PathJobMoveToLocationMixin;
 import com.ldtteam.domumornamentum.block.decorative.PanelBlock;
 import com.ldtteam.domumornamentum.block.decorative.PostBlock;
 import com.ldtteam.domumornamentum.block.decorative.ShingleBlock;
@@ -19,6 +20,8 @@ import com.minecolonies.core.entity.pathfinding.PathfindingUtils;
 import com.minecolonies.core.entity.pathfinding.PathingOptions;
 import com.minecolonies.core.entity.pathfinding.SurfaceType;
 import com.minecolonies.core.entity.pathfinding.pathjobs.AbstractPathJob;
+import com.minecolonies.core.entity.pathfinding.pathjobs.PathJobMoveToLocation;
+import com.minecolonies.core.entity.pathfinding.pathjobs.PathJobMoveTowards;
 import com.minecolonies.core.entity.pathfinding.world.CachingBlockLookup;
 import com.minecolonies.core.util.WorkerUtil;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
@@ -27,6 +30,7 @@ import net.minecraft.core.Direction;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelReader;
+import net.minecraft.world.level.LightLayer;
 import net.minecraft.world.level.block.*;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
@@ -98,8 +102,8 @@ public abstract class AbstractPathJobMixin implements AbstractAISkeletonAccessor
     protected abstract double computeHeuristic(final int x, final int y, final int z);
 
     @Unique final private int callbackTimesTolerance =  PathingConfig.CALLBACK_TIMES_TOLERANCE.get();
-    @Unique final private double onRailPreference = PathingConfig.ONRAIL_PREFERENCE.get();
-    @Unique final private double onRoadPreference = PathingConfig.ONROAD_PREFERENCE.get();
+    @Unique final protected double onRailPreference = PathingConfig.ONRAIL_PREFERENCE.get();
+    @Unique final protected double onRoadPreference = PathingConfig.ONROAD_PREFERENCE.get();
     @Unique final private double swimmingPreference = PathingConfig.SWIMMING_PREFERENCE.get();
     @Unique final private double onRailCallbackMultiplier = PathingConfig.ONRAIL_CALLBACK_MULTIPLIER.get();
     @Unique final private double onRoadCallbackMultiplier = PathingConfig.ONROAD_CALLBACK_MULTIPLIER.get();
@@ -561,12 +565,18 @@ public abstract class AbstractPathJobMixin implements AbstractAISkeletonAccessor
             if ((onRoad || onRails) && Math.abs(dY) <= 1 ){
                 extraNextNode.setHeuristic(modifyHeuristic(node, extraNextNode, nextNode.getHeuristic(), onRoad, onRails));
             }
+            else {
+                extraNextNode.setHeuristic(modifyHeuristic(extraNextNode, nextNode.getHeuristic(), state));
+            }
             nodesToVisit.offer(extraNextNode);
         }
         else
         {
             if ((onRoad || onRails) && Math.abs(dY) <= 1){
                 nextNode.setHeuristic(modifyHeuristic(node, nextNode, nextNode.getHeuristic(), onRoad, onRails));
+            }
+            else {
+                nextNode.setHeuristic(modifyHeuristic(nextNode, nextNode.getHeuristic(), state));
             }
             updateNode(node, nextNode, heuristic, cost, onRails);
         }
@@ -601,10 +611,21 @@ public abstract class AbstractPathJobMixin implements AbstractAISkeletonAccessor
         return nextNode;
     }
 
+    private double modifyHeuristic(MNode nextNode, double heuristic, final BlockState state) {
+        double newHeuristic = heuristic;
+        if(state.getBlock() == Blocks.CAVE_AIR){
+            newHeuristic *= 1 + 0.15 * Math.max(5 - getWorld().getBrightness(LightLayer.BLOCK, new BlockPos(nextNode.x, nextNode.y, nextNode.z)) , 0);
+        }
+        if (nextNode.isSwimming()){
+            newHeuristic *= swimmingPreference;
+        }
+        return newHeuristic;
+    }
+
     /**
      * Heuristic correction function, making “detour exemptions” or other adjustments based on node, onRoad, and onRails.
      */
-    private double modifyHeuristic(MNode node, MNode nextNode, double heuristic, boolean onRoad, boolean onRails)
+    protected double modifyHeuristic(MNode node, MNode nextNode, double heuristic, boolean onRoad, boolean onRails)
     {
         double newHeuristic = heuristic;
         double lastHeuristic = node.getHeuristic();
@@ -620,10 +641,7 @@ public abstract class AbstractPathJobMixin implements AbstractAISkeletonAccessor
             heuristic *= onRoadPreference;
             callbackAddon = pathingOptions.onPathCost * onRoadCallbackMultiplier;
         }
-        else if (nextNode.isSwimming()){
-            heuristic *= swimmingPreference;
-        }
-        if (lastHeuristic + callbackAddon <= heuristic){
+        if (lastHeuristic + callbackAddon <= heuristic ){
             if (callbackAddon != 0.0){
                 newHeuristic = lastHeuristic + callbackAddon;
                 extrasNext.setCallbackNode();

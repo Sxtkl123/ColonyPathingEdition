@@ -6,6 +6,8 @@ import com.minecolonies.core.colony.jobs.*;
 import java.util.Set;
 
 public final class AdditionalContants {
+    public static final String MOD_ID = "colonypathingedition";
+
     public static final String SICK_TIME = "sick_time";
 
     public static final Set<Class<?>> JOBS_FORCE_EAT_AT_HUT = Set.of(JobChef.class, JobCook.class, JobMiner.class);
