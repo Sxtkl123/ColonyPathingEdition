@@ -9,7 +9,6 @@ import org.spongepowered.asm.mixin.injection.Redirect;
 
 @Mixin(MinimumStockModule.class)
 public abstract class MinimumStockModuleMixin {
-
     /**
      * Change target in onColonyTick, no more at least maxStackSize order.
      */

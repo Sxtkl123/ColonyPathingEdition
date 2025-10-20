@@ -1,11 +1,13 @@
 package com.arxyt.colonypathingedition.core.mixins.workersetting;
 
 import com.arxyt.colonypathingedition.core.config.PathingConfig;
+import com.arxyt.colonypathingedition.core.costants.AdditionalContants;
 import com.ldtteam.blockui.Pane;
 import com.ldtteam.blockui.controls.ItemIcon;
 import com.ldtteam.blockui.controls.Text;
 import com.ldtteam.blockui.views.ScrollingList;
 import com.minecolonies.api.colony.buildings.modules.IMinimumStockModuleView;
+import com.minecolonies.api.util.constant.Constants;
 import com.minecolonies.core.client.gui.modules.MinimumStockModuleWindow;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.ItemStack;
@@ -14,6 +16,10 @@ import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Overwrite;
 import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Constant;
+import org.spongepowered.asm.mixin.injection.ModifyArg;
+import org.spongepowered.asm.mixin.injection.ModifyConstant;
 
 import java.util.Objects;
 
@@ -24,6 +30,19 @@ public class MinimumStockModuleWindowMixin {
 
     @Final @Shadow(remap = false) private ScrollingList resourceList;
     @Final @Shadow(remap = false) private IMinimumStockModuleView moduleView;
+
+    @ModifyArg(
+            method = "<init>",
+            at = @At(
+                    value = "INVOKE",
+                    target = "Lcom/minecolonies/core/client/gui/AbstractModuleWindow;<init>(Lcom/minecolonies/api/colony/buildings/views/IBuildingView;Ljava/lang/String;)V"
+            ),
+            index = 1,
+            remap = false
+    )
+    private static String modifySuperArg(String original) {
+        return original.replace(Constants.MOD_ID, AdditionalContants.MOD_ID);
+    }
 
     /**
      * @author ARxyt

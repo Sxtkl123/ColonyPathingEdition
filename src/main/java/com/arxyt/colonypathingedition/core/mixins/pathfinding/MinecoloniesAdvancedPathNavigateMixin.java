@@ -83,6 +83,8 @@ public abstract class MinecoloniesAdvancedPathNavigateMixin extends AbstractAdva
             nodeIndex = Math.min(this.getPath().getNodeCount() - 1, nodeIndex + (int)Math.floor(speed / 0.4F));
             @NotNull final PathPointExtended tpPlace = (PathPointExtended) (Objects.requireNonNull(this.getPath())).getNode(nodeIndex);
             if(!tpPlace.isOnRails()){
+                ourEntity.stopRiding();
+                entity.remove(Entity.RemovalReason.DISCARDED);
                 ourEntity.teleportTo(tpPlace.x + 0.5, tpPlace.y, tpPlace.z + 0.5);
                 return;
             }
@@ -102,7 +104,6 @@ public abstract class MinecoloniesAdvancedPathNavigateMixin extends AbstractAdva
             final double y = tpPlace.y + 0.625D + yOffset;
             final double z = tpPlace.z + 0.5D;
             minecoloniesMinecart.setPos(x, y, z);
-            minecoloniesMinecart.setDeltaMovement(Vec3.ZERO);
             minecoloniesMinecart.xo = x;
             minecoloniesMinecart.yo = y;
             minecoloniesMinecart.zo = z;

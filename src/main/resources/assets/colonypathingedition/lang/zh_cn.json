@@ -4,7 +4,7 @@
     "com.arxyt.colonypathingedition.core.update.unstable": "注意，这并不是一个稳定版本! 如果不想体验最新修改请不要更新!",
     "com.arxyt.colonypathingedition.core.update.out_of_date": "你目前的殖民地寻路大修版本太低或有严重bug出现! 建议更新到最新的稳定版本 %s!",
     "com.arxyt.colonypathingedition.core.update.changelog": "更新日志如下所示：",
-    "com.arxyt.colonypathingedition.core.farmfield.rotation_count": "轮作季节数",
+    "com.arxyt.colonypathingedition.core.farmfield.rotation_count": "轮作季节数  ",
     "com.arxyt.colonypathingedition.core.farmfield.current_prefix": "当前为 第",
     "com.arxyt.colonypathingedition.core.farmfield.season_suffix": "季      第",
     "com.arxyt.colonypathingedition.core.farmfield.day_suffix": "天",
