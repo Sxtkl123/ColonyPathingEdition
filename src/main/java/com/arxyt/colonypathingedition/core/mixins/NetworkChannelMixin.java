@@ -23,5 +23,6 @@ public abstract class NetworkChannelMixin {
         registerMessage(++idx, CropRotationCurrentSeasonMessage.class, CropRotationCurrentSeasonMessage::new);
         registerMessage(++idx, CropRotationSeasonCountMessage.class, CropRotationSeasonCountMessage::new);
         registerMessage(++idx, CropRotationSeedUpdateMessage.class, CropRotationSeedUpdateMessage::new);
+        registerMessage(++idx, CropRotationAdvanceDayMessage.class,CropRotationAdvanceDayMessage::new);
     }
 }

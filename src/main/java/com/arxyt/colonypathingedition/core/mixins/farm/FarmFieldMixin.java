@@ -1,15 +1,15 @@
 package com.arxyt.colonypathingedition.core.mixins.farm;
 
 import com.arxyt.colonypathingedition.api.FarmFieldExtra;
-import com.minecolonies.api.colony.IColony;
+import com.minecolonies.api.colony.buildingextensions.registry.BuildingExtensionRegistries;
+import com.minecolonies.core.colony.buildingextensions.AbstractBuildingExtensionModule;
 import com.minecolonies.core.colony.buildingextensions.FarmField;
-import net.minecraft.client.Minecraft;
+import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.world.item.BlockItem;
-import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.Level;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import org.jetbrains.annotations.NotNull;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -21,10 +21,8 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import java.util.HashMap;
 import java.util.Map;
 
-import static net.minecraft.world.level.Level.TICKS_PER_DAY;
-
 @Mixin(FarmField.class)
-public abstract class FarmFieldMixin implements FarmFieldExtra {
+public abstract class FarmFieldMixin extends AbstractBuildingExtensionModule implements FarmFieldExtra {
     @Shadow(remap = false) private ItemStack seed;
     private int date = -1;
     private int seasonCount = 1;
@@ -33,12 +31,21 @@ public abstract class FarmFieldMixin implements FarmFieldExtra {
     private final Map<Integer, Integer> seasonDurations = new HashMap<>();
     private final Map<Integer, ItemStack> seasonalSeeds = new HashMap<>();
 
+    public FarmFieldMixin(final BuildingExtensionRegistries.BuildingExtensionEntry fieldType, final BlockPos position)
+    {
+        super(fieldType, position);
+    }
+
     public void setSeasonCount(int num) {
         this.seasonCount = Math.max(1, Math.min(4, num)); // 限制在 1–4 之间
         // 如果当前季节超过季节总数，自动回退
         if (currentSeason > this.seasonCount) {
             currentSeason = this.seasonCount;
         }
+    }
+
+    public boolean isSeasonalSeedsEmpty(){
+        return seasonalSeeds.isEmpty();
     }
 
     public int getSeasonCount() {
@@ -55,6 +62,10 @@ public abstract class FarmFieldMixin implements FarmFieldExtra {
 
     public void setCurrentDay(int day) {
         this.currentDay = Math.max(1, Math.min(getSeasonDuration(currentSeason), day));
+    }
+
+    public int getDate(){
+        return date;
     }
 
     public int getCurrentDay() {
@@ -77,9 +88,14 @@ public abstract class FarmFieldMixin implements FarmFieldExtra {
         return seasonalSeeds.getOrDefault(season, ItemStack.EMPTY);
     }
 
-    public void advanceDay(Level world)
+    public void updateAdvanceDay(int date, int day, int season){
+        this.date = date;
+        setCurrentDay(day);
+        setCurrentSeason(season);
+    }
+
+    public void advanceDay(final int worldDay)
     {
-        final int worldDay = (int)(world.getDayTime() / TICKS_PER_DAY);
         if(date < 0){
             date = worldDay;
             return;
@@ -102,6 +118,42 @@ public abstract class FarmFieldMixin implements FarmFieldExtra {
             }
             seasonLength = seasonDurations.getOrDefault(currentSeason, 0);
         }
+    }
+
+    @OnlyIn(Dist.DEDICATED_SERVER)
+    @Inject(method = "getSeed",at = @At("HEAD"),remap = false,cancellable = true)
+    public void getSeed(CallbackInfoReturnable<ItemStack> cir)
+    {
+        if(seasonalSeeds.isEmpty() && !seed.isEmpty()){
+            seasonalSeeds.put(1,seed);
+        }
+        seed = seasonalSeeds.getOrDefault(currentSeason, ItemStack.EMPTY).copy();
+        seed.setCount(1);
+        cir.setReturnValue(seed);
+    }
+
+    @Inject(method = "serializeNBT", at = @At("TAIL"),remap = false, cancellable = true)
+    public void additionalSerializeNBT(CallbackInfoReturnable<CompoundTag> cir) {
+        CompoundTag tag = cir.getReturnValue();
+        tag.putInt("SeasonCount", seasonCount);
+        tag.putInt("CurrentSeason", currentSeason);
+        tag.putInt("CurrentDay", currentDay);
+
+        // 季节天数
+        CompoundTag durationTag = new CompoundTag();
+        for (Map.Entry<Integer, Integer> e : seasonDurations.entrySet()) {
+            durationTag.putInt(String.valueOf(e.getKey()), e.getValue());
+        }
+        tag.put("SeasonDurations", durationTag);
+
+        // 种子
+        CompoundTag seedTag = new CompoundTag();
+        for (Map.Entry<Integer, ItemStack> e : seasonalSeeds.entrySet()) {
+            seedTag.put(String.valueOf(e.getKey()), e.getValue().save(new CompoundTag()));
+        }
+        tag.put("SeasonalSeeds", seedTag);
+        tag.putInt("Date", date);
+        cir.setReturnValue(tag);
     }
 
     public void loadSeasonData(@NotNull CompoundTag tag) {
@@ -136,44 +188,6 @@ public abstract class FarmFieldMixin implements FarmFieldExtra {
 
         // 自动修正天数范围
         currentDay = Math.max(1, Math.min(getSeasonDuration(currentSeason), currentDay));
-    }
-
-    @Inject(method = "getSeed",at = @At("HEAD"),remap = false,cancellable = true)
-    public void getSeed(CallbackInfoReturnable<ItemStack> cir)
-    {
-        if(seasonalSeeds.isEmpty() && !seed.isEmpty()){
-            seasonalSeeds.put(1,seed);
-        }
-        if(Minecraft.getInstance().level != null) {
-            advanceDay(Minecraft.getInstance().level);
-        }
-        seed = seasonalSeeds.getOrDefault(currentSeason, ItemStack.EMPTY).copy();
-        seed.setCount(1);
-        cir.setReturnValue(seed);
-    }
-
-    @Inject(method = "serializeNBT", at = @At("TAIL"),remap = false, cancellable = true)
-    public void additionalSerializeNBT(CallbackInfoReturnable<CompoundTag> cir) {
-        CompoundTag tag = cir.getReturnValue();
-        tag.putInt("SeasonCount", seasonCount);
-        tag.putInt("CurrentSeason", currentSeason);
-        tag.putInt("CurrentDay", currentDay);
-
-        // 季节天数
-        CompoundTag durationTag = new CompoundTag();
-        for (Map.Entry<Integer, Integer> e : seasonDurations.entrySet()) {
-            durationTag.putInt(String.valueOf(e.getKey()), e.getValue());
-        }
-        tag.put("SeasonDurations", durationTag);
-
-        // 种子
-        CompoundTag seedTag = new CompoundTag();
-        for (Map.Entry<Integer, ItemStack> e : seasonalSeeds.entrySet()) {
-            seedTag.put(String.valueOf(e.getKey()), e.getValue().save(new CompoundTag()));
-        }
-        tag.put("SeasonalSeeds", seedTag);
-        tag.putInt("Date", date);
-        cir.setReturnValue(tag);
     }
 
     @Inject(method = "deserializeNBT", at = @At("TAIL"),remap = false)

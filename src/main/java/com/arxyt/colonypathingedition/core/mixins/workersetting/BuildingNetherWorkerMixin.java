@@ -13,6 +13,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import static com.minecolonies.core.colony.buildings.workerbuildings.BuildingNetherWorker.getMaxPerPeriod;
+import static net.minecraft.world.level.Level.TICKS_PER_DAY;
 
 @Mixin(BuildingNetherWorker.class)
 public abstract class BuildingNetherWorkerMixin extends AbstractBuilding {
@@ -48,7 +49,7 @@ public abstract class BuildingNetherWorkerMixin extends AbstractBuilding {
         if (snapTime == 0) {
             snapTime = colony.getWorld().getDayTime();
         }
-        if (Math.abs(colony.getWorld().getDayTime() - snapTime) >= 24000) {
+        if (Math.abs(colony.getWorld().getDayTime() - snapTime) >= TICKS_PER_DAY) {
             this.currentTrips = 0;
             snapTime = colony.getWorld().getDayTime();
             this.currentPeriodDay = colony.getDay();
@@ -58,6 +59,9 @@ public abstract class BuildingNetherWorkerMixin extends AbstractBuilding {
             this.currentPeriodDay = colony.getDay();
             snapTime = 0;
             this.currentTrips = 0;
+        }
+        else {
+            this.currentPeriodDay = colony.getDay();
         }
         return this.currentTrips < getMaxPerPeriod();
     }

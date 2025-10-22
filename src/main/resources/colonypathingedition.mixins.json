@@ -76,9 +76,11 @@
     "workersetting.BuildingLumberjackMixin",
     "workersetting.BuildingModulesMixin",
     "workersetting.BuildingNetherWorkerMixin",
-    "workersetting.MinimumStockModuleMixin"
+    "workersetting.MinimumStockModuleMixin",
+    "workersetting.RegisteredStructureManagerMixin"
   ],
   "client": [
+    "farm.FarmFieldClientMixin",
     "farm.FarmFieldsModuleWindowMixin",
     "farm.WindowFieldMixin",
     "workersetting.MinimumStockModuleWindowMixin"
