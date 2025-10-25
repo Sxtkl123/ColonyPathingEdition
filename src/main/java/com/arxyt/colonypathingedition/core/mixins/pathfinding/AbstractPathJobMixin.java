@@ -514,7 +514,7 @@ public abstract class AbstractPathJobMixin implements AbstractAISkeletonAccessor
             return;
         }
 
-        final boolean isSwimming = invokeCalculateSwimming(belowState, state, aboveState, nextNode);
+        final boolean isSwimming = invokeCalculateSwimming(belowState, state, aboveState, nextNode) && !(state.getBlock() instanceof WaterlilyBlock);
         if (isSwimming && !pathingOptions.canSwim()) {
             return;
         }

@@ -30,8 +30,8 @@ import static net.minecraft.world.level.Level.TICKS_PER_DAY;
 public abstract class FarmFieldClientMixin extends AbstractBuildingExtensionModule {
     @Shadow(remap = false)  private ItemStack seed;
 
-    private FarmFieldExtra asFarmField(){
-        return ((FarmFieldExtra)this);
+    private FarmField asFarmField(){
+        return ((FarmField)(Object)this);
     }
 
     public FarmFieldClientMixin(final BuildingExtensionRegistries.BuildingExtensionEntry fieldType, final BlockPos position)
@@ -42,7 +42,7 @@ public abstract class FarmFieldClientMixin extends AbstractBuildingExtensionModu
     @Inject(method = "getSeed",at = @At("HEAD"),remap = false ,cancellable = true)
     public void getSeed(CallbackInfoReturnable<ItemStack> cir)
     {
-        FarmFieldExtra farmField = asFarmField();
+        FarmFieldExtra farmField = (FarmFieldExtra) asFarmField();
 
         if(farmField.isSeasonalSeedsEmpty() && !seed.isEmpty()){
             farmField.setSeasonSeed(1,seed);
@@ -53,14 +53,19 @@ public abstract class FarmFieldClientMixin extends AbstractBuildingExtensionModu
             if(nowDay != farmField.getDate()) {
                 farmField.advanceDay(nowDay);
                 BlockState state = world.getBlockState(getPosition());
-                final BlockEntity entity = world.getBlockEntity(state.getValue(BlockStateProperties.DOUBLE_BLOCK_HALF) == DoubleBlockHalf.UPPER ? getPosition().below() : getPosition());
-                if(entity instanceof TileEntityScarecrow scarecrow && scarecrow.getCurrentColony() instanceof IColonyView colony) {
-                    Network.getNetwork().sendToServer(new CropRotationAdvanceDayMessage(colony, getPosition(),nowDay ,farmField.getCurrentDay(), farmField.getCurrentSeason()));
+                if (state.hasProperty(BlockStateProperties.DOUBLE_BLOCK_HALF)){
+                    final BlockEntity entity = world.getBlockEntity(state.getValue(BlockStateProperties.DOUBLE_BLOCK_HALF) == DoubleBlockHalf.UPPER ? getPosition().below() : getPosition());
+                    if (entity instanceof TileEntityScarecrow scarecrow && scarecrow.getCurrentColony() instanceof IColonyView colony) {
+                        Network.getNetwork().sendToServer(new CropRotationAdvanceDayMessage(colony, getPosition(), nowDay, farmField.getCurrentDay(), farmField.getCurrentSeason()));
+                    }
                 }
             }
         }
         seed = farmField.getSeasonSeed(farmField.getCurrentSeason()).copy();
         seed.setCount(1);
+        if(seed.isEmpty()){
+            asFarmField().setBuilding(null);
+        }
         cir.setReturnValue(seed);
     }
 }

@@ -9,6 +9,7 @@ import com.minecolonies.api.colony.buildingextensions.IBuildingExtension;
 import com.minecolonies.api.colony.interactionhandling.ChatPriority;
 import com.minecolonies.api.colony.requestsystem.requestable.StackList;
 import com.minecolonies.api.entity.ai.JobStatus;
+import com.minecolonies.api.entity.ai.statemachine.states.AIWorkerState;
 import com.minecolonies.api.entity.ai.statemachine.states.IAIState;
 import com.minecolonies.api.entity.citizen.VisibleCitizenStatus;
 import com.minecolonies.api.equipment.ModEquipmentTypes;
@@ -63,23 +64,25 @@ import static com.minecolonies.api.util.constant.TranslationConstants.NO_FREE_FI
 
 @Mixin(EntityAIWorkFarmer.class)
 public abstract class EntityAIWorkFarmerMixin extends AbstractEntityAICrafting<JobFarmer, BuildingFarmer> implements AbstractAISkeletonAccessor<JobFarmer>, AbstractEntityAIBasicAccessor<AbstractBuilding> {
+    @Shadow(remap = false) private int skippedState;
+    @Shadow(remap = false) private boolean didWork;
+    @Shadow(remap = false) private boolean shouldDumpInventory;
+
+    @Final @Shadow(remap = false) private static VisibleCitizenStatus FARMING_ICON;
 
     @Shadow(remap = false) protected abstract BlockPos getSurfacePos(final BlockPos position);
     @Shadow(remap = false) protected abstract boolean isCompost(final ItemStack itemStack);
-
     @Shadow(remap = false) protected abstract IAIState canGoPlanting(@NotNull FarmField farmField);
-
-    @Shadow(remap = false) private int skippedState;
-
-    @Shadow(remap = false) private boolean didWork;
-
-    @Shadow(remap = false) @Final private static VisibleCitizenStatus FARMING_ICON;
-
     @Shadow(remap = false) protected abstract boolean checkIfShouldExecute(@NotNull FarmField farmField, @NotNull Predicate<BlockPos> predicate);
-
     @Shadow(remap = false) protected abstract BlockPos findHarvestableSurface(@NotNull BlockPos position);
-
     @Shadow(remap = false) protected abstract BlockPos findHoeableSurface(@NotNull BlockPos position, @NotNull FarmField farmField);
+    @Shadow(remap = false) protected abstract boolean hoeIfAble(BlockPos position, FarmField farmField);
+    @Shadow(remap = false) protected abstract boolean harvestIfAble(BlockPos position);
+    @Shadow(remap = false) protected abstract BlockPos findPlantableSurface(@NotNull BlockPos position, @NotNull FarmField farmField);
+    @Shadow(remap = false) protected abstract boolean plantCrop(ItemStack item, @NotNull BlockPos position);
+    @Shadow(remap = false) protected abstract int getLevelDelay();
+    @Shadow(remap = false) protected abstract BlockPos nextValidCell(FarmField farmField);
+
 
     /**
      * Methods to clarify special seed by Tags
@@ -108,6 +111,8 @@ public abstract class EntityAIWorkFarmerMixin extends AbstractEntityAICrafting<J
     {
         super(job);
     }
+
+    private AIWorkerState defaultState;
 
     @Inject(method = "prepareForFarming",at = @At("HEAD"),remap = false,cancellable = true)
     private void remasteredPrepareForFarming(CallbackInfoReturnable<IAIState> cir){
@@ -163,31 +168,39 @@ public abstract class EntityAIWorkFarmerMixin extends AbstractEntityAICrafting<J
             {
                 worker.getCitizenData().setJobStatus(JobStatus.STUCK);
                 cir.setReturnValue(PREPARING);
+                return;
             }
             worker.getCitizenData().setVisibleStatus(FARMING_ICON);
             worker.getCitizenData().setJobStatus(JobStatus.WORKING);
-            if (farmField.getFieldStage() == FarmField.Stage.PLANTED && checkIfShouldExecute(farmField, pos -> this.findHarvestableSurface(pos) != null))
-            {
-                cir.setReturnValue(FARMER_HARVEST);
-                return;
+            FarmField.Stage stage = farmField.getFieldStage();
+            switch (stage) {
+                case EMPTY : {
+                    if (checkIfShouldExecute(farmField, pos -> this.findHoeableSurface(pos, farmField) != null)) {
+                        defaultState = FARMER_HOE;
+                        cir.setReturnValue(FARMER_HOE);
+                        return;
+                    }
+                    farmField.nextState();
+                    // continue
+                }
+                case HOED : // continue
+                case PLANTED : {
+                    if (checkIfShouldExecute(farmField, pos -> this.findHarvestableSurface(pos) != null)){
+                        defaultState = FARMER_HARVEST;
+                        cir.setReturnValue(FARMER_HARVEST);
+                        return;
+                    }
+                    if (farmField.getFieldStage() == FarmField.Stage.HOED)
+                    {
+                        defaultState = FARMER_PLANT;
+                        cir.setReturnValue(canGoPlanting(farmField));
+                        return;
+                    }
+                    farmField.nextState();
+                }
+                default : // no action
             }
-            else if (farmField.getFieldStage() == FarmField.Stage.HOED)
-            {
-                cir.setReturnValue(canGoPlanting(farmField));
-                return;
-            }
-            else if (farmField.getFieldStage() == FarmField.Stage.EMPTY && checkIfShouldExecute(farmField, pos -> this.findHoeableSurface(pos, farmField) != null))
-            {
-                cir.setReturnValue(FARMER_HOE);
-                return;
-            }
-            farmField.nextState();
-            if (++skippedState >= 4)
-            {
-                skippedState = 0;
-                didWork = true;
-                module.resetCurrentExtension();
-            }
+            module.resetCurrentExtension();
             cir.setReturnValue(IDLE);
             return;
         }
@@ -198,6 +211,103 @@ public abstract class EntityAIWorkFarmerMixin extends AbstractEntityAICrafting<J
         cir.setReturnValue(IDLE);
     }
 
+    @Inject(method = "workAtField", at = @At("HEAD"), remap = false, cancellable = true)
+    private void remasteredWorkAtField(CallbackInfoReturnable<IAIState> cir){
+        final BuildingExtensionsModule module = building.getFirstModuleOccurance(BuildingExtensionsModule.class);
+        final IBuildingExtension field = module.getCurrentExtension();
+
+        worker.getCitizenData().setVisibleStatus(FARMING_ICON);
+        if (field instanceof FarmField farmField)
+        {
+            if (building.getWorkingOffset() != null)
+            {
+                final BlockPos position = farmField.getPosition().below().south(building.getWorkingOffset().getZ()).east(building.getWorkingOffset().getX());
+
+                // Still moving to the block
+                if (!walkToSafePos(position.above()))
+                {
+                    cir.setReturnValue(getState());
+                    return;
+                }
+
+                switch ((AIWorkerState) getState())
+                {
+                    case FARMER_HARVEST :
+                    {
+                        BlockPos pos = findHarvestableSurface(position);
+                        if (pos != null) {
+                            if (harvestIfAble(position)) {
+                                didWork = true;
+                                cir.setReturnValue(FARMER_HOE);
+                                return;
+                            } else {
+                                cir.setReturnValue(getState());
+                                return;
+                            }
+                        }
+                    }
+                    case FARMER_HOE :
+                    {
+                        BlockPos pos = findHoeableSurface(position,farmField);
+                        if(pos != null){
+                            if (hoeIfAble(position, farmField))
+                            {
+                                didWork = true;
+                                cir.setReturnValue(FARMER_PLANT);
+                                return;
+                            }
+                            else{
+                                cir.setReturnValue(getState());
+                                return;
+                            }
+                        }
+                    }
+                    case FARMER_PLANT :
+                    {
+                        BlockPos pos = findPlantableSurface(position,farmField);
+                        if( pos != null ) {
+                            if(!plantCrop(farmField.getSeed(), position)){
+                                didWork = true;
+                                cir.setReturnValue(PREPARING);
+                                return;
+                            }
+                        }
+                        break;
+                    }
+                    default :
+                    {
+                        cir.setReturnValue(PREPARING);
+                        return;
+                    }
+                }
+                building.setPrevPos(position);
+                setDelay(getLevelDelay());
+            }
+
+            building.setWorkingOffset(nextValidCell(farmField));
+            if (building.getWorkingOffset() == null)
+            {
+                shouldDumpInventory = true;
+                farmField.nextState();
+                module.markDirty();
+                if (didWork)
+                {
+                    module.resetCurrentExtension();
+                    skippedState = 0;
+                }
+                didWork = false;
+                building.setPrevPos(null);
+                cir.setReturnValue(IDLE);
+                return;
+            }
+        }
+        else
+        {
+            cir.setReturnValue(IDLE);
+            return;
+        }
+        cir.setReturnValue(defaultState);
+    }
 
     /**
      * Skip hoeing if seeds plant directly on dirt.
