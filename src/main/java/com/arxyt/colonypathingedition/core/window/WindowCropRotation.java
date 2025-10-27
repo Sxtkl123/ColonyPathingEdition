@@ -2,6 +2,7 @@ package com.arxyt.colonypathingedition.core.window;
 
 import com.arxyt.colonypathingedition.api.FarmFieldExtra;
 import com.arxyt.colonypathingedition.core.message.*;
+import com.arxyt.colonypathingedition.core.tag.ModTag;
 import com.ldtteam.blockui.controls.Button;
 import com.ldtteam.blockui.controls.ItemIcon;
 import com.ldtteam.blockui.controls.TextField;
@@ -181,6 +182,7 @@ public class WindowCropRotation extends AbstractWindowSkeleton {
         new WindowSelectRes(
                 this,
                 stack -> stack.is(Tags.Items.SEEDS)
+                        || stack.is(ModTag.ADDITIONAL_SEEDS)
                         || (stack.getItem() instanceof BlockItem item && item.getBlock() instanceof CropBlock)
                         || (stack.getItem() instanceof ItemCrop itemCrop && itemCrop.canBePlantedIn(Minecraft.getInstance().level.getBiome(tileEntityScarecrow.getBlockPos()))),
                 (stack, qty) -> setSeed(slot,stack),

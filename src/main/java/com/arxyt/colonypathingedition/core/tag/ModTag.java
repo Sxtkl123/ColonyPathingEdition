@@ -9,6 +9,7 @@ import net.minecraft.world.item.Item;
 public class ModTag {
     public static final TagKey<Item> SEEDS_UNDERWATER = createTag("seeds_underwater");
     public static final TagKey<Item> SEEDS_NOFARMLAND = createTag("seeds_nofarmland");
+    public static final TagKey<Item> ADDITIONAL_SEEDS = createTag("additional_seeds");
 
     private static TagKey<Item> createTag(String name) {
         return TagKey.create(Registries.ITEM, new ResourceLocation(ColonyPathingEdition.MODID, name));

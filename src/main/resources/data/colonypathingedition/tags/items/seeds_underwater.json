@@ -1,6 +1,6 @@
 {
   "replace": false,
   "values": [
-    "farmersdelight:rice"
+    { "id": "farmersdelight:rice", "required": false }
   ]
 }

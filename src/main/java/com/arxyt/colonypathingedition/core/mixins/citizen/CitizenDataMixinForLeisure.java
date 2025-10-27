@@ -44,6 +44,8 @@ public abstract class CitizenDataMixinForLeisure implements ICitizenData {
     final private static int LEISURE_TIME = PathingConfig.LEISURE_TIME.get();
     final private static int LEISURE_RATIO = PathingConfig.LEISURE_RATIO.get();
 
+    int coolDownTime = 0;
+
     // Rewrite as a preventing of setting change.
     @Inject(method = "update", at = @At("HEAD"), remap = false)
     private void rewriteUpdateData(int tickRate, CallbackInfo ci){
@@ -55,12 +57,15 @@ public abstract class CitizenDataMixinForLeisure implements ICitizenData {
         final int homeBuildingLevel = homeBuilding == null ? 1 : homeBuilding.getBuildingLevel();
         if (leisureTime > 0) {
             leisureTime -= tickRate;
+            if (leisureTime <= 0){
+                coolDownTime = TICKS_SECOND * LEISURE_RATIO / 2;
+            }
         }
         else {
             if (leisureTime > -TICKS_SECOND * MAX_PRE_LEISURE_TIME * homeBuildingLevel && jobStatus == JobStatus.IDLE) {
                 leisureTime -= tickRate;
             }
-            if (MathUtils.RANDOM.nextInt(TICKS_SECOND * LEISURE_RATIO ) <= tickRate) {
+            if ((coolDownTime -= tickRate) < 0 && MathUtils.RANDOM.nextInt(TICKS_SECOND * LEISURE_RATIO ) <= tickRate) {
                 leisureTime += TICKS_SECOND * LEISURE_TIME;
             }
         }

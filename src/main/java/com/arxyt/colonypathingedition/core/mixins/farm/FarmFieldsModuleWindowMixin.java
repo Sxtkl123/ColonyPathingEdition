@@ -32,25 +32,16 @@ import static com.minecolonies.api.util.constant.translation.GuiTranslationConst
 @Mixin(FarmFieldsModuleWindow.class)
 public abstract class FarmFieldsModuleWindowMixin extends AbstractModuleWindow {
     @Shadow(remap = false) @Final private static String HUT_FIELDS_RESOURCE_SUFFIX;
-
     @Shadow(remap = false) private ScrollingList fieldList;
-
     @Shadow(remap = false) @Final private static String LIST_FIELDS;
-
     @Shadow(remap = false) @Final private FieldsModuleView moduleView;
-
     @Shadow(remap = false) @Final private static String TAG_ICON;
-
     @Shadow(remap = false) @Final private static String TAG_STAGE_ICON;
-
     @Shadow(remap = false) @Final private static String TAG_STAGE_TEXT;
-
     @Shadow(remap = false) @Final private static String TAG_DISTANCE;
-
     @Shadow(remap = false) @Final private static String TAG_BUTTON_ASSIGN;
 
     @Shadow(remap = false) protected abstract void setAssignButtonTexture(ButtonImage button, boolean isOn);
-
     @Shadow(remap = false) protected abstract void updateUI();
 
     public FarmFieldsModuleWindowMixin(final IBuildingView building)
