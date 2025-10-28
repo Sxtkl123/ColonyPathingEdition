@@ -2,7 +2,7 @@ package com.arxyt.colonypathingedition.core.window;
 
 import com.arxyt.colonypathingedition.api.FarmFieldExtra;
 import com.arxyt.colonypathingedition.core.message.*;
-import com.arxyt.colonypathingedition.core.tag.ModTag;
+import com.arxyt.colonypathingedition.core.data.tag.ModTag;
 import com.ldtteam.blockui.controls.Button;
 import com.ldtteam.blockui.controls.ItemIcon;
 import com.ldtteam.blockui.controls.TextField;

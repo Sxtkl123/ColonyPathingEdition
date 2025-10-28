@@ -1,4 +1,4 @@
-package com.arxyt.colonypathingedition.core.tag;
+package com.arxyt.colonypathingedition.core.data.tag;
 
 import com.arxyt.colonypathingedition.ColonyPathingEdition;
 import net.minecraft.core.registries.Registries;

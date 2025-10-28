@@ -1,0 +1,11 @@
+{
+  "mappings": [
+    {
+      "seed": "farmersdelight:rice",
+      "soil": "farmersdelight:rich_soil_farmland"
+    }
+  ],
+  "values": [
+    
+  ]
+}
