@@ -1,11 +1,13 @@
 {
-  "mappings": [
-    {
-      "seed": "farmersdelight:rice",
-      "soil": "farmersdelight:rich_soil_farmland"
-    }
-  ],
+  "replace": false,
   "values": [
-    
+    {
+      "seed": "minecraft:brown_mushroom",
+      "farmland": "farmersdelight:rich_soil"
+    },
+    {
+      "seed": "minecraft:red_mushroom",
+      "farmland": "farmersdelight:rich_soil"
+    }
   ]
 }

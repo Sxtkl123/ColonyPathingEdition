@@ -4,6 +4,8 @@ import com.arxyt.colonypathingedition.core.config.enums.BuilderModeEnum;
 import net.minecraftforge.common.ForgeConfigSpec;
 
 public class PathingConfig {
+    public static ForgeConfigSpec.BooleanValue MESSAGE_DISPLAY;
+
     public static ForgeConfigSpec.DoubleValue RAIL_COST_MULTIPLIER;
     public static ForgeConfigSpec.DoubleValue WATER_COST_DEFINER;
     public static ForgeConfigSpec.DoubleValue JUMP_COST_DEFINER;
@@ -64,6 +66,11 @@ public class PathingConfig {
     public static ForgeConfigSpec.IntValue MAX_PATHING_DISTANCE;
 
     public static ForgeConfigSpec init(ForgeConfigSpec.Builder builder) {
+        builder.push("Update Message Display #更新信息显示#");
+        MESSAGE_DISPLAY = builder
+                .comment("Is changelogs display in-game when new version updated? (default: true)\n 是否在游戏内部显示最新版本更新信息？(默认开启)")
+                .define("messageDisplay", true);
+        builder.pop();
         builder.push("Pathing Cost Modifier #寻路Cost相关设置#");
         builder.push("Multiplier #乘子系数#");
         RAIL_COST_MULTIPLIER = builder

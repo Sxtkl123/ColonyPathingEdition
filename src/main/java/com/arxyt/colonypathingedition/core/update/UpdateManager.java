@@ -1,5 +1,6 @@
 package com.arxyt.colonypathingedition.core.update;
 
+import com.arxyt.colonypathingedition.core.config.PathingConfig;
 import com.google.gson.*;
 import com.arxyt.colonypathingedition.ColonyPathingEdition;
 import net.minecraft.ChatFormatting;
@@ -33,8 +34,10 @@ public class UpdateManager {
     private static final String FALLBACK_LANGUAGE = "en_us";
     @SubscribeEvent
     public static void onPlayerLoggedIn(PlayerEvent.PlayerLoggedInEvent event) {
-        Player player = event.getEntity();
-        // checkAndSendUpdateMessage(player);
+        if(PathingConfig.MESSAGE_DISPLAY.get()) {
+            Player player = event.getEntity();
+            checkAndSendUpdateMessage(player);
+        }
     }
 
     private static void checkAndSendUpdateMessage(Player player) {
@@ -173,6 +176,8 @@ public class UpdateManager {
                 player.sendSystemMessage(updateMessage);
                 Component updateContent = Component.translatable(pKey2, version).withStyle(ChatFormatting.RED);
                 player.sendSystemMessage(updateContent);
+                Component closeMessage = Component.translatable(CLOSER, version).withStyle(ChatFormatting.YELLOW);
+                player.sendSystemMessage(closeMessage);
             }
         });
     }
@@ -186,6 +191,8 @@ public class UpdateManager {
                 player.sendSystemMessage(changelogMessage);
                 Component updateContent = Component.literal(message).withStyle(ChatFormatting.WHITE);
                 player.sendSystemMessage(updateContent);
+                Component closeMessage = Component.translatable(CLOSER, version).withStyle(ChatFormatting.YELLOW);
+                player.sendSystemMessage(closeMessage);
             }
         });
     }

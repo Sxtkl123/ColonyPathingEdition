@@ -18,7 +18,7 @@ public class FarmlandMapLoader extends SimpleJsonResourceReloadListener {
     private static final Map<ResourceLocation, ResourceLocation> MAPPINGS = new LinkedHashMap<>();
 
     public FarmlandMapLoader() {
-        super(GSON, "farmland_map/special_seed_mappings");
+        super(GSON, "farmland_map");
     }
 
     @Override
@@ -31,13 +31,13 @@ public class FarmlandMapLoader extends SimpleJsonResourceReloadListener {
         object.forEach((id, jsonElement) -> {
             try {
                 JsonObject root = jsonElement.getAsJsonObject();
-                JsonArray arr = root.getAsJsonArray("mappings");
+                JsonArray arr = root.getAsJsonArray("values");
                 if (arr == null) return;
 
                 for (JsonElement el : arr) {
                     JsonObject obj = el.getAsJsonObject();
                     String seedStr = obj.get("seed").getAsString();
-                    String soilStr = obj.get("soil").getAsString();
+                    String soilStr = obj.get("farmland").getAsString();
 
                     ResourceLocation seed = new ResourceLocation(seedStr);
                     ResourceLocation soil = new ResourceLocation(soilStr);

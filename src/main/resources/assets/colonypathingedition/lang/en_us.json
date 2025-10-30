@@ -1,4 +1,5 @@
 {
+  "com.arxyt.colonypathingedition.core.update.closer": "If you found the update message annoying, you can close it trough config now!",
   "com.arxyt.colonypathingedition.core.update.latest": "Pathfinding Edition for Minecolonies updated latest version %s!",
   "com.arxyt.colonypathingedition.core.update.stable": "Pathfinding Edition for MineColonies has tested a stable version %s. It’s safe to update!",
   "com.arxyt.colonypathingedition.core.update.unstable": "This is not a safe version! Please decide carefully whether to update.",

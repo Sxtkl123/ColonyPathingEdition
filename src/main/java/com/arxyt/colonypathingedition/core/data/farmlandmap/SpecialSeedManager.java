@@ -3,7 +3,9 @@ package com.arxyt.colonypathingedition.core.data.farmlandmap;
 import com.arxyt.colonypathingedition.ColonyPathingEdition;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Blocks;
 import net.minecraftforge.event.AddReloadListenerEvent;
 import net.minecraftforge.event.TagsUpdatedEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -36,10 +38,12 @@ public class SpecialSeedManager {
             Item seed = ForgeRegistries.ITEMS.getValue(seedId);
             Block soil = ForgeRegistries.BLOCKS.getValue(soilId);
 
-            if (seed == null) {
+            if (seed == null || seed == Items.AIR) {
+                ColonyPathingEdition.LOGGER.info("[SpecialSeeds] No seed {}", seedId);
                 continue;
             }
-            if (soil == null) {
+            if (soil == null || soil == Blocks.AIR) {
+                ColonyPathingEdition.LOGGER.info("[SpecialSeeds] No farmland {}", seedId);
                 continue;
             }
 
@@ -57,5 +61,9 @@ public class SpecialSeedManager {
     /** Get farmland */
     public static Block getRequiredSoil(Item seed) {
         return SPECIAL_SEEDS.get(seed);
+    }
+
+    public static boolean isSpecialSoil(Block farmland) {
+        return SPECIAL_SEEDS.containsValue(farmland);
     }
 }
