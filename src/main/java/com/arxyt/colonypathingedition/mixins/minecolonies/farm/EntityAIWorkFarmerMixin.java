@@ -88,8 +88,6 @@ public abstract class EntityAIWorkFarmerMixin extends AbstractEntityAICrafting<J
 
     @Shadow(remap = false) protected abstract BlockPos getSurfacePos(final BlockPos position);
     @Shadow(remap = false) protected abstract boolean isCompost(final ItemStack itemStack);
-    @Shadow(remap = false) protected abstract IAIState canGoPlanting(@NotNull FarmField farmField);
-    @Shadow(remap = false) protected abstract boolean checkIfShouldExecute(@NotNull FarmField farmField, @NotNull Predicate<BlockPos> predicate);
     @Shadow(remap = false) protected abstract BlockPos findHarvestableSurface(@NotNull BlockPos position);
     @Shadow(remap = false) protected abstract boolean harvestIfAble(BlockPos position);
     @Shadow(remap = false) protected abstract int getLevelDelay();
@@ -213,52 +211,16 @@ public abstract class EntityAIWorkFarmerMixin extends AbstractEntityAICrafting<J
             }
             worker.getCitizenData().setVisibleStatus(FARMING_ICON);
             worker.getCitizenData().setJobStatus(JobStatus.WORKING);
-            FarmField.Stage stage = farmField.getFieldStage();
-            switch (stage) {
-                case EMPTY : {
-                    if (checkIfShouldExecute(farmField, pos -> this.newFindHoeableSurface(pos, farmField) != null)) {
-                        if(SpecialSeedManager.isSpecialSeed(farmField.getSeed().getItem())){
-                            final Block farmland = SpecialSeedManager.getRequiredSoil(farmField.getSeed().getItem());
-                            Item itemFarmland = Item.BY_BLOCK.get(farmland);
-                            final int amountOfFarmlandInBuilding = InventoryUtils.hasBuildingEnoughElseCount(building, itemStack -> isItemOfFarmland(itemStack,farmland), 0);
-                            final int amountOfFarmlandInInv = InventoryUtils.getItemCountInItemHandler(getWorker().getInventoryCitizen(), itemStack -> isItemOfFarmland(itemStack,farmland));
-                            if (amountOfFarmlandInInv + amountOfFarmlandInBuilding <= 8)
-                            {
-                                ItemStack stack = new ItemStack(itemFarmland);
-                                stack.setCount(stack.getMaxStackSize());
-                                checkIfRequestForItemExistOrCreateAsync(stack, stack.getMaxStackSize(), 1);
-                            }
-                            else if (amountOfFarmlandInInv <= 0 && amountOfFarmlandInBuilding > 0)
-                            {
-                                needsCurrently = new Tuple<>(itemStack -> isItemOfFarmland(itemStack,farmland), STACKSIZE);
-                                cir.setReturnValue(GATHERING_REQUIRED_MATERIALS);
-                                return;
-                            }
-                        }
-                        defaultState = FARMER_HOE;
-                        cir.setReturnValue(FARMER_HOE);
-                        return;
-                    }
-                    farmField.nextState();
-                    // continue
-                }
-                case HOED : // continue
-                case PLANTED : {
-                    if (checkIfShouldExecute(farmField, pos -> this.findHarvestableSurface(pos) != null)){
-                        defaultState = FARMER_HARVEST;
-                        cir.setReturnValue(FARMER_HARVEST);
-                        return;
-                    }
-                    if (farmField.getFieldStage() == FarmField.Stage.HOED)
-                    {
-                        defaultState = FARMER_PLANT;
-                        cir.setReturnValue(canGoPlanting(farmField));
-                        return;
-                    }
-                    farmField.nextState();
-                }
-                default : // no action
+            IAIState state = checkNextWorkspaceAndState(farmField,
+                    pos -> this.findHarvestableSurface(pos) != null,
+                    pos -> this.newFindHoeableSurface(pos, farmField) != null,
+                    pos -> this.newFindPlantableSurface(pos,farmField) != null);
+            if(state != null){
+                farmField.setFieldStage(FarmField.Stage.PLANTED);
+                cir.setReturnValue(state);
+                return;
             }
+            farmField.setFieldStage(FarmField.Stage.EMPTY);
             module.resetCurrentExtension();
             cir.setReturnValue(IDLE);
             return;
@@ -325,6 +287,7 @@ public abstract class EntityAIWorkFarmerMixin extends AbstractEntityAICrafting<J
 
                             }
                             else{
+                                farmField.setFieldStage(FarmField.Stage.HOED);
                                 cir.setReturnValue(PREPARING);
                             }
                             return;
@@ -336,6 +299,7 @@ public abstract class EntityAIWorkFarmerMixin extends AbstractEntityAICrafting<J
                         if( pos != null ) {
                             if(!newPlantCrop(farmField.getSeed(), position)){
                                 didWork = true;
+                                farmField.setFieldStage(FarmField.Stage.HOED);
                                 cir.setReturnValue(PREPARING);
                                 return;
                             }
@@ -344,6 +308,7 @@ public abstract class EntityAIWorkFarmerMixin extends AbstractEntityAICrafting<J
                     }
                     default :
                     {
+                        farmField.setFieldStage(FarmField.Stage.HOED);
                         cir.setReturnValue(PREPARING);
                         return;
                     }
@@ -353,6 +318,14 @@ public abstract class EntityAIWorkFarmerMixin extends AbstractEntityAICrafting<J
             }
 
             building.setWorkingOffset(nextValidCell(farmField));
+            IAIState state = checkNextWorkspaceAndState(farmField,
+                    pos -> this.findHarvestableSurface(pos) != null,
+                    pos -> this.newFindHoeableSurface(pos, farmField) != null,
+                    pos -> this.newFindPlantableSurface(pos,farmField) != null);
+            if(state != null){
+                cir.setReturnValue(state);
+                return;
+            }
             if (building.getWorkingOffset() == null)
             {
                 shouldDumpInventory = true;
@@ -374,7 +347,31 @@ public abstract class EntityAIWorkFarmerMixin extends AbstractEntityAICrafting<J
             cir.setReturnValue(IDLE);
             return;
         }
-        cir.setReturnValue(defaultState);
+        farmField.setFieldStage(FarmField.Stage.HOED);
+        cir.setReturnValue(PREPARING);
+    }
+
+    private IAIState checkNextWorkspaceAndState(@NotNull final FarmField farmField, @NotNull final Predicate<BlockPos> harvestAble, @NotNull final Predicate<BlockPos> hoeAble, @NotNull final Predicate<BlockPos> plantAble)
+    {
+        BlockPos position;
+        if(building.getWorkingOffset() == null){
+            building.setWorkingOffset(nextValidCell(farmField));
+        }
+        while(building.getWorkingOffset() != null)
+        {
+            position = farmField.getPosition().below().south(building.getWorkingOffset().getZ()).east(building.getWorkingOffset().getX());
+            if(harvestAble.test(position)){
+                return FARMER_HARVEST;
+            }
+            if(hoeAble.test(position)){
+                return FARMER_HOE;
+            }
+            if(plantAble.test(position)){
+                return FARMER_PLANT;
+            }
+            building.setWorkingOffset(nextValidCell(farmField));
+        }
+        return null;
     }
 
     // Try right click first
@@ -468,7 +465,7 @@ public abstract class EntityAIWorkFarmerMixin extends AbstractEntityAICrafting<J
                     || (world.getBlockState(position.above()).getBlock() instanceof BushBlock)
                     || (world.getBlockState(position.above()).getBlock() instanceof BlockScarecrow)
                     || (blockState.getBlock() == farmland)
-                    || (!(blockState.is(BlockTags.DIRT) || blockState.getFluidState().is(Fluids.WATER) || SpecialSeedManager.isSpecialSoil(blockState.getBlock())) && !(blockState.getBlock() instanceof MinecoloniesFarmland) && !(blockState.getBlock() instanceof FarmBlock))
+                    || (!(blockState.is(BlockTags.DIRT) || blockState.is(Blocks.WATER) || SpecialSeedManager.isSpecialSoil(blockState.getBlock())) && !(blockState.getBlock() instanceof MinecoloniesFarmland) && !(blockState.getBlock() instanceof FarmBlock))
                     || (world.getBlockState(position.above()).getBlock() instanceof MinecoloniesCropBlock)
             )
             {
@@ -486,7 +483,7 @@ public abstract class EntityAIWorkFarmerMixin extends AbstractEntityAICrafting<J
                     || (world.getBlockState(position.above()).getBlock() instanceof CropBlock)
                     || (world.getBlockState(position.above()).getBlock() instanceof BushBlock)
                     || (world.getBlockState(position.above()).getBlock() instanceof BlockScarecrow)
-                    || (!(blockState.is(BlockTags.DIRT) || blockState.getFluidState().is(Fluids.WATER) || SpecialSeedManager.isSpecialSoil(blockState.getBlock())) && !(blockState.getBlock() instanceof MinecoloniesFarmland) && !(blockState.getBlock() instanceof FarmBlock))
+                    || (!(blockState.is(BlockTags.DIRT) || blockState.is(Blocks.WATER) || SpecialSeedManager.isSpecialSoil(blockState.getBlock())) && !(blockState.getBlock() instanceof MinecoloniesFarmland) && !(blockState.getBlock() instanceof FarmBlock))
                     || (world.getBlockState(position.above()).getBlock() instanceof MinecoloniesCropBlock)
             )
             {
@@ -507,7 +504,7 @@ public abstract class EntityAIWorkFarmerMixin extends AbstractEntityAICrafting<J
                 || (world.getBlockState(position.above()).getBlock() instanceof CropBlock)
                 || (world.getBlockState(position.above()).getBlock() instanceof BushBlock)
                 || (world.getBlockState(position.above()).getBlock() instanceof BlockScarecrow)
-                || (!(blockState.is(BlockTags.DIRT) || blockState.getFluidState().is(Fluids.WATER) || SpecialSeedManager.isSpecialSoil(blockState.getBlock())) && !(blockState.getBlock() instanceof MinecoloniesFarmland) && !(blockState.getBlock() instanceof FarmBlock))
+                || (!(blockState.is(BlockTags.DIRT) || blockState.is(Blocks.WATER) || SpecialSeedManager.isSpecialSoil(blockState.getBlock())) && !(blockState.getBlock() instanceof MinecoloniesFarmland) && !(blockState.getBlock() instanceof FarmBlock))
                 || (world.getBlockState(position.above()).getBlock() instanceof MinecoloniesCropBlock)
         )
         {
@@ -558,7 +555,7 @@ public abstract class EntityAIWorkFarmerMixin extends AbstractEntityAICrafting<J
             final BlockState blockState = world.getBlockState(pos.above());
             FluidState fluid = blockState.getFluidState();
             if(!Fluids.WATER.isSource(fluid)){
-                if(SpecialSeedManager.isSpecialSoil(blockState.getBlock())){
+                if(!blockState.is(BlockTags.DIRT) || SpecialSeedManager.isSpecialSoil(blockState.getBlock())){
                     ItemStack stack = new ItemStack(blockState.getBlock(),1);
                     InventoryUtils.addItemStackToItemHandler(worker.getItemHandlerCitizen(),stack);
                 }
@@ -567,8 +564,7 @@ public abstract class EntityAIWorkFarmerMixin extends AbstractEntityAICrafting<J
         }
         else{
             final BlockState blockState = world.getBlockState(pos);
-            FluidState fluid = blockState.getFluidState();
-            if(!fluid.isEmpty()){
+            if(!blockState.is(Blocks.WATER)){
                 if(worker.getCitizenData().getEntity().isPresent() && worker.getBlockY() <= pos.getY()) {
                     Vec3 vec = worker.blockPosition().above().getCenter();
                     worker.getCitizenData().getEntity().get().teleportTo(vec.x, pos.getY() + 1.5, vec.z);
