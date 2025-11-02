@@ -51,13 +51,6 @@ public abstract class FarmFieldClientMixin extends AbstractBuildingExtensionModu
             final int nowDay = (int)(world.getDayTime() / TICKS_PER_DAY);
             if(nowDay != farmField.getDate()) {
                 farmField.advanceDay(nowDay);
-                BlockState state = world.getBlockState(getPosition());
-                if (state.hasProperty(BlockStateProperties.DOUBLE_BLOCK_HALF)){
-                    final BlockEntity entity = world.getBlockEntity(state.getValue(BlockStateProperties.DOUBLE_BLOCK_HALF) == DoubleBlockHalf.UPPER ? getPosition().below() : getPosition());
-                    if (entity instanceof TileEntityScarecrow scarecrow && scarecrow.getCurrentColony() instanceof IColonyView colony) {
-                        Network.getNetwork().sendToServer(new CropRotationAdvanceDayMessage(colony, getPosition(), nowDay, farmField.getCurrentDay(), farmField.getCurrentSeason()));
-                    }
-                }
             }
         }
         seed = farmField.getSeasonSeed(farmField.getCurrentSeason()).copy();
