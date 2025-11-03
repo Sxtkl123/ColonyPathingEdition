@@ -1,11 +1,12 @@
 {
-  "latest_version": "1.0.4-BETA-7",
+  "latest_version": "1.0.4-pre-6",
   "latest_stable_version": "1.0.4-BETA-4.3",
   "history_stable_version": [
     "1.0.4-BETA-4.3",
     "1.0.3"
   ],
   "history_unstable_version": [
+    "1.0.4-pre-6",
     "1.0.4-BETA-7",
     "1.0.4-ALPHA-6.1",
     "1.0.4-ALPHA-6",
@@ -13,8 +14,8 @@
     "1.0.4-ALPHA-5"
   ],
   "latest_changelog": {
-    "zh_cn": "- **修复幽灵矿车问题，如果殖民地中有铁路建议更新到此版本，可以避免每次重启时在服务端堆积不可见矿车**\n- **修复不合理的寻路起点选取，这将修复前几个版本中某些特定地形的寻路AI卡死的问题**\n- 水路启发值修改，市民将更不喜欢走水路\n- 其他不重要的修改 \n- 详情见CurseForge/Modrinth更新日志",
-    "en_us": "- **Fixed ghost minecart issue** — if your colony uses rails, it’s strongly recommended to update to this version to prevent invisible minecarts from stacking on the server after each restart.  \n- **Fixed invalid pathfinding start point selection**, which could cause AI to get stuck on certain terrain types in previous versions.  \n- Adjusted water pathfinding heuristic — citizens will now prefer to avoid water routes.  \n- Minor tweaks and optimizations.  \n- See full details in the CurseForge/Modrinth changelog.  "
+    "zh_cn": "- **农田将支持至多四季轮作，且支持休耕时自动调整农田**\n- **农田将能够适配更多特殊作物，目前已作tag兼容的有农夫乐事相关/甜浆果/森罗物语:厨房**\n- 农夫AI强化，他现在会工作的更有效率\n- 本次修改内容非常繁杂，此处只是简单介绍，详情见CurseForge/Modrinth主页视频和文件的更新日志",
+    "en_us": "- **Fields now support up to four-season crop rotation and auto-adjust when resting.**- **Farmland now supports more special crops**, currently tag-compatible with Farmer’s Delight, Sweet Berries, and Kaleidoscope Cookery.- Farmer AI improved for **higher work efficiency**.- This update is extensive; this is only a brief summary. See the video and full changelog on the CurseForge/Modrinth page for details."
   },
   "latest_stable_changelog": {
     "zh_cn": "- 寻路/矿车 bug 修复\n - 下界矿工逻辑修改\n - 混凝土工人逻辑修改\n - 水田兼容 (需要自行添加Tag)\n - 进食策略修改与 bug 修复\n - 补充市民职业/全局AI的nbt\n - 详情请见 Mod 个人主页 source 中的 changelog.md",

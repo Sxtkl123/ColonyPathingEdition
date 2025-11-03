@@ -69,7 +69,7 @@ public class PathingConfig {
         builder.push("Update Message Display #更新信息显示#");
         MESSAGE_DISPLAY = builder
                 .comment("Is changelogs display in-game when new version updated? (default: true)\n 是否在游戏内部显示最新版本更新信息？(默认开启)")
-                .define("messageDisplay", true);
+                .define("messageDisplay", false);
         builder.pop();
         builder.push("Pathing Cost Modifier #寻路Cost相关设置#");
         builder.push("Multiplier #乘子系数#");

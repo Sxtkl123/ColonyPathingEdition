@@ -35,8 +35,6 @@ import com.minecolonies.core.items.ItemCrop;
 import com.minecolonies.core.network.messages.client.CompostParticleMessage;
 import com.minecolonies.core.util.AdvancementUtils;
 import com.minecolonies.core.util.citizenutils.CitizenItemUtils;
-import net.minecraft.ChatFormatting;
-import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
@@ -52,10 +50,7 @@ import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.block.*;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.material.FluidState;
-import net.minecraft.world.level.material.Fluids;
 import net.minecraft.world.phys.BlockHitResult;
-import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.common.ToolActions;
 import net.minecraftforge.common.util.FakePlayer;
@@ -68,7 +63,6 @@ import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import java.util.ArrayList;
@@ -99,8 +93,6 @@ public abstract class EntityAIWorkFarmerMixin extends AbstractEntityAICrafting<J
     @Shadow(remap = false) protected abstract BlockPos nextValidCell(FarmField farmField);
     @Shadow(remap = false) protected abstract boolean isRightFarmLandForCrop(FarmField farmField, BlockState blockState);
     @Shadow(remap = false) protected abstract void equipHoe();
-
-    @Shadow protected abstract void createCorrectFarmlandForSeed(ItemStack seed, BlockPos pos);
 
     /**
      * Methods to clarify special seed by Tags
@@ -439,6 +431,10 @@ public abstract class EntityAIWorkFarmerMixin extends AbstractEntityAICrafting<J
 
     private BlockPos newFindHoeableSurface(@NotNull BlockPos position, @NotNull final FarmField farmField)
     {
+        if (!checkForToolOrWeapon(ModEquipmentTypes.hoe.get()))
+        {
+            return null;
+        }
         position = getSurfacePos(position);
         if (position == null)
         {
@@ -499,7 +495,6 @@ public abstract class EntityAIWorkFarmerMixin extends AbstractEntityAICrafting<J
             }
             return shouldGenerateWater ? position : null;
         }
-
         if (farmField.isNoPartOfField(world, position)
                 || (world.getBlockState(position.above()).getBlock() instanceof CropBlock)
                 || (world.getBlockState(position.above()).getBlock() instanceof BushBlock)
@@ -621,12 +616,21 @@ public abstract class EntityAIWorkFarmerMixin extends AbstractEntityAICrafting<J
      */
     private BlockPos newFindPlantableSurface(@NotNull BlockPos position, @NotNull final FarmField farmField)
     {
+        final ItemStack seed = farmField.getSeed();
+        if (seed.isEmpty())
+        {
+            return null;
+        }
+        final int slot = worker.getCitizenInventoryHandler().findFirstSlotInInventoryWith(seed.getItem());
+        if (slot == -1)
+        {
+            return null;
+        }
         position = getSurfacePos(position);
         if (position == null || farmField.isNoPartOfField(world, position))
         {
             return null;
         }
-        ItemStack seed = farmField.getSeed();
         BlockState belowState = world.getBlockState(position);
         if(isUnderWater(seed)){
             if(belowState.is(Blocks.WATER)) {
