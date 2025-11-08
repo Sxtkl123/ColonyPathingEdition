@@ -57,7 +57,7 @@ public abstract class CitizenSkillHandlerMixin {
             final int secondRoleModelLevel = roleModelB.getCitizenSkillHandler().getSkills().get(skill).getLevel();
             // max = 49
             final int levelMax = (firstRoleModelLevel + secondRoleModelLevel) / 4;
-            final int levelBase = Math.min(firstRoleModelLevel,secondRoleModelLevel) / 2;
+            final int levelBase = (firstRoleModelLevel + secondRoleModelLevel) / 8;
             final int randomFactor = skillMap.get(skill).getLevel();
             // Thus max = 49 + random factor ( <=10 ) = 59  min = level base on parents.
             skillMap.get(skill).setLevel(levelBase + rand.nextInt(levelMax - levelBase + 1) + randomFactor);

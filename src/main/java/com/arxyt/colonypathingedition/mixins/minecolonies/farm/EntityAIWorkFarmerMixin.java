@@ -431,7 +431,7 @@ public abstract class EntityAIWorkFarmerMixin extends AbstractEntityAICrafting<J
 
     private BlockPos newFindHoeableSurface(@NotNull BlockPos position, @NotNull final FarmField farmField)
     {
-        if (!checkForToolOrWeapon(ModEquipmentTypes.hoe.get()))
+        if (checkForToolOrWeapon(ModEquipmentTypes.hoe.get()))
         {
             return null;
         }

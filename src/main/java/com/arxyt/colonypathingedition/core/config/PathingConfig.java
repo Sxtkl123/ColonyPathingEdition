@@ -4,6 +4,13 @@ import com.arxyt.colonypathingedition.core.config.enums.BuilderModeEnum;
 import net.minecraftforge.common.ForgeConfigSpec;
 
 public class PathingConfig {
+    public static ForgeConfigSpec.BooleanValue HURT_ALERT;
+    public static ForgeConfigSpec.BooleanValue ALLOW_RESURRECT;
+    public static ForgeConfigSpec.ConfigValue<String> RESURRECT_ITEM;
+    public static ForgeConfigSpec.DoubleValue RESURRECT_CHANCE_MULTIPLIER;
+    public static ForgeConfigSpec.BooleanValue ALLOW_READ_MIND;
+    public static ForgeConfigSpec.ConfigValue<String> READ_MIND_ITEM;
+
     public static ForgeConfigSpec.BooleanValue MESSAGE_DISPLAY;
 
     public static ForgeConfigSpec.DoubleValue RAIL_COST_MULTIPLIER;
@@ -66,6 +73,25 @@ public class PathingConfig {
     public static ForgeConfigSpec.IntValue MAX_PATHING_DISTANCE;
 
     public static ForgeConfigSpec init(ForgeConfigSpec.Builder builder) {
+        builder.push("Easycolony Feature #简易殖民地相关特性开关#");
+        HURT_ALERT = builder
+                .comment("Is citizen alert when get hurt? (default: true)\n 市民是否警告玩家自己受伤？(默认开启)")
+                .define("messageDisplay", true);
+        builder.push("Resurrect #复活配置");
+        ALLOW_RESURRECT = builder.comment("是否允许玩家手动复活市民：如果允许，玩家将可以使用指定物品复活市民，成功率取决于总幸福度和墓地等级。")
+                .define("allow_resurrect", true);
+        RESURRECT_ITEM = builder.comment("复活市民所需物品：指定玩家复活市民所需的物品。")
+                .define("resurrect_item", "minecraft:totem_of_undying");
+        RESURRECT_CHANCE_MULTIPLIER = builder.comment("复活市民几率乘数：会在原有的复活概率基础上额外乘以一个系数。")
+                .defineInRange("resurrect_chance_multiplier", 1.0, 0, Integer.MAX_VALUE);
+        builder.pop();
+        builder.push("Mind Reader #市民思维读取器设置");
+        ALLOW_READ_MIND = builder.comment("是否允许玩家读取市民行动：如果允许，玩家将可以手持特定物品右键市民读取市民当前行动。")
+                .define("allow_read_mind", true);
+        READ_MIND_ITEM = builder.comment("读取行动所需物品：指定玩家读取市民行动所需的物品，不会消耗。")
+                .define("read_mind_item", "minecraft:compass");
+        builder.pop();
+        builder.pop();
         builder.push("Update Message Display #更新信息显示#");
         MESSAGE_DISPLAY = builder
                 .comment("Is changelogs display in-game when new version updated? (default: true)\n 是否在游戏内部显示最新版本更新信息？(默认开启)")

@@ -20,4 +20,7 @@ public final class AdditionalContants {
     public static final String OUT_OF_DATE_MESSAGE = "com.arxyt.colonypathingedition.core.update.out_of_date";
     public static final String CHANGELOG = "com.arxyt.colonypathingedition.core.update.changelog";
     public static final String CLOSER = "com.arxyt.colonypathingedition.core.update.closer";
+    public static final String HURT_ALERT = "com.arxyt.colonypathingedition.core.easycolony.colony.hurt.message";
+    public static final String READ_MIND = "com.arxyt.colonypathingedition.core.easycolony.colony.read_mind.message";
+    public static final String RESURRECT = "com.arxyt.colonypathingedition.core.easycolony.colony.resurrect";
 }
