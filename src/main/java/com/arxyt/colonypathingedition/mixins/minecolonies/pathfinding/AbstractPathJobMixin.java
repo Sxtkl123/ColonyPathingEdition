@@ -54,12 +54,13 @@ import static com.minecolonies.api.util.BlockPosUtil.directionFromDelta;
 import static com.minecolonies.core.entity.pathfinding.PathingOptions.MAX_COST;
 
 @Mixin(AbstractPathJob.class)
-public abstract class AbstractPathJobMixin implements AbstractAISkeletonAccessor<IJob<?>>{
+public abstract class AbstractPathJobMixin{
 
     @Final @Shadow(remap = false) private Level actualWorld;
     @Final @Shadow(remap = false) public static int MAX_NODES;
     @Final @Shadow(remap = false) private Int2ObjectOpenHashMap<MNode> nodes;
     @Final @Shadow(remap = false) protected LevelReader world;
+    @Final @Shadow(remap = false) @NotNull protected BlockPos start;
     @Shadow(remap = false) private PathingOptions pathingOptions;
     @Shadow(remap = false) protected CachingBlockLookup cachedBlockLookup;
     @Shadow(remap = false) protected BlockPos.MutableBlockPos tempWorldPos;
@@ -74,6 +75,8 @@ public abstract class AbstractPathJobMixin implements AbstractAISkeletonAccessor
     @Shadow(remap = false) protected abstract boolean isPassable(int x, int y, int z, boolean head, MNode parent);
     @Shadow(remap = false) public abstract PathingOptions getPathingOptions();
     @Shadow(remap = false) protected abstract boolean canLeaveBlock(int x, int y, int z, int parentX, int parentY, int parentZ, boolean head);
+
+
 
     @Invoker(value="getGroundHeight",remap = false)
     public abstract int invokeGetGroundHeight(final MNode node, final int x, final int y, final int z);
@@ -611,7 +614,7 @@ public abstract class AbstractPathJobMixin implements AbstractAISkeletonAccessor
     private double modifyHeuristic(MNode nextNode, double heuristic, final BlockState state) {
         double newHeuristic = heuristic;
         if(state.getBlock() == Blocks.CAVE_AIR){
-            newHeuristic *= 1 + 0.15 * Math.max(5 - getWorld().getBrightness(LightLayer.BLOCK, new BlockPos(nextNode.x, nextNode.y, nextNode.z)) , 0);
+            newHeuristic *= 1 + 0.15 * Math.max(5 - world.getBrightness(LightLayer.BLOCK, new BlockPos(nextNode.x, nextNode.y, nextNode.z)) , 0);
         }
         if (nextNode.isSwimming()){
             newHeuristic *= swimmingPreference;
