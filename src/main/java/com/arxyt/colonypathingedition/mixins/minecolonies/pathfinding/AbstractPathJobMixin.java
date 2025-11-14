@@ -304,7 +304,7 @@ public abstract class AbstractPathJobMixin{
                 totalNodesVisited++;
 
                 // Limiting max amount of nodes mapped, encountering a high cost node increases the limit
-                if (totalNodesVisited > maxNodes + node.getHeuristic() * 2) {
+                if (totalNodesVisited > Math.min(MAX_NODES, maxNodes + node.getHeuristic() * 2)) {
                     if (stopOnNodeLimit(totalNodesVisited, bestNode, nodesSinceEndNode)) {
                         break;
                     }
@@ -408,48 +408,6 @@ public abstract class AbstractPathJobMixin{
         return finalizePath(bestNode);
     }
 
-    /**
-     * Change to maxNodes.
-     */
-    @Redirect(
-            method = "search()Lnet/minecraft/world/level/pathfinder/Path;",
-            at = @At(
-                    value   = "INVOKE",
-                    target  = "Lcom/minecolonies/core/entity/pathfinding/pathjobs/AbstractPathJob;recalcHeuristic(Lcom/minecolonies/core/entity/pathfinding/MNode;)V",
-                    ordinal = 0,
-                    remap = false
-            ),
-            remap = false
-    )
-    private void onRecalcHeuristicAndThen1(AbstractPathJob instance, MNode bestNode)
-    {
-        recalcHeuristic(bestNode);
-        double h = bestNode.getHeuristic();
-        int extra = (int) Math.ceil(Math.sqrt(h) * 10);
-        maxNodes = Math.max(Math.min(actualMaxNodes + extra , MAX_NODES),maxNodes);
-    }
-
-    /**
-     * Change to maxNodes.
-     */
-    @Redirect(
-            method = "search()Lnet/minecraft/world/level/pathfinder/Path;",
-            at = @At(
-                    value   = "INVOKE",
-                    target  = "Lcom/minecolonies/core/entity/pathfinding/pathjobs/AbstractPathJob;recalcHeuristic(Lcom/minecolonies/core/entity/pathfinding/MNode;)V",
-                    ordinal = 1,
-                    remap = false
-            ),
-            remap = false
-    )
-    private void onRecalcHeuristicAndThen2(AbstractPathJob instance, MNode bestNode)
-    {
-        recalcHeuristic(bestNode);
-
-        double h = bestNode.getHeuristic();
-        int extra = (int) Math.ceil(Math.sqrt(h) * 10);
-        maxNodes = Math.max(Math.min(actualMaxNodes + extra , MAX_NODES),maxNodes);
-    }
 
     private int recheckGroundHeight(int x, int y, int z){
         final BlockState state = cachedBlockLookup.getBlockState(x, y , z);
