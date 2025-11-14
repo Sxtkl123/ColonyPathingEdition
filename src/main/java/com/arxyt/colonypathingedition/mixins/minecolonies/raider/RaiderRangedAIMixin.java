@@ -16,7 +16,7 @@ import java.util.List;
 
 import static com.minecolonies.api.entity.ai.statemachine.states.AIWorkerState.GUARD_FLEE;
 
-@Mixin(RaiderRangedAI.class)
+@Mixin(value = RaiderRangedAI.class, remap = false)
 public class RaiderRangedAIMixin<T extends AbstractEntityMinecoloniesMonster & IThreatTableEntity> extends AttackMoveAI<T> {
     public RaiderRangedAIMixin(
             final T owner,

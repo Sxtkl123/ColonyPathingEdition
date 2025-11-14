@@ -7,6 +7,7 @@ import com.minecolonies.core.colony.managers.RegisteredStructureManager;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.level.Level;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
@@ -14,9 +15,9 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import static net.minecraft.world.level.Level.TICKS_PER_DAY;
 
 
-@Mixin(RegisteredStructureManager.class)
+@Mixin(value = RegisteredStructureManager.class, remap = false)
 public class RegisteredStructureManagerMixin {
-    int trueDate = -1;
+    @Unique private int trueDate = -1;
 
     @Inject(method = "onColonyTick",at = @At("TAIL"),remap = false)
     void onFieldDateChange(IColony colony, CallbackInfo ci){

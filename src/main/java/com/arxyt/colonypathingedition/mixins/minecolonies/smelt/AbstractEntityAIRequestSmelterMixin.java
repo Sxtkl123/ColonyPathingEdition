@@ -45,7 +45,7 @@ import static com.minecolonies.api.util.ItemStackUtils.*;
 import static com.minecolonies.api.util.constant.Constants.*;
 import static com.minecolonies.api.util.constant.TranslationConstants.BAKER_HAS_NO_FURNACES_MESSAGE;
 
-@Mixin( AbstractEntityAIRequestSmelter.class )
+@Mixin(value = AbstractEntityAIRequestSmelter.class, remap = false)
 public abstract class AbstractEntityAIRequestSmelterMixin<J extends AbstractJobCrafter<?, J>, B extends AbstractBuilding> extends AbstractEntityAICrafting<J, B> {
     @Shadow(remap = false) protected abstract int getMaxUsableFurnaces();
 
@@ -325,7 +325,7 @@ public abstract class AbstractEntityAIRequestSmelterMixin<J extends AbstractJobC
         return false;
     }
 
-    boolean checkRecipeFinish = false;
+    @Unique boolean checkRecipeFinish = false;
 
     /**
      * @author ARxyt

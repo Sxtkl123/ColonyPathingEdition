@@ -41,7 +41,7 @@ import static com.minecolonies.api.entity.ai.statemachine.states.AIWorkerState.*
 import static com.minecolonies.api.util.constant.Constants.TICKS_SECOND;
 import static com.minecolonies.api.util.constant.StatisticsConstants.ITEM_USED;
 
-@Mixin(AbstractEntityAIHerder.class)
+@Mixin(value = AbstractEntityAIHerder.class, remap = false)
 public abstract class AbstractEntityAIHerderMixin<J extends AbstractJob<?, J>, B extends AbstractBuilding>
         extends AbstractEntityAIInteract<J, B>
 {

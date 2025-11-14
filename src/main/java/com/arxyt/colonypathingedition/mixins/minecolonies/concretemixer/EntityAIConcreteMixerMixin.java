@@ -26,16 +26,18 @@ import static com.minecolonies.api.util.constant.Constants.STACKSIZE;
 import static com.minecolonies.api.util.constant.Constants.UPDATE_FLAG;
 import static com.minecolonies.api.util.constant.StatisticsConstants.ITEMS_CRAFTED_DETAIL;
 
-@Mixin(EntityAIConcreteMixer.class)
+@Mixin(value = EntityAIConcreteMixer.class, remap = false)
 public abstract class EntityAIConcreteMixerMixin extends AbstractEntityAICrafting<JobConcreteMixer, BuildingConcreteMixer>{
 
     @Shadow(remap = false) @Final private static Predicate<ItemStack> CONCRETE;
 
+    @Unique
     private final Predicate<ItemStack> REQUESTED_CONCRETE =
             stack -> CONCRETE.test(stack) &&
                     currentRequest != null && currentRecipeStorage != null &&
                     ItemHandlerHelper.canItemStacksStack(stack, currentRecipeStorage.getCleanedInput().get(0).getItemStack());
 
+    @Unique
     private final Predicate<ItemStack> REQUEST_CONCRETE_BLOCK =
             stack -> stack.getItem() == currentRequest.getRequest().getStack().getItem();
 
@@ -46,6 +48,7 @@ public abstract class EntityAIConcreteMixerMixin extends AbstractEntityAICraftin
     }
 
 
+    @Unique
     private int getSlotWithPowderWithRequest()
     {
         if (currentRequest != null && currentRecipeStorage != null)

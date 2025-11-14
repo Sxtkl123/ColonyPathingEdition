@@ -34,7 +34,7 @@ import static com.minecolonies.api.util.constant.TranslationConstants.*;
 import static com.minecolonies.core.entity.ai.minimal.EntityAIEatTask.RESTAURANT_LIMIT;
 import static com.minecolonies.core.entity.citizen.citizenhandlers.CitizenDiseaseHandler.SEEK_DOCTOR_HEALTH;
 
-@Mixin(CitizenAI.class)
+@Mixin(value = CitizenAI.class, remap = false)
 public class CitizenAIMixin {
     @Final @Shadow(remap = false) private EntityCitizen citizen;
     @Shadow(remap = false) private IState lastState;
@@ -170,7 +170,7 @@ public class CitizenAIMixin {
                         Component.translatable(COM_MINECOLONIES_COREMOD_ENTITY_CITIZEN_MOURNING),
                         ChatPriority.IMPORTANT));
 
-                citizen.setVisibleStatusIfNone(MOURNING);
+                citizen.getCitizenData().setVisibleStatus(VisibleCitizenStatus.MOURNING);
             }
             citizen.getCitizenAI().setCurrentDelay(20 * 15);
             cir.setReturnValue(CitizenAIState.MOURN);
@@ -180,7 +180,7 @@ public class CitizenAIMixin {
         // Work
         if (citizen.getCitizenJobHandler().getColonyJob() == null || (citizen.isBaby() && citizen.getCitizenJobHandler().getColonyJob() instanceof JobPupil && citizen.level().getDayTime() % 24000 > 9000))
         {
-            citizen.setVisibleStatusIfNone(HOUSE);
+            citizen.getCitizenData().setVisibleStatus(VisibleCitizenStatus.HOUSE);
             citizen.getCitizenAI().setCurrentDelay(20 * 15);
             cir.setReturnValue(CitizenAIState.IDLE);
             return;
@@ -190,13 +190,13 @@ public class CitizenAIMixin {
                 && (citizen.getCitizenData().getLeisureTime() <= 0
                 || !citizen.getCitizenData().getJob().canAIBeInterrupted()))
         {
-            citizen.setVisibleStatusIfNone(WORKING);
+            citizen.getCitizenData().setVisibleStatus(VisibleCitizenStatus.WORKING);
             citizen.getCitizenAI().setCurrentDelay(20 * 5);
             cir.setReturnValue(CitizenAIState.WORK);
             return;
         }
 
-        citizen.setVisibleStatusIfNone(HOUSE);
+        citizen.getCitizenData().setVisibleStatus(VisibleCitizenStatus.HOUSE);
         cir.setReturnValue(CitizenAIState.IDLE);
     }
 

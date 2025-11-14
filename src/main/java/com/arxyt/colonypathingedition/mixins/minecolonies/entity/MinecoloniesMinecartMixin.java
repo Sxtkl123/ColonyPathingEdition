@@ -25,7 +25,7 @@ import static com.minecolonies.api.research.util.ResearchConstants.WALKING;
 import static net.minecraft.world.entity.Entity.RemovalReason.DISCARDED;
 
 
-@Mixin(MinecoloniesMinecart.class)
+@Mixin(value = MinecoloniesMinecart.class, remap = false)
 public abstract class MinecoloniesMinecartMixin extends Minecart implements AbstractMinecartAccessor {
     public MinecoloniesMinecartMixin(final EntityType<?> type, final Level world)
     {

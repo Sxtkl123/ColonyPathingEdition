@@ -28,7 +28,7 @@ import org.spongepowered.asm.mixin.Shadow;
 
 import java.util.Objects;
 
-@Mixin(EntityCitizen.class)
+@Mixin(value = EntityCitizen.class, remap = false)
 public abstract class EntityCitizenMixin extends AbstractEntityCitizen {
     @Shadow(remap = false) private ICitizenColonyHandler citizenColonyHandler;
 

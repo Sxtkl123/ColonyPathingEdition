@@ -1,21 +1,13 @@
 package com.arxyt.colonypathingedition.mixins.minecolonies.farm;
 
 import com.arxyt.colonypathingedition.api.FarmFieldExtra;
-import com.arxyt.colonypathingedition.core.message.CropRotationAdvanceDayMessage;
-import com.minecolonies.api.colony.IColonyView;
 import com.minecolonies.api.colony.buildingextensions.registry.BuildingExtensionRegistries;
-import com.minecolonies.core.Network;
 import com.minecolonies.core.colony.buildingextensions.AbstractBuildingExtensionModule;
 import com.minecolonies.core.colony.buildingextensions.FarmField;
-import com.minecolonies.core.tileentities.TileEntityScarecrow;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.entity.BlockEntity;
-import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.block.state.properties.BlockStateProperties;
-import net.minecraft.world.level.block.state.properties.DoubleBlockHalf;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
@@ -25,7 +17,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import static net.minecraft.world.level.Level.TICKS_PER_DAY;
 
 
-@Mixin(FarmField.class)
+@Mixin(value = FarmField.class, remap = false)
 public abstract class FarmFieldClientMixin extends AbstractBuildingExtensionModule {
     @Shadow(remap = false)  private ItemStack seed;
 

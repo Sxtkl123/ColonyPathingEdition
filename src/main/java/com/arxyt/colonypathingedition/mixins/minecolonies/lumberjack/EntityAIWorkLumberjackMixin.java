@@ -32,7 +32,7 @@ import java.util.List;
 
 import static com.minecolonies.api.entity.ai.statemachine.states.AIWorkerState.*;
 
-@Mixin(EntityAIWorkLumberjack.class)
+@Mixin(value = EntityAIWorkLumberjack.class, remap = false)
 public abstract class EntityAIWorkLumberjackMixin extends AbstractEntityAICrafting<JobLumberjack, BuildingLumberjack> implements AbstractEntityAIInteractAccessor, AbstractEntityAIInteractExtra {
 
     @Final @Shadow(remap = false) public static float RANGE_HORIZONTAL_PICKUP;

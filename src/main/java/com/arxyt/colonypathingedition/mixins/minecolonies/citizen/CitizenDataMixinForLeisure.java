@@ -15,6 +15,7 @@ import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
@@ -24,7 +25,7 @@ import java.util.*;
 import static com.minecolonies.api.util.constant.CitizenConstants.DISABLED;
 import static com.minecolonies.api.util.constant.Constants.TICKS_SECOND;
 
-@Mixin(CitizenData.class)
+@Mixin(value = CitizenData.class, remap = false)
 public abstract class CitizenDataMixinForLeisure implements ICitizenData {
 
     @Shadow(remap = false) private @Nullable IBuilding homeBuilding;
@@ -39,11 +40,11 @@ public abstract class CitizenDataMixinForLeisure implements ICitizenData {
     @Final @Shadow(remap = false) protected Map<Component, IInteractionResponseHandler> citizenChatOptions;
     @Final @Shadow(remap = false) private CitizenDiseaseHandler citizenDiseaseHandler;
 
-    final private static int MAX_PRE_LEISURE_TIME = PathingConfig.MAX_PRE_LEISURE_TIME.get();
-    final private static int LEISURE_TIME = PathingConfig.LEISURE_TIME.get();
-    final private static int LEISURE_RATIO = PathingConfig.LEISURE_RATIO.get();
+    @Unique final private static int MAX_PRE_LEISURE_TIME = PathingConfig.MAX_PRE_LEISURE_TIME.get();
+    @Unique final private static int LEISURE_TIME = PathingConfig.LEISURE_TIME.get();
+    @Unique final private static int LEISURE_RATIO = PathingConfig.LEISURE_RATIO.get();
 
-    int coolDownTime = 0;
+    @Unique int coolDownTime = 0;
 
     // Rewrite as a preventing of setting change.
     @Inject(method = "update", at = @At("HEAD"), remap = false)
@@ -96,7 +97,7 @@ public abstract class CitizenDataMixinForLeisure implements ICitizenData {
             }
             catch (final Exception e)
             {
-                Log.getLogger().warn("Error during validation of handler: " + handler.getInquiry(), e);
+                Log.getLogger().warn("Error during validation of handler: {}", handler.getInquiry(), e);
                 // If anything goes wrong in checking validity, remove handler.
                 toRemove.add(handler);
             }

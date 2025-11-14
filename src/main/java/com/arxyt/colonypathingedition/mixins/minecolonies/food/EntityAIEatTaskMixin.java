@@ -9,6 +9,7 @@ import com.minecolonies.api.colony.buildings.IBuilding;
 import com.minecolonies.api.colony.interactionhandling.ChatPriority;
 import com.minecolonies.api.colony.jobs.IJob;
 import com.minecolonies.api.crafting.ItemStorage;
+import com.minecolonies.api.entity.citizen.VisibleCitizenStatus;
 import com.minecolonies.api.util.*;
 import com.minecolonies.core.colony.buildings.workerbuildings.BuildingCook;
 import com.minecolonies.core.colony.interactionhandling.StandardInteraction;
@@ -40,7 +41,7 @@ import static com.minecolonies.api.util.constant.TranslationConstants.NO_RESTAUR
 import static com.minecolonies.core.colony.buildings.modules.BuildingModules.RESTAURANT_MENU;
 import static com.minecolonies.core.entity.ai.minimal.EntityAIEatTask.EatingState.*;
 
-@Mixin(EntityAIEatTask.class)
+@Mixin(value = EntityAIEatTask.class, remap = false)
 public abstract class EntityAIEatTaskMixin {
     @Final @Shadow(remap = false) private EntityCitizen citizen;
     @Shadow(remap = false) private IBuilding restaurant;

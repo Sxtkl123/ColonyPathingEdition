@@ -21,7 +21,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-@Mixin(BuildingConcreteMixer.class)
+@Mixin(value = BuildingConcreteMixer.class, remap = false)
 public abstract class BuildingConcreteMixerMixin implements BuildingConcreteMixerExtra {
     private static final String CONCRETE_MIXER_SIMULATED_BLOCKS = "simulated_blocks";
     private static final String CONCRETE_MIXER_SIMULATED_POS = "simulated_block_pos";

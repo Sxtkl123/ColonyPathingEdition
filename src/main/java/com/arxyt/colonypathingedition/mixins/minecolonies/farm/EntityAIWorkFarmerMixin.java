@@ -77,7 +77,7 @@ import static com.minecolonies.api.util.constant.StatisticsConstants.LAND_TILLED
 import static com.minecolonies.api.util.constant.TranslationConstants.NO_FREE_FIELDS;
 
 
-@Mixin(EntityAIWorkFarmer.class)
+@Mixin(value = EntityAIWorkFarmer.class, remap = false)
 public abstract class EntityAIWorkFarmerMixin extends AbstractEntityAICrafting<JobFarmer, BuildingFarmer> implements AbstractAISkeletonAccessor<JobFarmer>, AbstractEntityAIBasicAccessor<AbstractBuilding> {
     @Shadow(remap = false) private int skippedState;
     @Shadow(remap = false) private boolean didWork;

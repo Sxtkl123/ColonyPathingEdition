@@ -28,7 +28,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import static com.minecolonies.api.util.constant.Constants.RESULT_SLOT;
 import static com.minecolonies.api.util.constant.Constants.SMELTABLE_SLOT;
 
-@Mixin(AbstractEntityAIUsesFurnace.class)
+@Mixin(value = AbstractEntityAIUsesFurnace.class, remap = false)
 public abstract class AbstractEntityAIUsesFurnaceMixin implements AbstractAISkeletonAccessor<IJob<?>>, AbstractEntityAIBasicAccessor<AbstractBuilding>
 {
     @Final @Shadow(remap = false)  private static int RETRIEVE_SMELTABLE_IF_MORE_THAN;

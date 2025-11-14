@@ -12,7 +12,7 @@ import org.spongepowered.asm.mixin.injection.callback.LocalCapture;
 
 import java.util.function.Supplier;
 
-@Mixin(NetworkChannel.class)
+@Mixin(value = NetworkChannel.class, remap = false)
 public abstract class NetworkChannelMixin {
     @Shadow(remap = false) protected abstract <MSG extends IMessage> void registerMessage(int id, Class<MSG> msgClazz, Supplier<MSG> msgCreator);
 

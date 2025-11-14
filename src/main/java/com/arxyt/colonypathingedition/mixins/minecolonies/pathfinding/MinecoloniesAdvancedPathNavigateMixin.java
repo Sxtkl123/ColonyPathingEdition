@@ -26,7 +26,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import java.util.Objects;
 
-@Mixin(MinecoloniesAdvancedPathNavigate.class)
+@Mixin(value = MinecoloniesAdvancedPathNavigate.class, remap = false)
 public abstract class MinecoloniesAdvancedPathNavigateMixin extends AbstractAdvancedPathNavigate
 {
     @Unique private MinecoloniesAdvancedPathNavigate asNavigator() {

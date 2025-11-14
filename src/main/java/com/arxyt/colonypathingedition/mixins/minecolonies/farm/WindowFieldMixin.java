@@ -13,13 +13,13 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-@Mixin(WindowField.class)
+@Mixin(value = WindowField.class, remap = false)
 public class WindowFieldMixin {
 
     @Shadow(remap = false) private @Nullable FarmField farmField;
     @Shadow(remap = false) @Final private @NotNull AbstractTileEntityScarecrow tileEntityScarecrow;
 
-    @Inject(method = "selectSeed",at = @At("HEAD"),remap = false,cancellable = true)
+    @Inject(method = "selectSeed", at = @At("HEAD"), remap = false, cancellable = true)
     public void rewriteSelectSeed(CallbackInfo ci){
         // 打开你自己的窗口
         assert farmField != null;

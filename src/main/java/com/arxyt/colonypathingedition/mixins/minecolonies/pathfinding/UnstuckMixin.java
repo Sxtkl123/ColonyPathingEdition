@@ -16,7 +16,7 @@ import org.spongepowered.asm.mixin.Unique;
 import java.util.Objects;
 import java.util.Random;
 
-@Mixin(PathingStuckHandler.class)
+@Mixin(value = PathingStuckHandler.class, remap = false)
 public abstract class UnstuckMixin<NAV extends PathNavigation & IMinecoloniesNavigator> {
 
     @Shadow (remap = false) private int delayToNextUnstuckAction;

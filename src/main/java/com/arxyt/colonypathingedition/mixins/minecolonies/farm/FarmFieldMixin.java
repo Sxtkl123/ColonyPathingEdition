@@ -21,7 +21,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import java.util.HashMap;
 import java.util.Map;
 
-@Mixin(FarmField.class)
+@Mixin(value = FarmField.class, remap = false)
 public abstract class FarmFieldMixin extends AbstractBuildingExtensionModule implements FarmFieldExtra {
     @Shadow(remap = false) private ItemStack seed;
     private int date = -1;

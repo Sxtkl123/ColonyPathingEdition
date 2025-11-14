@@ -14,7 +14,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import java.util.Set;
 
 
-@Mixin(BuildingHospital.class)
+@Mixin(value = BuildingHospital.class, remap = false)
 public abstract class BuildingHospitalMixin implements BuildingHospitalExtra {
 
     @Unique private BuildingHospital asHospital() {

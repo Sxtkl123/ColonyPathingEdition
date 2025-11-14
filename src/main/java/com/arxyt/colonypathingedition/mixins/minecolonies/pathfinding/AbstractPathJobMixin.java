@@ -2,14 +2,12 @@ package com.arxyt.colonypathingedition.mixins.minecolonies.pathfinding;
 
 import com.arxyt.colonypathingedition.api.IMNodeExtras;
 import com.arxyt.colonypathingedition.core.config.PathingConfig;
-import com.arxyt.colonypathingedition.mixins.minecolonies.accessor.AbstractAISkeletonAccessor;
 import com.ldtteam.domumornamentum.block.decorative.PanelBlock;
 import com.ldtteam.domumornamentum.block.decorative.PostBlock;
 import com.ldtteam.domumornamentum.block.decorative.ShingleBlock;
 import com.ldtteam.domumornamentum.block.decorative.ShingleSlabBlock;
 import com.ldtteam.structurize.blockentities.interfaces.IBlueprintDataProviderBE;
 import com.minecolonies.api.colony.buildings.workerbuildings.ITownHall;
-import com.minecolonies.api.colony.jobs.IJob;
 import com.minecolonies.api.entity.citizen.AbstractEntityCitizen;
 import com.minecolonies.api.util.Log;
 import com.minecolonies.api.util.ShapeUtil;
@@ -19,6 +17,7 @@ import com.minecolonies.core.entity.pathfinding.PathfindingUtils;
 import com.minecolonies.core.entity.pathfinding.PathingOptions;
 import com.minecolonies.core.entity.pathfinding.SurfaceType;
 import com.minecolonies.core.entity.pathfinding.pathjobs.AbstractPathJob;
+import com.minecolonies.core.entity.pathfinding.pathresults.PathResult;
 import com.minecolonies.core.entity.pathfinding.world.CachingBlockLookup;
 import com.minecolonies.core.util.WorkerUtil;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
@@ -44,16 +43,13 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Queue;
+import java.util.*;
 
 import static com.minecolonies.api.util.BlockPosUtil.directionFromDelta;
 import static com.minecolonies.core.entity.pathfinding.PathingOptions.MAX_COST;
 
-@Mixin(AbstractPathJob.class)
+@Mixin(value = AbstractPathJob.class, remap = false)
 public abstract class AbstractPathJobMixin{
 
     @Final @Shadow(remap = false) private Level actualWorld;
@@ -61,6 +57,11 @@ public abstract class AbstractPathJobMixin{
     @Final @Shadow(remap = false) private Int2ObjectOpenHashMap<MNode> nodes;
     @Final @Shadow(remap = false) protected LevelReader world;
     @Final @Shadow(remap = false) @NotNull protected BlockPos start;
+    @Final @Shadow(remap = false) protected PathResult result;
+
+    @Shadow(remap = false) protected int totalNodesVisited;
+    @Shadow(remap = false) private boolean reachesDestination;
+    @Shadow(remap = false) public int extraNodes;
     @Shadow(remap = false) private PathingOptions pathingOptions;
     @Shadow(remap = false) protected CachingBlockLookup cachedBlockLookup;
     @Shadow(remap = false) protected BlockPos.MutableBlockPos tempWorldPos;
@@ -75,8 +76,15 @@ public abstract class AbstractPathJobMixin{
     @Shadow(remap = false) protected abstract boolean isPassable(int x, int y, int z, boolean head, MNode parent);
     @Shadow(remap = false) public abstract PathingOptions getPathingOptions();
     @Shadow(remap = false) protected abstract boolean canLeaveBlock(int x, int y, int z, int parentX, int parentY, int parentZ, boolean head);
-
-
+    @Shadow(remap = false) protected abstract MNode getAndSetupStartNode();
+    @Shadow(remap = false) protected abstract double getEndNodeScore(MNode n);
+    @Shadow(remap = false) protected abstract void handleDebugExtraNode(MNode node);
+    @Shadow(remap = false) protected abstract void handleDebugPathReach(MNode bestNode);
+    @Shadow(remap = false) protected abstract void handleDebugOptions(MNode node);
+    @Shadow(remap = false) protected abstract boolean isAtDestination(MNode n);
+    @Shadow(remap = false) protected abstract boolean stopOnNodeLimit(int totalNodesVisited, MNode bestNode, int nodesSinceEndNode);
+    @Shadow(remap = false) protected abstract void visitNode(MNode node);
+    @Shadow(remap = false) @NotNull protected abstract Path finalizePath(MNode targetNode);
 
     @Invoker(value="getGroundHeight",remap = false)
     public abstract int invokeGetGroundHeight(final MNode node, final int x, final int y, final int z);
@@ -102,6 +110,7 @@ public abstract class AbstractPathJobMixin{
     protected abstract double computeHeuristic(final int x, final int y, final int z);
 
     @Unique final private int callbackTimesTolerance =  PathingConfig.CALLBACK_TIMES_TOLERANCE.get();
+    @Unique final private int extendCount =  PathingConfig.NODE_EXTEND_COUNT.get();
     @Unique final protected double onRailPreference = PathingConfig.ONRAIL_PREFERENCE.get();
     @Unique final protected double onRoadPreference = PathingConfig.ONROAD_PREFERENCE.get();
     @Unique final private double swimmingPreference = PathingConfig.SWIMMING_PREFERENCE.get();
@@ -256,19 +265,148 @@ public abstract class AbstractPathJobMixin{
     }
 
     /**
-     * Save maxNodes to savedMaxNodes
+     * @author ARxyt
+     * @reason Explore stretgies reworked, to explore more nodes that "cheap".
      */
-    @Inject(
-            method = "search",
-            at     = @At("HEAD"),
-            remap = false
-    )
-    private void onSearchHead(CallbackInfoReturnable<Path> cir)
+    @Nullable
+    @Overwrite(remap = false)
+    protected Path search()
     {
         this.actualMaxNodes = this.maxNodes;
+        MNode bestNode = getAndSetupStartNode();
+        double bestNodeEndScore = getEndNodeScore(bestNode);
+        // Node count since we found a better end node than the current one
+        int nodesSinceEndNode = 0;
+
+        while (!nodesToVisit.isEmpty())
+        {
+            if (Thread.currentThread().isInterrupted())
+            {
+                return null;
+            }
+
+            Queue<MNode> cheapestNodelist = new ArrayDeque<>();
+            for (int i = 0; i < extendCount; i++) {
+                if(nodesToVisit.peek() != null) cheapestNodelist.add(nodesToVisit.poll());
+                else break;
+            }
+            while (!cheapestNodelist.isEmpty()) {
+                final MNode node = cheapestNodelist.poll();
+
+                if (node.isVisited()) {
+                    // Revisiting is used to update neighbours to an updated cost
+                    visitNode(node);
+                    node.increaseVisited();
+                    continue;
+                }
+
+                nodesSinceEndNode++;
+                totalNodesVisited++;
+
+                // Limiting max amount of nodes mapped, encountering a high cost node increases the limit
+                if (totalNodesVisited > maxNodes + node.getHeuristic() * 2) {
+                    if (stopOnNodeLimit(totalNodesVisited, bestNode, nodesSinceEndNode)) {
+                        break;
+                    }
+                }
+
+                if (!reachesDestination && isAtDestination(node)) {
+                    bestNode = node;
+                    bestNodeEndScore = getEndNodeScore(node);
+                    result.setPathReachesDestination(true);
+                    handleDebugPathReach(bestNode);
+
+                    reachesDestination = true;
+                    break;
+                }
+
+                if (!node.isCornerNode()) {
+                    // Calculates a score for a possible end node, defaults to heuristic(closest)
+                    final double nodeEndSCore = getEndNodeScore(node);
+                    if (nodeEndSCore < bestNodeEndScore) {
+                        if (!reachesDestination || isAtDestination(node)) {
+                            nodesSinceEndNode = 0;
+                            bestNode = node;
+                            bestNodeEndScore = nodeEndSCore;
+                        }
+                    }
+                }
+
+                // Don't keep searching more costly nodes when there is a destination
+                if (reachesDestination && node.getScore() > bestNode.getScore()) {
+                    break;
+                }
+
+                handleDebugOptions(node);
+                visitNode(node);
+                node.increaseVisited();
+            }
+        }
+
+        // Explore additional possible endnodes after reaching, if we got extra nodes to search
+        if (extraNodes > 0 && reachesDestination)
+        {
+            // Make sure to expand from the final node
+            visitNode(bestNode);
+
+            if (!nodesToVisit.isEmpty())
+            {
+                // Search only closest nodes to the goal
+                final Queue<MNode> original = nodesToVisit;
+                nodesToVisit = new PriorityQueue<>(nodesToVisit.size(), (a, b) -> {
+                    if ((a.getHeuristic()) < (b.getHeuristic()))
+                    {
+                        return -1;
+                    }
+                    else if (a.getHeuristic() > b.getHeuristic())
+                    {
+                        return 1;
+                    }
+                    else
+                    {
+                        return a.getCounterAdded() - b.getCounterAdded();
+                    }
+                });
+                nodesToVisit.addAll(original);
+
+                while (!nodesToVisit.isEmpty())
+                {
+                    if (Thread.currentThread().isInterrupted())
+                    {
+                        return null;
+                    }
+
+                    final MNode node = nodesToVisit.poll();
+                    if (node.isVisited())
+                    {
+                        visitNode(node);
+                        continue;
+                    }
+
+                    handleDebugExtraNode(node);
+
+                    final double nodeEndSCore = getEndNodeScore(node);
+                    if (nodeEndSCore < bestNodeEndScore && (!reachesDestination || isAtDestination(node)))
+                    {
+                        bestNode = node;
+                        bestNodeEndScore = nodeEndSCore;
+                    }
+
+                    if (extraNodes > 0)
+                    {
+                        extraNodes--;
+                        if (extraNodes == 0)
+                        {
+                            break;
+                        }
+                    }
+                    visitNode(node);
+                }
+            }
+        }
+
+        return finalizePath(bestNode);
     }
-
-
 
     /**
      * Change to maxNodes.
@@ -582,6 +720,17 @@ public abstract class AbstractPathJobMixin{
         }
     }
 
+
+    /**
+     * @author ARxyt
+     * @reason Just useless and makes no sense.
+     */
+    @Overwrite(remap = false)
+    private boolean reevaluteHeuristic(final MNode node, final boolean reaches)
+    {
+        return false;
+    }
+
     private MNode extraNodeState(final MNode nextNode)
     {
         IMNodeExtras extras = (IMNodeExtras) nextNode;
@@ -611,6 +760,9 @@ public abstract class AbstractPathJobMixin{
         return nextNode;
     }
 
+    /**
+     * Heuristic correction function, making punishments on not reliable node, onWater or inCave.
+     */
     private double modifyHeuristic(MNode nextNode, double heuristic, final BlockState state) {
         double newHeuristic = heuristic;
         if(state.getBlock() == Blocks.CAVE_AIR){
@@ -681,8 +833,7 @@ public abstract class AbstractPathJobMixin{
         nodesToVisit.offer(nextNode);
     }
 
-
-
+    // special tag support
     @Inject(method = "<init>*", at = @At("RETURN"))
     private void onConstructorReturn(CallbackInfo ci) {
         townhall = computeInitialValue();

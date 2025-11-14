@@ -20,7 +20,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
  * 2. After attempting to issue a pickUp process, do not require the next pickUp
  *    request to solely resolve the process blockage caused by the "attempted pickUp".
  */
-@Mixin(AbstractBuilding.class)
+@Mixin(value = AbstractBuilding.class, remap = false)
 public abstract class AbstractBuildingMixin extends AbstractBuildingContainer {
 
     @Shadow(remap = false) public int pickUpDay;

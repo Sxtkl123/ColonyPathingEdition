@@ -55,7 +55,7 @@ import static com.minecolonies.api.util.constant.StatisticsConstants.MINER_DEATH
 import static com.minecolonies.core.colony.buildings.modules.BuildingModules.NETHERMINER_MENU;
 import static net.minecraft.world.level.block.BrushableBlock.TICK_DELAY;
 
-@Mixin(EntityAIWorkNether.class)
+@Mixin(value = EntityAIWorkNether.class, remap = false)
 public abstract class EntityAIWorkNetherMixin extends AbstractEntityAICrafting<JobNetherWorker, BuildingNetherWorker> implements AbstractEntityAIBasicExtra, DamageSourcesAccessor {
     @Shadow(remap = false) protected abstract void checkAndRequestArmor();
     @Shadow(remap = false) protected abstract IAIState checkAndRequestFood();
