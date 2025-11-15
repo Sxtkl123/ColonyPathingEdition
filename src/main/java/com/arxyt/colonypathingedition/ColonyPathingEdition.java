@@ -22,9 +22,9 @@ public class ColonyPathingEdition {
     public static final String MODID = "colonypathingedition";
     public static final Logger LOGGER = LogUtils.getLogger();
 
-    public ColonyPathingEdition(FMLJavaModLoadingContext context) {
+    public ColonyPathingEdition() {
         // 注册配置文件
-        context.registerConfig(
+        ModLoadingContext.get().registerConfig(
                 ModConfig.Type.COMMON,
                 PathingConfig.init(new ForgeConfigSpec.Builder())
         );
