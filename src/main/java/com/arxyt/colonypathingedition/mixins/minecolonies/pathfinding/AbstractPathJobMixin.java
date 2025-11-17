@@ -9,9 +9,12 @@ import com.ldtteam.domumornamentum.block.decorative.ShingleSlabBlock;
 import com.ldtteam.structurize.blockentities.interfaces.IBlueprintDataProviderBE;
 import com.minecolonies.api.colony.buildings.workerbuildings.ITownHall;
 import com.minecolonies.api.entity.citizen.AbstractEntityCitizen;
+import com.minecolonies.api.util.BlockPosUtil;
 import com.minecolonies.api.util.Log;
 import com.minecolonies.api.util.ShapeUtil;
 import com.minecolonies.api.util.constant.ColonyConstants;
+import com.minecolonies.core.colony.jobs.JobBuilder;
+import com.minecolonies.core.entity.citizen.EntityCitizen;
 import com.minecolonies.core.entity.pathfinding.MNode;
 import com.minecolonies.core.entity.pathfinding.PathfindingUtils;
 import com.minecolonies.core.entity.pathfinding.PathingOptions;
@@ -23,6 +26,7 @@ import com.minecolonies.core.util.WorkerUtil;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.tags.BlockTags;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelReader;
@@ -35,18 +39,20 @@ import net.minecraft.world.level.block.state.properties.Half;
 import net.minecraft.world.level.block.state.properties.RailShape;
 import net.minecraft.world.level.block.state.properties.SlabType;
 import net.minecraft.world.level.pathfinder.Path;
+import net.minecraft.world.phys.shapes.VoxelShape;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.*;
 import org.spongepowered.asm.mixin.gen.Invoker;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import java.util.*;
 
 import static com.minecolonies.api.util.BlockPosUtil.directionFromDelta;
+import static com.minecolonies.api.util.constant.PathingConstants.HALF_A_BLOCK;
+import static com.minecolonies.api.util.constant.PathingConstants.MAX_JUMP_HEIGHT;
 import static com.minecolonies.core.entity.pathfinding.PathingOptions.MAX_COST;
 
 @Mixin(value = AbstractPathJob.class, remap = false)
@@ -71,11 +77,11 @@ public abstract class AbstractPathJobMixin{
     @Shadow(remap = false) private int visitedLevel;
     @Shadow(remap = false) private Queue<MNode> nodesToVisit;
 
-    @Shadow(remap = false) protected abstract void recalcHeuristic(final MNode node);
     @Shadow(remap = false) public abstract Mob getEntity();
     @Shadow(remap = false) protected abstract boolean isPassable(int x, int y, int z, boolean head, MNode parent);
     @Shadow(remap = false) public abstract PathingOptions getPathingOptions();
     @Shadow(remap = false) protected abstract boolean canLeaveBlock(int x, int y, int z, int parentX, int parentY, int parentZ, boolean head);
+    @Shadow(remap = false) protected abstract boolean canLeaveBlock(final int x, final int y, final int z, final MNode parent, final boolean head);
     @Shadow(remap = false) protected abstract MNode getAndSetupStartNode();
     @Shadow(remap = false) protected abstract double getEndNodeScore(MNode n);
     @Shadow(remap = false) protected abstract void handleDebugExtraNode(MNode node);
@@ -85,6 +91,10 @@ public abstract class AbstractPathJobMixin{
     @Shadow(remap = false) protected abstract boolean stopOnNodeLimit(int totalNodesVisited, MNode bestNode, int nodesSinceEndNode);
     @Shadow(remap = false) protected abstract void visitNode(MNode node);
     @Shadow(remap = false) @NotNull protected abstract Path finalizePath(MNode targetNode);
+
+    @Shadow
+    @Nullable
+    protected Mob entity;
 
     @Invoker(value="getGroundHeight",remap = false)
     public abstract int invokeGetGroundHeight(final MNode node, final int x, final int y, final int z);
@@ -278,6 +288,7 @@ public abstract class AbstractPathJobMixin{
         // Node count since we found a better end node than the current one
         int nodesSinceEndNode = 0;
 
+        boolean shouldSkip = false;
         while (!nodesToVisit.isEmpty())
         {
             if (Thread.currentThread().isInterrupted())
@@ -290,8 +301,13 @@ public abstract class AbstractPathJobMixin{
                 if(nodesToVisit.peek() != null) cheapestNodelist.add(nodesToVisit.poll());
                 else break;
             }
+
             while (!cheapestNodelist.isEmpty()) {
                 final MNode node = cheapestNodelist.poll();
+
+                if (node == null){
+                    continue;
+                }
 
                 if (node.isVisited()) {
                     // Revisiting is used to update neighbours to an updated cost
@@ -306,6 +322,7 @@ public abstract class AbstractPathJobMixin{
                 // Limiting max amount of nodes mapped, encountering a high cost node increases the limit
                 if (totalNodesVisited > Math.min(MAX_NODES, maxNodes + node.getHeuristic() * 2)) {
                     if (stopOnNodeLimit(totalNodesVisited, bestNode, nodesSinceEndNode)) {
+                        shouldSkip = true;
                         break;
                     }
                 }
@@ -317,6 +334,7 @@ public abstract class AbstractPathJobMixin{
                     handleDebugPathReach(bestNode);
 
                     reachesDestination = true;
+                    shouldSkip = true;
                     break;
                 }
 
@@ -334,6 +352,7 @@ public abstract class AbstractPathJobMixin{
 
                 // Don't keep searching more costly nodes when there is a destination
                 if (reachesDestination && node.getScore() > bestNode.getScore()) {
+                    shouldSkip = true;
                     break;
                 }
 
@@ -341,6 +360,7 @@ public abstract class AbstractPathJobMixin{
                 visitNode(node);
                 node.increaseVisited();
             }
+            if(shouldSkip) break;
         }
 
         // Explore additional possible endnodes after reaching, if we got extra nodes to search
@@ -409,6 +429,7 @@ public abstract class AbstractPathJobMixin{
     }
 
 
+    @Unique
     private int recheckGroundHeight(int x, int y, int z){
         final BlockState state = cachedBlockLookup.getBlockState(x, y , z);
         if (ShapeUtil.max(state.getCollisionShape(world, new BlockPos(x, y, z)), Direction.Axis.Y) != 0){
@@ -423,12 +444,14 @@ public abstract class AbstractPathJobMixin{
         return y;
     }
 
-    private boolean checkConerCollision(int x,int y,int z) {
+    @Unique
+    private boolean checkConerCollision(int x, int y, int z) {
         final BlockState above = cachedBlockLookup.getBlockState(x,y+1,z);
         return !(ShapeUtil.getStartY(above.getCollisionShape(world, tempWorldPos.set(x, y + 1, z)), 1) < 0.875) || above.hasProperty(BlockStateProperties.OPEN);
     }
 
-    private boolean checkPossiblyPassing(MNode node,int nextX,int nextY,int nextZ,MNode cornerNode,int dX, int dY, int dZ){
+    @Unique
+    private boolean checkPossiblyPassing(MNode node, int nextX, int nextY, int nextZ, MNode cornerNode, int dX, int dY, int dZ){
         BlockPos cornerPos = new BlockPos(cornerNode.x,cornerNode.y,cornerNode.z).above();
         BlockState cornerState = cachedBlockLookup.getBlockState(cornerPos);
         if(cornerState.getBlock() instanceof PanelBlock){
@@ -459,6 +482,7 @@ public abstract class AbstractPathJobMixin{
         return !(rawDY > 1.8);
     }
 
+    @Unique
     private boolean checkConnection(MNode node, int dX, int dZ){
         if (node.isOnRails()){
             BlockState railState = cachedBlockLookup.getBlockState(node.x, node.y, node.z);
@@ -492,6 +516,9 @@ public abstract class AbstractPathJobMixin{
      */
     @Overwrite(remap = false)
     private int checkDrop(@Nullable final MNode parent, final int x, final int y, final int z, final boolean isSwimming) {
+        if(entity instanceof EntityCitizen citizen && citizen.getCitizenJobHandler().getColonyJob() instanceof JobBuilder){
+            int a = 1;
+        }
         final boolean canDrop = parent != null && !parent.isLadder();
         //  Nothing to stand on
         if (!canDrop || ((parent.x != x || parent.z != z) && isPassable(parent.x, parent.y - 1, parent.z, false, parent)
@@ -521,7 +548,7 @@ public abstract class AbstractPathJobMixin{
             if (SurfaceType.getSurfaceType(world, below, tempWorldPos.set(x, y - i, z), getPathingOptions()) == SurfaceType.WALKABLE) {
                 //  Level path
                 return y - i + 1;
-            } else if (!below.isAir()) {
+            } else if (!(below.isAir() || below.getCollisionShape(world, new BlockPos(x, y-1, z)).isEmpty())) {
                 if (PathfindingUtils.isLadder(below, pathingOptions)) {
                     return y - i + 1;
                 } else {
@@ -639,8 +666,14 @@ public abstract class AbstractPathJobMixin{
             maxCost = Math.min(MAX_COST, Math.ceil(nextCost));
         }
 
-        final double heuristic = computeHeuristic(nextX, nextY, nextZ) * heuristicMod;
+        // since there may be a heuristic mod bug in Minecolonies, we abandon it.
+        final double heuristic = computeHeuristic(nextX, nextY, nextZ);
         final double cost = node.getCost() + nextCost;
+
+        // fix to distant horizon
+        if(heuristic == 0.0 && node.getHeuristic() == 0){
+            return;
+        }
 
         if (nextNode == null)
         {
@@ -681,6 +714,67 @@ public abstract class AbstractPathJobMixin{
 
     /**
      * @author ARxyt
+     * @reason Y axis modification on canJump tester.
+     */
+    @Overwrite(remap = false)
+    private int handleTargetNotPassable(@Nullable final MNode parent, final int x, final int y, final int z, @NotNull final BlockState target)
+    {
+        final boolean canJump = parent != null && !parent.isLadder() && !parent.isSwimming();
+        //  Need to try jumping up one, if we can
+        if (!canJump || SurfaceType.getSurfaceType(world, target, tempWorldPos.set(x, y, z), getPathingOptions()) != SurfaceType.WALKABLE)
+        {
+            return Integer.MIN_VALUE;
+        }
+
+        //  Check for headroom in the target space
+        if (!isPassable(x, y + 2, z, true, parent))
+        {
+            final VoxelShape bb1 = cachedBlockLookup.getBlockState(x, y, z).getCollisionShape(world, tempWorldPos.set(x, y, z));
+            final VoxelShape bb2 = cachedBlockLookup.getBlockState(x, y + 2, z).getCollisionShape(world, tempWorldPos.set(x, y + 2, z));
+            if ((y + 2 + ShapeUtil.getStartY(bb2, 1)) - (y + ShapeUtil.getEndY(bb1, 0)) < 2)
+            {
+                return Integer.MIN_VALUE;
+            }
+        }
+
+        if (!canLeaveBlock(x, y + 2, z, parent, true))
+        {
+            return Integer.MIN_VALUE;
+        }
+
+        //  Check for jump room from the origin space
+        if (!isPassable(parent.x, parent.y + 2, parent.z, true, parent) && !cachedBlockLookup.getBlockState(parent.x, parent.y + 2, parent.z).hasProperty(BlockStateProperties.OPEN))
+        {
+            final VoxelShape bb1 = cachedBlockLookup.getBlockState(x, y, z).getCollisionShape(world, tempWorldPos.set(x, y, z));
+            final VoxelShape bb2 = cachedBlockLookup.getBlockState(parent.x, parent.y + 2, parent.z).getCollisionShape(world, tempWorldPos.set(parent.x, parent.y + 2, parent.z));
+            if ((parent.y + 2 + ShapeUtil.getStartY(bb2, 1)) - (y + ShapeUtil.getEndY(bb1, 0)) < 2)
+            {
+                return Integer.MIN_VALUE;
+            }
+        }
+
+        final BlockState parentBelow = cachedBlockLookup.getBlockState(parent.x, parent.y - 1, parent.z);
+        final VoxelShape parentBB = parentBelow.getCollisionShape(world, tempWorldPos.set(parent.x, parent.y - 1, parent.z));
+
+        double parentY = ShapeUtil.max(parentBB, Direction.Axis.Y);
+        double parentMaxY = parentY + parent.y - 1;
+        final double targetMaxY = ShapeUtil.max(target.getCollisionShape(world, tempWorldPos.set(x, y, z)), Direction.Axis.Y) + y;
+        if (targetMaxY - parentMaxY < MAX_JUMP_HEIGHT)
+        {
+            return y + 1;
+        }
+        if (target.is(BlockTags.STAIRS)
+                && parentY - HALF_A_BLOCK < MAX_JUMP_HEIGHT
+                && target.getValue(StairBlock.HALF) == Half.BOTTOM
+                && BlockPosUtil.getXZFacing(parent.x, parent.z, x, z) == target.getValue(StairBlock.FACING))
+        {
+            return y + 1;
+        }
+        return Integer.MIN_VALUE;
+    }
+
+    /**
+     * @author ARxyt
      * @reason Just useless and makes no sense.
      */
     @Overwrite(remap = false)
@@ -689,6 +783,7 @@ public abstract class AbstractPathJobMixin{
         return false;
     }
 
+    @Unique
     private MNode extraNodeState(final MNode nextNode)
     {
         IMNodeExtras extras = (IMNodeExtras) nextNode;
@@ -721,6 +816,7 @@ public abstract class AbstractPathJobMixin{
     /**
      * Heuristic correction function, making punishments on not reliable node, onWater or inCave.
      */
+    @Unique
     private double modifyHeuristic(MNode nextNode, double heuristic, final BlockState state) {
         double newHeuristic = heuristic;
         if(state.getBlock() == Blocks.CAVE_AIR){
@@ -740,6 +836,7 @@ public abstract class AbstractPathJobMixin{
     /**
      * Heuristic correction function, making “detour exemptions” or other adjustments based on node, onRoad, and onRails.
      */
+    @Unique
     protected double modifyHeuristic(MNode node, MNode nextNode, double heuristic, boolean onRoad, boolean onRails)
     {
         double newHeuristic = heuristic;
@@ -768,6 +865,7 @@ public abstract class AbstractPathJobMixin{
         return newHeuristic;
     }
 
+    @Unique
     private void updateNode(@NotNull final MNode node, @NotNull final MNode nextNode, final double heuristic, final double cost, boolean onRails)
     {
         IMNodeExtras extras = (IMNodeExtras) node;
@@ -823,6 +921,7 @@ public abstract class AbstractPathJobMixin{
         return null;
     }
 
+    @Unique
     private boolean HasNotPathTag (BlockPos pos){
         if(townhall != null) {
             Map<BlockPos, List<String>> tagPosMap = ((IBlueprintDataProviderBE) townhall).getPositionedTags();
@@ -832,6 +931,7 @@ public abstract class AbstractPathJobMixin{
         return false;
     }
 
+    @Unique
     private boolean HasPathTag (BlockPos pos){
         if(townhall != null) {
             Map<BlockPos, List<String>> tagPosMap = ((IBlueprintDataProviderBE) townhall).getPositionedTags();
@@ -841,6 +941,7 @@ public abstract class AbstractPathJobMixin{
         return false;
     }
 
+    @Unique
     private boolean HasBlockedTag (BlockPos pos){
         if(townhall != null) {
             Map<BlockPos, List<String>> tagPosMap = ((IBlueprintDataProviderBE) townhall).getPositionedTags();
