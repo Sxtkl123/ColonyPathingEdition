@@ -4,6 +4,7 @@ import com.arxyt.colonypathingedition.ColonyPathingEdition;
 import com.arxyt.colonypathingedition.core.config.PathingConfig;
 import com.arxyt.colonypathingedition.core.costants.AdditionalContants;
 import com.minecolonies.api.entity.ai.ITickingStateAI;
+import com.minecolonies.api.entity.ai.statemachine.states.CitizenAIState;
 import com.minecolonies.api.entity.ai.statemachine.states.IState;
 import com.minecolonies.core.entity.citizen.EntityCitizen;
 import net.minecraft.network.chat.Component;
@@ -15,6 +16,7 @@ import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.registries.ForgeRegistries;
 
 import static com.arxyt.colonypathingedition.core.config.PathingConfig.READ_MIND_ITEM;
+import static com.minecolonies.api.entity.ai.statemachine.states.CitizenAIState.WORKING;
 
 /**
  * 此功能为从简易殖民地迁移而来。
@@ -35,11 +37,9 @@ public class ReadMindEvent {
         event.setCanceled(true);
         event.setCancellationResult(InteractionResult.SUCCESS);
         if (event.getSide().isClient()) return;
-        IState stat;
+        IState stat = citizen.getCitizenAI().getState();
         ITickingStateAI workAI = citizen.getCitizenJobHandler().getWorkAI();
-        if (workAI == null) {
-            stat = citizen.getCitizenAI().getState();
-        } else {
+        if (stat == WORKING && workAI != null) {
             stat = workAI.getState();
         }
         Component msg = Component.translatable(AdditionalContants.READ_MIND)

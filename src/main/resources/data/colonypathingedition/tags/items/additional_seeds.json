@@ -1,7 +1,6 @@
 {
   "replace": false,
   "values": [
-    "minecraft:sweet_berries",
-    "minecraft:brown_mushroom"
+    "minecraft:sweet_berries"
   ]
 }

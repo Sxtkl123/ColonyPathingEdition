@@ -22,6 +22,7 @@ import com.minecolonies.core.entity.ai.workers.production.herders.AbstractEntity
 import com.minecolonies.core.util.citizenutils.CitizenItemUtils;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Vec3i;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.damagesource.DamageSource;
@@ -133,6 +134,14 @@ public abstract class AbstractEntityAIHerderMixin<J extends AbstractJob<?, J>, B
             if (animals.isEmpty())
             {
                 continue;
+            }
+            else{
+                for (Animal animal : animals){
+                    CompoundTag tag = animal.getPersistentData();
+                    if (!tag.getBoolean("ColonyPathingEdition_Penned")) {
+                        tag.putBoolean("ColonyPathingEdition_Penned", true);
+                    }
+                }
             }
 
             current_module = module;

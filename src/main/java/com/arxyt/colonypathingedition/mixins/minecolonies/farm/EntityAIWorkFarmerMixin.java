@@ -73,6 +73,7 @@ import static com.minecolonies.api.entity.ai.statemachine.states.AIWorkerState.*
 import static com.minecolonies.api.util.constant.CitizenConstants.BLOCK_BREAK_SOUND_RANGE;
 import static com.minecolonies.api.util.constant.Constants.STACKSIZE;
 import static com.minecolonies.api.util.constant.EquipmentLevelConstants.TOOL_LEVEL_WOOD_OR_GOLD;
+import static com.minecolonies.api.util.constant.StatisticsConstants.CROPS_HARVESTED;
 import static com.minecolonies.api.util.constant.StatisticsConstants.LAND_TILLED;
 import static com.minecolonies.api.util.constant.TranslationConstants.NO_FREE_FIELDS;
 
@@ -87,8 +88,6 @@ public abstract class EntityAIWorkFarmerMixin extends AbstractEntityAICrafting<J
 
     @Shadow(remap = false) protected abstract BlockPos getSurfacePos(final BlockPos position);
     @Shadow(remap = false) protected abstract boolean isCompost(final ItemStack itemStack);
-    @Shadow(remap = false) protected abstract BlockPos findHarvestableSurface(@NotNull BlockPos position);
-    @Shadow(remap = false) protected abstract boolean harvestIfAble(BlockPos position);
     @Shadow(remap = false) protected abstract int getLevelDelay();
     @Shadow(remap = false) protected abstract BlockPos nextValidCell(FarmField farmField);
     @Shadow(remap = false) protected abstract boolean isRightFarmLandForCrop(FarmField farmField, BlockState blockState);
@@ -193,6 +192,9 @@ public abstract class EntityAIWorkFarmerMixin extends AbstractEntityAICrafting<J
                     return;
                 }
             }
+            else{
+                isMissingFarmland = false;
+            }
 
             if (checkForToolOrWeapon(ModEquipmentTypes.hoe.get()))
             {
@@ -210,7 +212,7 @@ public abstract class EntityAIWorkFarmerMixin extends AbstractEntityAICrafting<J
             worker.getCitizenData().setVisibleStatus(FARMING_ICON);
             worker.getCitizenData().setJobStatus(JobStatus.WORKING);
             IAIState state = checkNextWorkspaceAndState(farmField,
-                    pos -> this.findHarvestableSurface(pos) != null,
+                    pos -> this.newFindHarvestableSurface(pos, farmField) != null,
                     pos -> this.newFindHoeableSurface(pos, farmField) != null,
                     pos -> this.newFindPlantableSurface(pos,farmField) != null);
             if(state != null){
@@ -259,15 +261,15 @@ public abstract class EntityAIWorkFarmerMixin extends AbstractEntityAICrafting<J
                 {
                     case FARMER_HARVEST :
                     {
-                        BlockPos pos = findHarvestableSurface(position);
+                        BlockPos pos = newFindHarvestableSurface(position, farmField);
                         if (pos != null) {
                             // Minecraft.getInstance().gui.getChat().addMessage(Component.literal("[Debug] Place Is Harvestable"));
-                            if (newHarvestIfAble(pos,farmField)) {
+                            if (newHarvestIfAbleWithRightClick(pos, farmField)) {
                                 didWork = true;
                                 cir.setReturnValue(FARMER_HOE);
                                 return;
                             }
-                            if (harvestIfAble(position)) {
+                            if (newHarvestIfAble(position, farmField)) {
                                 didWork = true;
                                 cir.setReturnValue(FARMER_HOE);
                             } else {
@@ -325,7 +327,7 @@ public abstract class EntityAIWorkFarmerMixin extends AbstractEntityAICrafting<J
 
             building.setWorkingOffset(nextValidCell(farmField));
             IAIState state = checkNextWorkspaceAndState(farmField,
-                    pos -> this.findHarvestableSurface(pos) != null,
+                    pos -> this.newFindHarvestableSurface(pos, farmField) != null,
                     pos -> this.newFindHoeableSurface(pos, farmField) != null,
                     pos -> this.newFindPlantableSurface(pos,farmField) != null);
             if(state != null){
@@ -381,7 +383,7 @@ public abstract class EntityAIWorkFarmerMixin extends AbstractEntityAICrafting<J
     }
 
     // Try right click first
-    private boolean newHarvestIfAble(BlockPos pos, FarmField farmField){
+    private boolean newHarvestIfAbleWithRightClick(BlockPos pos, FarmField farmField){
         // Right click
         BlockState state = world.getBlockState(pos.above());
         if(state.getBlock() instanceof BushBlock || state.getBlock() instanceof CropBlock){
@@ -395,6 +397,25 @@ public abstract class EntityAIWorkFarmerMixin extends AbstractEntityAICrafting<J
         }
         // Break crop
         return false;
+    }
+
+    @Unique
+    private boolean newHarvestIfAble(BlockPos position, FarmField farmField)
+    {
+        position = newFindHarvestableSurface(position, farmField);
+        if (position != null)
+        {
+            if (mineBlock(position.above()))
+            {
+                worker.getCitizenColonyHandler().getColonyOrRegister().getStatisticsManager().increment(CROPS_HARVESTED, worker.getCitizenColonyHandler().getColonyOrRegister().getDay());
+                worker.getCitizenExperienceHandler().addExperience(0.5);
+            }
+            else
+            {
+                return false;
+            }
+        }
+        return true;
     }
 
     private boolean isItemOfFarmland(final ItemStack itemStack, final Block Farmland){
@@ -437,7 +458,7 @@ public abstract class EntityAIWorkFarmerMixin extends AbstractEntityAICrafting<J
 
     private BlockPos newFindHoeableSurface(@NotNull BlockPos position, @NotNull final FarmField farmField)
     {
-        if (checkForToolOrWeapon(ModEquipmentTypes.hoe.get()))
+        if (checkForToolOrWeapon(ModEquipmentTypes.hoe.get()) || isMissingFarmland)
         {
             return null;
         }
@@ -447,6 +468,11 @@ public abstract class EntityAIWorkFarmerMixin extends AbstractEntityAICrafting<J
             return null;
         }
         ItemStack seed = farmField.getSeed();
+        if(farmField.getSeed().getItem() instanceof BlockItem blockItem && blockItem.getBlock() instanceof StemBlock){
+            if (building.getWorkingOffset() != null && (building.getWorkingOffset().getX() + building.getWorkingOffset().getZ()) % 2 == 0){
+                return null;
+            }
+        }
         BlockState blockState = world.getBlockState(position);
         boolean shouldGenerateWater = false;
         if (isUnderWater(seed)) {
@@ -630,6 +656,11 @@ public abstract class EntityAIWorkFarmerMixin extends AbstractEntityAICrafting<J
         {
             return null;
         }
+        else if(farmField.getSeed().getItem() instanceof BlockItem blockItem && blockItem.getBlock() instanceof StemBlock){
+            if (building.getWorkingOffset() != null && (building.getWorkingOffset().getX() + building.getWorkingOffset().getZ()) % 2 == 0){
+                return null;
+            }
+        }
         final int slot = worker.getCitizenInventoryHandler().findFirstSlotInInventoryWith(seed.getItem());
         if (slot == -1)
         {
@@ -686,6 +717,8 @@ public abstract class EntityAIWorkFarmerMixin extends AbstractEntityAICrafting<J
         final int slot = worker.getCitizenInventoryHandler().findFirstSlotInInventoryWith(item.getItem());
         if (slot == -1)
         {
+            item.setCount(item.getMaxStackSize());
+            checkIfRequestForItemExistOrCreateAsync(item, item.getMaxStackSize(), 1);
             return false;
         }
 
@@ -694,10 +727,6 @@ public abstract class EntityAIWorkFarmerMixin extends AbstractEntityAICrafting<J
                 && (blockItem.getBlock().defaultBlockState().canSurvive(worker.level(), position.above()) || (isUnderWater(item) && world.getBlockState(position.above()).is(Blocks.WATER)) || SpecialSeedManager.isSpecialSeed(item.getItem())))
         {
             @NotNull final Item seed = item.getItem();
-            if ((seed == Items.MELON_SEEDS || seed == Items.PUMPKIN_SEEDS) && building.getPrevPos() != null && !(world.isEmptyBlock(building.getPrevPos().above())))
-            {
-                return true;
-            }
             InteractionResult placeResult = blockItem.place(
                     new BlockPlaceContext(FakePlayerFactory.getMinecraft((ServerLevel) world),
                     InteractionHand.MAIN_HAND, new ItemStack(seed),
@@ -715,59 +744,133 @@ public abstract class EntityAIWorkFarmerMixin extends AbstractEntityAICrafting<J
     /**
      * Special harvest action for special seeds.
      */
-    @Inject(
-            method = "findHarvestableSurface",
-            at = @At(
-                    value = "TAIL"
-            ),
-            cancellable = true,
-            remap = false
-    )
-    private void onFinalReturnCheck(BlockPos position, CallbackInfoReturnable<BlockPos> cir) {
-        if( cir.getReturnValue() != null ){
-            return;
+    @Unique
+    private BlockPos newFindHarvestableSurface(@NotNull BlockPos position, FarmField farmField)
+    {
+        position = getSurfacePos(position);
+        if (position == null)
+        {
+            return null;
         }
-        BlockState surfaceState = getWorld().getBlockState(position.above());
+        BlockState surfaceState = world.getBlockState(position.above());
         Block surfaceBlock = surfaceState.getBlock();
+
+        if (surfaceBlock == Blocks.PUMPKIN || surfaceBlock == Blocks.MELON)
+        {
+            return position;
+        }
+
+        if (surfaceBlock instanceof @NotNull CropBlock crop)
+        {
+            if (crop.isMaxAge(surfaceState))
+            {
+                return position;
+            }
+            final int amountOfCompostInInv = InventoryUtils.getItemCountInItemHandler(worker.getInventoryCitizen(), this::isCompost);
+            if (amountOfCompostInInv == 0)
+            {
+                return null;
+            }
+
+            if (InventoryUtils.shrinkItemCountInItemHandler(worker.getInventoryCitizen(), this::isCompost))
+            {
+                Network.getNetwork().sendToPosition(new CompostParticleMessage(position.above()),
+                        new PacketDistributor.TargetPoint(position.getX(), position.getY(), position.getZ(), BLOCK_BREAK_SOUND_RANGE, world.dimension()));
+                crop.growCrops(world, position.above(), surfaceState);
+                surfaceState = world.getBlockState(position.above());
+                surfaceBlock = surfaceState.getBlock();
+                if (surfaceBlock instanceof CropBlock)
+                {
+                    crop = (CropBlock) surfaceBlock;
+                }
+                else
+                {
+                    return null;
+                }
+            }
+            return crop.isMaxAge(surfaceState) ? position : null;
+        }
+        else if (surfaceBlock instanceof MinecoloniesCropBlock minecoloniesCrop)
+        {
+            if (minecoloniesCrop.isMaxAge(surfaceState))
+            {
+                return position;
+            }
+            final int amountOfCompostInInv = InventoryUtils.getItemCountInItemHandler(worker.getInventoryCitizen(), this::isCompost);
+            if (amountOfCompostInInv == 0)
+            {
+                return null;
+            }
+
+            if (InventoryUtils.shrinkItemCountInItemHandler(worker.getInventoryCitizen(), this::isCompost))
+            {
+                Network.getNetwork().sendToPosition(new CompostParticleMessage(position.above()),
+                        new PacketDistributor.TargetPoint(position.getX(), position.getY(), position.getZ(), BLOCK_BREAK_SOUND_RANGE, world.dimension()));
+                minecoloniesCrop.attemptGrow(surfaceState, (ServerLevel) world, position.above());
+                surfaceState = world.getBlockState(position.above());
+                surfaceBlock = surfaceState.getBlock();
+                if (surfaceBlock instanceof MinecoloniesCropBlock)
+                {
+                    minecoloniesCrop = (MinecoloniesCropBlock) surfaceBlock;
+                }
+                else
+                {
+                    return null;
+                }
+            }
+            return minecoloniesCrop.isMaxAge(surfaceState) ? position : null;
+        }
         if (surfaceBlock instanceof BushBlock){
             if (surfaceBlock instanceof FungusBlock || surfaceBlock instanceof MushroomBlock){
-                cir.setReturnValue(null);
-                return;
+                return null;
             }
             if (surfaceBlock instanceof FlowerBlock || surfaceBlock instanceof TallGrassBlock || surfaceBlock instanceof SaplingBlock){
-                cir.setReturnValue(position);
-                return;
+                return position;
+            }
+            if (surfaceBlock instanceof StemBlock stemBlock){
+                if(!(farmField.getSeed().getItem() instanceof BlockItem blockItem && blockItem.getBlock() instanceof StemBlock stemBlock2) ){
+                    return position;
+                }
+                if(stemBlock == stemBlock2 && (building.getWorkingOffset() != null && (building.getWorkingOffset().getX() + building.getWorkingOffset().getZ()) % 2 != 0)){
+                    if (isBoneMealAble(position.above(),stemBlock)) {
+                        final int amountOfCompostInInv = InventoryUtils.getItemCountInItemHandler(getWorker().getInventoryCitizen(), this::isCompost);
+                        if (amountOfCompostInInv != 0 && InventoryUtils.shrinkItemCountInItemHandler(getWorker().getInventoryCitizen(), this::isCompost))
+                        {
+                            Network.getNetwork().sendToPosition(new CompostParticleMessage(position.above()),
+                                    new PacketDistributor.TargetPoint(position.getX(), position.getY(), position.getZ(), BLOCK_BREAK_SOUND_RANGE, getWorld().dimension()));
+                            stemBlock.performBonemeal((ServerLevel) getWorld(), getWorld().getRandom(), position.above(), surfaceState);
+                        }
+                    }
+                    return null;
+                }
+                return position;
             }
             if (surfaceBlock instanceof BonemealableBlock bonemealable) {
                 if (!isBoneMealAble(position.above(),bonemealable)) {
-                    cir.setReturnValue(position);
-                    return;
+                    return position;
                 }
                 final int amountOfCompostInInv = InventoryUtils.getItemCountInItemHandler(getWorker().getInventoryCitizen(), this::isCompost);
                 if (amountOfCompostInInv == 0)
                 {
-                    cir.setReturnValue(null);
-                    return;
+                    return null;
                 }
 
                 if (InventoryUtils.shrinkItemCountInItemHandler(getWorker().getInventoryCitizen(), this::isCompost))
                 {
                     Network.getNetwork().sendToPosition(new CompostParticleMessage(position.above()),
                             new PacketDistributor.TargetPoint(position.getX(), position.getY(), position.getZ(), BLOCK_BREAK_SOUND_RANGE, getWorld().dimension()));
-                    bonemealable.performBonemeal((ServerLevel)getWorld(), getWorld().getRandom(), position.above(), surfaceState);
+                    bonemealable.performBonemeal((ServerLevel) getWorld(), getWorld().getRandom(), position.above(), surfaceState);
                     surfaceState = getWorld().getBlockState(position.above());
                     surfaceBlock = surfaceState.getBlock();
                     if (!(surfaceBlock instanceof BushBlock && surfaceBlock instanceof BonemealableBlock))
                     {
-                        cir.setReturnValue(null);
-                        return;
+                        return null;
                     }
                     bonemealable = (BonemealableBlock) surfaceBlock;
-                    cir.setReturnValue(isBoneMealAble(position.above(),bonemealable) ? null : position);
-                    return;
+                    return isBoneMealAble(position.above(),bonemealable) ? null : position;
                 }
             }
-            cir.setReturnValue(null);
         }
+        return null;
     }
 }
