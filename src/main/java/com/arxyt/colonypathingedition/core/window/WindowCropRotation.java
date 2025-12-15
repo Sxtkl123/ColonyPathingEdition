@@ -2,6 +2,7 @@ package com.arxyt.colonypathingedition.core.window;
 
 import com.arxyt.colonypathingedition.api.FarmFieldExtra;
 import com.arxyt.colonypathingedition.core.data.farmlandmap.SpecialSeedManager;
+import com.arxyt.colonypathingedition.core.manager.LinkageManager;
 import com.arxyt.colonypathingedition.core.message.*;
 import com.arxyt.colonypathingedition.core.data.tag.ModTag;
 import com.ldtteam.blockui.controls.Button;
@@ -15,6 +16,8 @@ import com.minecolonies.core.client.gui.AbstractWindowSkeleton;
 import com.minecolonies.core.client.gui.WindowSelectRes;
 import com.minecolonies.core.colony.buildingextensions.FarmField;
 import com.minecolonies.core.items.ItemCrop;
+import com.teamtea.eclipticseasons.api.constant.solar.SolarTerm;
+import com.teamtea.eclipticseasons.api.util.EclipticUtil;
 import net.minecraft.client.Minecraft;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.ItemStack;
@@ -38,6 +41,7 @@ public class WindowCropRotation extends AbstractWindowSkeleton {
     private static final String WINDOW_RESOURCE = ":gui/windowcroprotation.xml";
 
     private static final String ROTATION_CLOSE_ID = "rotation-close";
+    private static final String SYNC_ID = "sync";
 
     private static final String SET_SEASONS_COUNT_ID = "season-count";
     private static final String NOW_SEASONS_LABEL_ID = "current-season";
@@ -72,13 +76,13 @@ public class WindowCropRotation extends AbstractWindowSkeleton {
      *
      * @param tileEntityScarecrow the scarecrow tile entity.
      */
-    public WindowCropRotation(@NotNull AbstractTileEntityScarecrow tileEntityScarecrow, @NotNull FarmField farmField, @Nullable final BOWindow parent)
-    {
+    public WindowCropRotation(@NotNull AbstractTileEntityScarecrow tileEntityScarecrow, @NotNull FarmField farmField, @Nullable final BOWindow parent) {
         super(MOD_ID + WINDOW_RESOURCE, parent);
         this.tileEntityScarecrow = tileEntityScarecrow;
         this.farmField = farmField;
         accessFieldData();
         registerButton(ROTATION_CLOSE_ID, button -> this.close());
+        registerButton(SYNC_ID, this::syncEclipticSeasons);
 
         for(int i = 1; i <= 4; i++) {
             String str = String.valueOf(i);
@@ -94,7 +98,49 @@ public class WindowCropRotation extends AbstractWindowSkeleton {
         // 监听当前天数输入变化
         findPaneOfTypeByID(NOW_DAYS_LABEL_ID, TextField.class).setHandler(this::setCurrentDay);
 
+        // 根据是否有节气模组，决定同步按钮状态
+        findPaneOfTypeByID(SYNC_ID, Button.class).setEnabled(LinkageManager.getInstance().isEclipticSeasonsLoaded());
+
         // 初始化状态
+        updateAll();
+    }
+
+    /**
+     * 同步节气mod。
+     *
+     * @author sxtkl
+     * @since 2025/12/15
+     */
+    private void syncEclipticSeasons(Button button) {
+        // 设置季节为4个
+        season = 4;
+        SolarTerm nowTerm = EclipticUtil.INSTANCE.getSolarTerm(this.mc.level);
+        // 获取每个节气的持续时间
+        int lastingTime = EclipticUtil.INSTANCE.getLastingDaysOfEachTerm(this.mc.level);
+        // 计算每个季节的持续时间
+        int seasonLastingTime = lastingTime * 4;
+        // 获取当前季节的枚举顺序
+        int nowSeasonIndex = nowTerm.getSeason().ordinal();
+        // 获取当前季节的日期
+        int timeInTerm = EclipticUtil.INSTANCE.getTimeInTerm(this.mc.level);
+        int nowDate = (timeInTerm + lastingTime * nowTerm.ordinal()) % seasonLastingTime + 1;
+        currentSeason = nowSeasonIndex + 1;
+        currentDay = nowDate;
+        seasonLength.forEach((s, integer) -> seasonLength.put(s, seasonLastingTime));
+        IColonyView colonyView = getCurrentColony();
+        if (colonyView != null) {
+            FarmFieldExtra extra = (FarmFieldExtra) farmField;
+            extra.setCurrentSeason(currentSeason);
+            Network.getNetwork().sendToServer(new CropRotationCurrentSeasonMessage(colonyView, farmField.getPosition(), currentSeason));
+            extra.setSeasonCount(season);
+            Network.getNetwork().sendToServer(new CropRotationSeasonCountMessage(colonyView, farmField.getPosition(), season));
+            extra.setCurrentDay(currentDay);
+            Network.getNetwork().sendToServer(new CropRotationCurrentDayMessage(colonyView, farmField.getPosition(), currentDay));
+            seasonLength.forEach((season, duration) -> {
+                extra.setSeasonDuration(season, duration);
+                Network.getNetwork().sendToServer(new CropRotationLengthUpdateMessage(colonyView, farmField.getPosition(), season, duration));
+            });
+        }
         updateAll();
     }
 
@@ -145,6 +191,7 @@ public class WindowCropRotation extends AbstractWindowSkeleton {
             else if (count > seasonLength.get(currentSeason)) count = seasonLength.get(currentSeason);
             currentDay = count;
         } catch (NumberFormatException e) {
+            // FIXME)) 这里的逻辑似乎有些问题，需要理清一个月到底是不是从0开始算
             currentDay = 0;
         }
         IColonyView colonyView = getCurrentColony();

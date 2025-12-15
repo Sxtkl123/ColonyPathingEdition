@@ -9,6 +9,7 @@
           label="$(com.arxyt.colonypathingedition.core.farmfield.rotation_count)" textalign="MIDDLE"/>
     <input id="season-count" pos="145 11" size="45 14" textalign="MIDDLE"/>
     <button id="rotation-close" pos="220 11" size="14 14" textalign="MIDDLE" label="x" color="red"/>
+    <button id="sync" pos="220 30" size="14 14" imagesize="14 14" textalign="MIDDLE" source="colonypathingedition:textures/gui/sync.png" disabled="colonypathingedition:textures/gui/sync_disabled.png"/>
 
     <!-- 当前季节与天数显示 -->
     <text pos="20 30" size="50 12" color="black" textalign="MIDDLE"
@@ -17,7 +18,7 @@
     <text pos="90 30" size="55 12" color="black" textalign="MIDDLE"
           label="$(com.arxyt.colonypathingedition.core.farmfield.season_suffix)"/>
     <input id="current-day" pos="145 29" size="45 14" textalign="MIDDLE"/>
-    <text pos="195 30" size="40 12" color="black"
+    <text pos="195 30" size="20 12" color="black"
           label="$(com.arxyt.colonypathingedition.core.farmfield.day_suffix)"/>
 
     <!-- 第一季 -->
