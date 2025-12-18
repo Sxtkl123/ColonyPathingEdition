@@ -1,3 +1,10 @@
 <window size="190 244" pause="false" lightbox="false">
   <image source="minecolonies:textures/gui/builderhut/builder_paper.png" size="190 244"/>
+  <label size="130 11" pos="30 14" textalign="MIDDLE" color="black"
+         label="Recruit"/>
+  <list id="visitors" size="170, 200" pos="14 30">
+    <box size="100% 25" linewidth="1">
+      <label id="test" size="60 12" pos="20 1" color="black"/>
+    </box>
+  </list>
 </window>
