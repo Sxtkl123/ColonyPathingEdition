@@ -27,7 +27,7 @@ public class TavernRecruitModuleWindow extends AbstractModuleWindow {
 
             @Override
             public void updateElement(int index, Pane rowPane) {
-                rowPane.findPaneOfTypeByID("test", Text.class).setText(Component.literal("Index: " + index));
+                rowPane.findPaneOfTypeByID("test", Text.class).setText(Component.literal("Test Name: " + index));
             }
         });
     }
