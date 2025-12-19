@@ -1,7 +1,9 @@
 package com.arxyt.colonypathingedition.core.window;
 
 import com.arxyt.colonypathingedition.ColonyPathingEdition;
+import com.arxyt.colonypathingedition.core.colony.module.TavernRecruitModuleView;
 import com.ldtteam.blockui.Pane;
+import com.ldtteam.blockui.controls.ItemIcon;
 import com.ldtteam.blockui.controls.Text;
 import com.ldtteam.blockui.views.ScrollingList;
 import com.minecolonies.api.colony.buildings.views.IBuildingView;
@@ -14,20 +16,70 @@ public class TavernRecruitModuleWindow extends AbstractModuleWindow {
 
     private final ScrollingList visitors;
 
-    public TavernRecruitModuleWindow(final IBuildingView building) {
+    private final TavernRecruitModuleView moduleView;
+
+    public TavernRecruitModuleWindow(final IBuildingView building, final TavernRecruitModuleView moduleView) {
         super(building, ColonyPathingEdition.MODID + RESOURCE_STRING);
+        this.moduleView = moduleView;
         visitors = this.window.findPaneOfTypeByID("visitors", ScrollingList.class);
         visitors.enable();
         visitors.show();
         visitors.setDataProvider(new ScrollingList.DataProvider() {
             @Override
             public int getElementCount() {
-                return 10;
+                return TavernRecruitModuleWindow.this.moduleView.getVisitorData().size();
             }
 
             @Override
             public void updateElement(int index, Pane rowPane) {
-                rowPane.findPaneOfTypeByID("test", Text.class).setText(Component.literal("Test Name: " + index));
+                rowPane.findPaneOfTypeByID("name", Text.class)
+                    .setText(Component.literal(TavernRecruitModuleWindow.this.moduleView.getVisitorData().get(index).name()));
+                rowPane.findPaneOfTypeByID("athletics", Text.class).setText(
+                    Component.literal(String.valueOf(
+                        TavernRecruitModuleWindow.this.moduleView.getVisitorData().get(index).athleticsLevel()))
+                );
+                rowPane.findPaneOfTypeByID("dexterity", Text.class).setText(
+                    Component.literal(String.valueOf(
+                        TavernRecruitModuleWindow.this.moduleView.getVisitorData().get(index).dexterityLevel()))
+                );
+                rowPane.findPaneOfTypeByID("strength", Text.class).setText(
+                    Component.literal(String.valueOf(
+                        TavernRecruitModuleWindow.this.moduleView.getVisitorData().get(index).strengthLevel()))
+                );
+                rowPane.findPaneOfTypeByID("agility", Text.class).setText(
+                    Component.literal(String.valueOf(
+                        TavernRecruitModuleWindow.this.moduleView.getVisitorData().get(index).agilityLevel()))
+                );
+                rowPane.findPaneOfTypeByID("stamina", Text.class).setText(
+                    Component.literal(String.valueOf(
+                        TavernRecruitModuleWindow.this.moduleView.getVisitorData().get(index).staminaLevel()))
+                );
+                rowPane.findPaneOfTypeByID("mana", Text.class).setText(
+                    Component.literal(String.valueOf(
+                        TavernRecruitModuleWindow.this.moduleView.getVisitorData().get(index).manaLevel()))
+                );
+                rowPane.findPaneOfTypeByID("adaptability", Text.class).setText(
+                    Component.literal(String.valueOf(
+                        TavernRecruitModuleWindow.this.moduleView.getVisitorData().get(index).adaptabilityLevel()))
+                );
+                rowPane.findPaneOfTypeByID("focus", Text.class).setText(
+                    Component.literal(String.valueOf(
+                        TavernRecruitModuleWindow.this.moduleView.getVisitorData().get(index).focusLevel()))
+                );
+                rowPane.findPaneOfTypeByID("creativity", Text.class).setText(
+                    Component.literal(String.valueOf(
+                        TavernRecruitModuleWindow.this.moduleView.getVisitorData().get(index).creativityLevel()))
+                );
+                rowPane.findPaneOfTypeByID("knowledge", Text.class).setText(
+                    Component.literal(String.valueOf(
+                        TavernRecruitModuleWindow.this.moduleView.getVisitorData().get(index).knowledgeLevel()))
+                );
+                rowPane.findPaneOfTypeByID("intelligence", Text.class).setText(
+                    Component.literal(String.valueOf(
+                        TavernRecruitModuleWindow.this.moduleView.getVisitorData().get(index).intelligenceLevel()))
+                );
+                rowPane.findPaneOfTypeByID("recruitCost", ItemIcon.class).setItem(
+                    TavernRecruitModuleWindow.this.moduleView.getVisitorData().get(index).recruitCost());
             }
         });
     }
