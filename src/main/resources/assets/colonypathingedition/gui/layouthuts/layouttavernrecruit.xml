@@ -1,7 +1,7 @@
 <window size="190 244" pause="false" lightbox="false">
   <image source="minecolonies:textures/gui/builderhut/builder_paper.png" size="190 244"/>
   <label size="130 11" pos="30 14" textalign="MIDDLE" color="black"
-         label="Recruit"/>
+         label="$(com.arxyt.colonypathingedition.core.tavern_recruit)"/>
   <list id="visitors" size="164 200" pos="14 30">
     <box size="100% 60" linewidth="1">
       <label id="name" size="100% 11" pos="3 2" color="black"/>
@@ -30,7 +30,7 @@
       <label id="intelligence" pos="142 26" size="12 11" color="black" textalign="MIDDLE" label="99"/>
 
       <itemicon id="recruitCost" size="16 16" pos="92 40" item="minecraft:command_block"/>
-      <buttonimage id="recruitBtn" source="minecolonies:textures/gui/builderhut/builder_button_quite_small.png" size="44 16" pos="110 40" label="Recruit" color="black"/>
+      <buttonimage id="recruitBtn" source="minecolonies:textures/gui/builderhut/builder_button_quite_small.png" size="44 16" pos="110 40" label="$(com.arxyt.colonypathingedition.core.tavern.recruit)" color="black"/>
     </box>
   </list>
 </window>
