@@ -2,11 +2,14 @@ package com.arxyt.colonypathingedition.core.window;
 
 import com.arxyt.colonypathingedition.ColonyPathingEdition;
 import com.arxyt.colonypathingedition.core.colony.module.TavernRecruitModuleView;
+import com.arxyt.colonypathingedition.core.message.TavernRecruitMessage;
 import com.ldtteam.blockui.Pane;
+import com.ldtteam.blockui.controls.Button;
 import com.ldtteam.blockui.controls.ItemIcon;
 import com.ldtteam.blockui.controls.Text;
 import com.ldtteam.blockui.views.ScrollingList;
 import com.minecolonies.api.colony.buildings.views.IBuildingView;
+import com.minecolonies.core.Network;
 import com.minecolonies.core.client.gui.AbstractModuleWindow;
 import net.minecraft.network.chat.Component;
 
@@ -22,6 +25,16 @@ public class TavernRecruitModuleWindow extends AbstractModuleWindow {
         super(building, ColonyPathingEdition.MODID + RESOURCE_STRING);
         this.moduleView = moduleView;
         visitors = this.window.findPaneOfTypeByID("visitors", ScrollingList.class);
+        this.updateList();
+    }
+
+    @Override
+    public void onOpened() {
+        super.onOpened();
+        updateList();
+    }
+
+    public void updateList() {
         visitors.enable();
         visitors.show();
         visitors.setDataProvider(new ScrollingList.DataProvider() {
@@ -80,6 +93,11 @@ public class TavernRecruitModuleWindow extends AbstractModuleWindow {
                 );
                 rowPane.findPaneOfTypeByID("recruitCost", ItemIcon.class).setItem(
                     TavernRecruitModuleWindow.this.moduleView.getVisitorData().get(index).recruitCost());
+                rowPane.findPaneOfTypeByID("recruitBtn", Button.class).setHandler(button -> {
+                    int visitorId = TavernRecruitModuleWindow.this.moduleView.getVisitorData().get(index).id();
+                    Network.getNetwork().sendToServer(new TavernRecruitMessage(TavernRecruitModuleWindow.this.buildingView, visitorId));
+                    updateList();
+                });
             }
         });
     }

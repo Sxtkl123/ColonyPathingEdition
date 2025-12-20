@@ -15,9 +15,11 @@ public class TavernRecruitModuleView extends AbstractBuildingModuleView implemen
 
     @Override
     public void deserialize(@NotNull FriendlyByteBuf buf) {
+        visitorData.clear();
         int size = buf.readInt();
         for (int i = 0; i < size; i++) {
             VisitorData data = new VisitorData(
+                buf.readInt(),
                 buf.readInt(),
                 buf.readInt(),
                 buf.readInt(),
@@ -52,6 +54,7 @@ public class TavernRecruitModuleView extends AbstractBuildingModuleView implemen
     }
 
     public record VisitorData(
+        int id,
         int athleticsLevel,
         int dexterityLevel,
         int strengthLevel,
